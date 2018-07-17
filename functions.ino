@@ -59,15 +59,7 @@ void checkCut(){
 void autopilot(){
    checkCut();
    blinkMode();
-   //burnMode();
    Fixblink();
-   readTemp();
-   if(bacon){
-    beacon();
-   }
-   if(backup){
-    sendData();
-   }
    if(shift==false){
     detectShift(x,y,z);
    }
@@ -266,14 +258,6 @@ burnAction::burnAction(int on, int off, int ont, int stag, unsigned long tim){
   stagger = stag;
   Time = tim;
 }*/
-void readTemp(){
-  static unsigned long Timer = 0;
-  if(millis()-Timer>= TEMPTIME){
-    TempSensors.requestTemperatures();
-    Temperature = TempSensors.getTempCByIndex(0);
-    Timer = millis();
-  }
-}
 /*void burnMode(){
   //if we are done with the burnblinking we will start the burn
   if(currentBlink->getName()=="burnBlink"&&currentBlink->getOnTimes()==0)
@@ -298,7 +282,7 @@ void readTemp(){
   }
   currentBurn->Burn();
   
-}*/
+}
 void beacon(){
   if(millis()-beaconTimer>10000){ //if 10 seconds have passed
     String toSend = "";
@@ -335,6 +319,6 @@ void sendData(){
     }
     backupTimer = millis();
   }
-} 
+}*/ 
   
 

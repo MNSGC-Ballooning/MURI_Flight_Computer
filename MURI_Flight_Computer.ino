@@ -1,7 +1,4 @@
 
-
-
-
 //Libraries
 //this requires a special modded version of the TinyGPS library because for whatever
 //reason the TinyGPS library does not include a "Fix" variable. the library can be found here:
@@ -16,9 +13,10 @@
 #include <Smart.h>
 
 //==============================================================
-//               Code For Tungsten/Razor Cutter
-//                 Danny Toth Summer 2017 - tothx051 and Simon Peterson- pet00291
-//                 Edited for MURI Project by Garrett Ailts- ailts008
+//               Code For MURI Flight Computer
+//               Written by Garrett Ailts - ailts008 Summer 2018 
+//               Adapted from TungstenCut.ino by Danny Toth Summer 2017 - tothx051 and Simon Peterson- pet00291
+//                 
 //==============================================================
 
 //Version Description: Working xBee with limited commands (add/sub time, request time/cutdown). SD logging with poor formatting.
@@ -55,8 +53,6 @@ bool max_BackUp = true;
 boolean altCut = true;  //set to true to perfom an altitude cutdown. can be toggled through Xbee.
 int OPC_srate=1400;     //OPC sample rate in milliseconds.
 
-
-
 //=============================================================================================================================================
 //=============================================================================================================================================
 
@@ -79,60 +75,6 @@ int OPC_srate=1400;     //OPC sample rate in milliseconds.
      -------------------------------------------------------------------------------------------------------------------------
 */
 
-//~~~~~~~~~~~~~~~Pin Variables~~~~~~~~~~~~~~~
-#define ledPin 3          //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
-#define chipSelect 4      //SD Card pin
-#define ledSD 5           //Pin which controls the SD LED
-#define fix_led 6         //led  which blinks for fix
-#define smartPin2 7       //SMART unit 2 PWM
-#define razorCutter 23    //Second razorcutter
-#define TempPin 9
-#define smartPin1 2       //SMART unit 1 PWM
-#define ONE_WIRE_BUS 24   //Active heating temp sensor
-#define heatBlanket 22    //Heat blanket relay
-//~~~~~~~~~~~~~~~Command Variables~~~~~~~~~~~~~~~
-//variables for the altitude cutting command
-boolean bacon = false;  //true for beacon updates
-boolean backup = true; //true for data backup to alphasense payload
-//~~~~~~~~~~~~~~~Timing Variables~~~~~~~~~~~~~~~
-unsigned long beaconTimer= 0;
-unsigned long backupTimer = 0;
-boolean burnerON = false;
-long masterTimer = long(Master_Timer) * 1000;
-long floatTimer = long(float_Time)* 1000;
-long minBackUpTimer = long(minBackUp_Timer) * 1000;
-long maxBackUpTimer = long(maxBackUp_Timer) * 1000;
-unsigned long floatStart = 0;
-extern boolean floating = false;
-boolean recovery = false;
-int altDelay = 5;
-boolean delayBurn = false;
-//blinnking variables
-boolean LEDon = false;
-//variables for LED fix blinking time
-#define FixDelay 1000
-#define noFixDelay 15000
-//temperature sensor setup
-OneWire oneWire(TempPin);                  //setup onewire bus for temp sensor
-DallasTemperature TempSensors(&oneWire);//declare the sensor
-String Temperature = " ";              //the temperature
-#define TEMPTIME 5000                      //how often the temperature should be read
-
-/////////////Active Heating//////////////////
-OneWire oneWire2(ONE_WIRE_BUS);
-DallasTemperature TempSensors2(&oneWire2);
-int tPin2 = 2;
-int hold;
-float t2;
-float samp_freq=3000;
-float t_low = 283;
-float t_high = 289;
-String data;
-String heaterStatus;
-String temp_filename = "";
-File tempLog;
-unsigned long t;
-
 class action {
   protected:
     unsigned long Time;
@@ -152,6 +94,44 @@ class Blink: public action {
     Blink(int on, int off, int times, String NAM, unsigned long tim);
     int getOnTimes();
 };
+
+/////////////////////////////////////////////
+/////////////////Define Pins/////////////////
+/////////////////////////////////////////////
+#define ledPin 3          //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
+#define chipSelect 4      //SD Card pin
+#define ledSD 5           //Pin which controls the SD LED
+#define fix_led 6         //led  which blinks for fix
+#define smartPin2 7       //SMART unit 2 PWM
+#define smartPin1 2       //SMART unit 1 PWM
+#define ONE_WIRE_BUS 28   //Temp Sensors
+#define TWO_WIRE_BUS 29
+#define THREE_WIRE_BUS 30
+#define FOUR_WIRE_BUS 31
+#define OPC_ON 22         //Relay switches
+#define OPC_OFF 23
+#define OPC_HEATER_ON 24
+#define OPC_HEATER_OFF 25
+#define BAT_HEATER_ON 26
+#define BAT_HEATER_OFF 27
+///////////////////////////////////////////////
+///////////////Command Variables///////////////
+///////////////////////////////////////////////
+//variables for the altitude cutting command
+boolean bacon = false;  //true for beacon updates
+boolean backup = true; //true for data backup to alphasense payload
+//~~~~~~~~~~~~~~~Timing Variables~~~~~~~~~~~~~~~
+//////////////////////////////////////////
+//////////////Communication///////////////
+//////////////////////////////////////////
+boolean LEDon = false;
+//variables for LED fix blinking time
+#define FixDelay 1000
+#define noFixDelay 15000
+Blink recoveryBlink = Blink(200, 2000, -1, "recoveryBlink", 0);
+Blink countdownBlink = Blink(200, 850, -1, "countdownBlink", 0);
+Blink* currentBlink = &countdownBlink;
+
 /*class burnAction: public action {
   private:
     int ondelay;
@@ -164,17 +144,26 @@ class Blink: public action {
     int getOnTimes();
 };*/
 
+/////////////////////////////////////////////
+/////////////Sensor Variables////////////////
+/////////////////////////////////////////////
 
-//main action LED blinking commands
-Blink recoveryBlink = Blink(200, 2000, -1, "recoveryBlink", 0);
-Blink countdownBlink = Blink(200, 850, -1, "countdownBlink", 0);
-Blink* currentBlink = &countdownBlink;
-/*burnAction idleBurn = burnAction(0, 0, -1, 200, 0);
-burnAction* currentBurn = &idleBurn;*/
+//Dallas Digital Temp Sensors
+OneWire oneWire1(ONE_WIRE_BUS);
+OneWire oneWire2(TWO_WIRE_BUS);
+OneWire oneWire3(THREE_WIRE_BUS);
+OneWire oneWire4(FOUR_WIRE_BUS);
+DallasTemperature sensor1(&oneWire1);
+DallasTemperature sensor2(&oneWire2);
+DallasTemperature sensor3(&oneWire3);
+DallasTemperature sensor4(&oneWire4);
+float t1;
+float t2;
+float t3;
+float t4;
 
-//GPS Stuff
-//copernicus version
-//Adafruit_GPS GPS(&Serial1); //Constructor for GPS object
+
+//Copernicus GPS
 TinyGPSPlus GPS;
 int GPSstartTime;
 boolean newDay = false;
@@ -185,21 +174,53 @@ boolean checkingCut = false;
 boolean scythed = false;
 boolean newData = false;
 int checkTime;
-//SD Stuff
-File eventLog;
-File GPSlog;
-String Ename = "";
-String GPSname = "";
-boolean SDcard = true;
 
-//Accelerometer Stuff
+//Accelerometer
 ADXL345 adxl = ADXL345();
 boolean shift = false;
 int x,y,z;
 
-//SMART Stuff
+//HoneyWell Pressure Sensor 
+int pressure = 0;
+float pressureV = 0;
+float psi = 0;
+
+///////////////////////////////////////////
+//////////////Control System///////////////
+///////////////////////////////////////////
+
+//2SMART
 Smart smartOne = Smart(smartPin1);
 Smart smartTwo = Smart(smartPin2);
+unsigned long beaconTimer= 0;
+boolean burnerON = false;
+long masterTimer = long(Master_Timer) * 1000;
+long floatTimer = long(float_Time)* 1000;
+long minBackUpTimer = long(minBackUp_Timer) * 1000;
+long maxBackUpTimer = long(maxBackUp_Timer) * 1000;
+unsigned long floatStart = 0;
+extern boolean floating = false;
+boolean recovery = false;
+int altDelay = 5;
+boolean delayBurn = false;
+
+//Heating
+float t_low = 283;
+float t_high = 289;
+String Bat_heaterStatus;
+String OPC_heaterStatus;
+boolean coldBattery = false;
+boolean coldOPC = false;
+
+//////////////////////////////////////////
+///////////////Data Logging///////////////
+//////////////////////////////////////////
+File Flog;
+String data;
+String Fname = "";
+File eventLog;
+String Ename = "";
+boolean SDcard = true;
 
 void setup() {
   // initialize pins
@@ -207,10 +228,13 @@ void setup() {
   pinMode(ledSD, OUTPUT);
   pinMode(chipSelect, OUTPUT);    // this needs to be be declared as output for data logging to work
   pinMode(fix_led, OUTPUT);
-  pinMode(heatBlanket, OUTPUT);
-  pinMode(tPin2, INPUT);
-  TempSensors.begin(); //set up temperature sensors
-
+  pinMode(OPC_ON, OUTPUT);
+  pinMode(OPC_OFF, OUTPUT);
+  pinMode(OPC_HEATER_ON, OUTPUT);
+  pinMode(OPC_HEATER_OFF, OUTPUT);
+  pinMode(BAT_HEATER_ON, OUTPUT);
+  pinMode(BAT_HEATER_OFF, OUTPUT);
+  
   //Initialize SMART
   smartOne.initialize();
   smartTwo.initialize();
@@ -218,9 +242,11 @@ void setup() {
   //initiate GPS serial
    Serial1.begin(4800);    //
 
-  //Initiate active heating temp sensors
-  TempSensors2.begin();
-  
+  //Initiate Temp Sensors
+  sensor1.begin();
+  sensor2.begin();
+  sensor3.begin();
+  sensor4.begin(); 
 
   // initiate xbee
   Serial.begin(9600);
@@ -254,19 +280,17 @@ void setup() {
       break;
     }
   }
-
   sendXBee("event log created: " + Ename);
 
-  //Same but for GPS
+  //Same but for Flight Log
   for (int i = 0; i < 100; i++) {
-    if (!SD.exists("GPS" + String(i / 10) + String(i % 10) + ".csv")) {
-      GPSname = "GPS" + String(i / 10) + String(i % 10) + ".csv";
-      openGPSlog();
+    if (!SD.exists("Log" + String(i / 10) + String(i % 10) + ".csv")) {
+      Fname = "Log" + String(i / 10) + String(i % 10) + ".csv";
+      openFlightlog();
       break;
     }
   }
-
-  sendXBee("GPS log created: " + GPSname);
+  sendXBee("Flight log created: " + Fname);
 
   /*  while (!eventLog) {                   //both power and data LEDs will blink together if card is inserted but file fails to be created                 /
         sendXBee("Eventlog file creation failed");
@@ -287,20 +311,9 @@ void setup() {
         delay(1500);
     }*/
   
-   for (int i = 0; i < 100; i++) {
-    if (!SD.exists("tempLog" + String(i / 10) + String(i % 10) + ".csv")) {
-      temp_filename = "tempLog" + String(i / 10) + String(i % 10) + ".csv";
-      openTemplog();
-      break;
-    }
-  }
-  
-  sendXBee("Temp log created: " + temp_filename);
-  
-  
-  String GPSHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Temperature";
-  GPSlog.println(GPSHeader);//set up GPS log format
-  sendXBee("GPS header added");
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI)";
+  Flog.println(FHeader);//set up GPS log format
+  sendXBee("Flight log header added");
 
 
   String eventLogHeader = "Time, Sent/Received, Command";
@@ -308,16 +321,15 @@ void setup() {
   sendXBee("Eventlog header added");
 
   closeEventlog();
-  closeGPSlog();
+  closeFlightlog();
   
 
   sendXBee("Setup Complete");
 
 }
-void loop() {
-  
+void loop(){
   xBeeCommand(); //Checks for xBee commands
-  updateGPS();   //updates the GPS
+  updateSensors();   //updates the GPS
   autopilot();   //autopilot function that checks status and runs actions
   actHeat();
 }

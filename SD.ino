@@ -1,6 +1,5 @@
 boolean eventlogOpen = false;
-boolean GPSlogOpen = false;
-boolean TemplogOpen = false;
+boolean FlightlogOpen = false;
 //The following functions handle both opening files and controlling the data indicator LED
 
 void openEventlog() {
@@ -8,23 +7,6 @@ void openEventlog() {
     eventLog = SD.open(Ename, FILE_WRITE);
     eventlogOpen = true;
     digitalWrite(ledSD, HIGH);
-  }
-}
-
-void openTemplog() {
-  if (!TemplogOpen&&SDcard) {
-    tempLog = SD.open(temp_filename, FILE_WRITE); // open file
-    TemplogOpen = true;
-    digitalWrite(ledSD, HIGH);
-  }
-}
-
-void closeTemplog() {
-  if (TemplogOpen&&SDcard) {
-    tempLog.close();
-    TemplogOpen = false;
-    if (!TemplogOpen)
-      digitalWrite(ledSD, LOW);
   }
 }
 
@@ -36,19 +18,19 @@ void closeEventlog() {
       digitalWrite(ledSD, LOW);
   }
 }
-void openGPSlog() {
-  if (!GPSlogOpen&&SDcard) {
-    GPSlog = SD.open(GPSname, FILE_WRITE);;
-    GPSlogOpen = true;
+void openFlightlog() {
+  if (!FlightlogOpen&&SDcard) {
+    Flog = SD.open(Fname, FILE_WRITE);
+    FlightlogOpen = true;
     digitalWrite(ledSD, HIGH);
   }
 }
 
-void closeGPSlog() {
-  if (GPSlogOpen&&SDcard) {
-    GPSlog.close();
-    GPSlogOpen = false;
-    if (!GPSlogOpen)
+void closeFlightlog() {
+  if (FlightlogOpen&&SDcard) {
+    Flog.close();
+    FlightlogOpen = false;
+    if (!FlightlogOpen)
       digitalWrite(ledSD, LOW);
   }
 }

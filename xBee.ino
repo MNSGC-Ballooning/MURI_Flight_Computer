@@ -210,10 +210,10 @@ commandTime = millis();
     logCommand(Com, "beacon disabled");
     sendXBee("beacon disabled");
   }
-  else if(Com.substring(0,2).equals("TE")){
+  /*else if(Com.substring(0,2).equals("TE")){
     logCommand(Com, "poll temperature");
     sendXBee("Battery Temperature: " + Temperature);
-  }
+  }*/
   else if(Com.substring(0,2).equals("PF")){
     logCommand(Com, "poll float time");
     sendXBee("Float time in seconds: " + String(floatTimer/1000));

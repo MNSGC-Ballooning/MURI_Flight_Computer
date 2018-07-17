@@ -1,67 +1,45 @@
 void actHeat(){
-                       // set flight-time variable to Arduino internal clock
-  
-  ////////// Temperature monitoring ////////// 
-  
-  
-  TempSensors2.requestTemperatures();            // request temp from digital temp sensor...
-  t2 = TempSensors2.getTempCByIndex(0);          // digital temp in celcius
-  t2 = t2 + 273.15;                         // digital temp in Kelvin
-
-  ////////// Heater operation //////////
-
-  // "test-fire" heater for 3 minutes after Arduino clock has started; NOTE heater does not depend on temperature values during this time!
-  if (t<(60*3)){
-   digitalWrite(heatBlanket, HIGH); 
-   heaterStatus = "on";
-  }
-  
+  const char ON[] = "on";
+  const char OFF[] = "of";
   // Compare digital temp. to critical temp.:  
-  else{
-    if (t2 < t_low) {
-      hold = 1; // if temperature is below low critical temperature
-    }
-    if (t2 > t_high) {
-      hold = 0; // if temperature is above high critical temperature
-     }    
-
-  // turn heater on/off:
-    if (hold==1){
-    digitalWrite(heatBlanket, HIGH); 
-    heaterStatus = "on";
-    }
-   else {
-    digitalWrite(heatBlanket, LOW);
-    heaterStatus = "off";
-    }  
+  if(t3 < t_low) {
+    coldBattery = true; // if temperature is below low critical temperature
+  }
+  if(t3 > t_high) {
+    coldBattery = false; // if temperature is above high critical temperature
+  }
+  if(t4 > t_low){
+    coldOPC = true;    
+  }
+  if(t4 > t_high){
+    coldOPC = false;
   }
 
-  ////////// Datalogging //////////
-  
-  data = "";           
-  data += t2;               // log value of digital temp.
-  data += ",";
-  data += heaterStatus;     // log heater status (either "on" or "off")
-  data += ",";
-  data += flightTimeStr();    // log flight time; flightTime is a user-defined function
-
- ////////// Data Writing //////////
-
- openTemplog();    // open file
-
- if (tempLog) {
-    //Serial.println("tempLog.csv opened...");    // file open successfully 
-    tempLog.println(data);
-    closeTemplog();
-    
+// turn heater on/off:
+  if(coldBattery && strcmp(Bat_heaterStatus.c_str(),OFF)==0){
+    digitalWrite(BAT_HEATER_ON, HIGH);
+    delay(10);
+    digitalWrite(BAT_HEATER_ON, LOW); 
+    Bat_heaterStatus = "on";
   }
-  else {
-             // file open failed
-    return;
+  else if(!coldBattery && strcmp(Bat_heaterStatus.c_str(),ON)==0){
+    digitalWrite(BAT_HEATER_OFF, HIGH);
+    delay(10);
+    digitalWrite(BAT_HEATER_OFF, LOW);
+    Bat_heaterStatus = "off";
   }
-
- delay(samp_freq); // delay 1 second i.e. do all that every 1 second 
-
+  if(coldOPC && strcmp(OPC_heaterStatus.c_str(),OFF)==0){
+    digitalWrite(OPC_HEATER_ON, HIGH);
+    delay(10);
+    digitalWrite(OPC_HEATER_ON, LOW);
+    OPC_heaterStatus = "on"; 
+  }
+  else if(!coldOPC && strcmp(OPC_heaterStatus.c_str(),ON)==0){
+    digitalWrite(OPC_HEATER_OFF, HIGH);
+    delay(10);
+    digitalWrite(OPC_HEATER_OFF, LOW);
+    OPC_heaterStatus = "off";
+  }
 }
 
 

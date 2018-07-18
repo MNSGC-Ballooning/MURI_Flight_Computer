@@ -60,6 +60,9 @@ void autopilot(){
    checkCut();
    blinkMode();
    Fixblink();
+   if(bacon){
+    beacon();
+   }
    if(shift==false){
     detectShift(x,y,z);
    }
@@ -300,25 +303,25 @@ void beacon(){
     }
     beaconTimer = millis();
   }
-}
+}*/
 
-void sendData(){
+void beacon(){
   if(millis()-backupTimer>OPC_srate){ //if 1.4 seconds have passed
-    String toSend = "";
+    //String toSend = "";
     if(GPS.Fix && GPS.altitude.feet()!= 0){
-      toSend += (String(GPS.time.hour())+ "," + String(GPS.time.minute()) + "," + String(GPS.time.second()) + ","
-      + String(GPS.location.lat()) + "," + String(GPS.location.lng()) + "," + String(GPS.altitude.feet()) +
-      "," + Temperature + "," + String(x) + "," + String(y) + "," + String(z));
-      sendXBee(toSend);
+      //toSend += (String(GPS.time.hour())+ "," + String(GPS.time.minute()) + "," + String(GPS.time.second()) + ","
+      //+ String(GPS.location.lat()) + "," + String(GPS.location.lng()) + "," + String(GPS.altitude.feet()) +
+      //"," + Temperature + "," + String(x) + "," + String(y) + "," + String(z));
+      sendXBee(data);
       }
     else{
-      toSend += (String(GPS.time.hour()) + "," + String(GPS.time.minute()) + "," + String(GPS.time.second()) + ","
-      + "0" + "," + "0" + "," + "0" + "," + Temperature + "," + String(x) + "," + String(y) + "," + String(z));
-      sendXBee(toSend);
+     // toSend += (String(GPS.time.hour()) + "," + String(GPS.time.minute()) + "," + String(GPS.time.second()) + ","
+      //+ "0" + "," + "0" + "," + "0" + "," + Temperature + "," + String(x) + "," + String(y) + "," + String(z));
+      sendXBee(data);
       
     }
     backupTimer = millis();
   }
-}*/ 
+} 
   
 

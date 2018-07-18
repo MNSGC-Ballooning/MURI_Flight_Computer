@@ -118,7 +118,7 @@ class Blink: public action {
 ///////////////Command Variables///////////////
 ///////////////////////////////////////////////
 //variables for the altitude cutting command
-boolean bacon = false;  //true for beacon updates
+boolean bacon = true;  //true for beacon updates
 boolean backup = true; //true for data backup to alphasense payload
 //~~~~~~~~~~~~~~~Timing Variables~~~~~~~~~~~~~~~
 //////////////////////////////////////////
@@ -203,6 +203,7 @@ extern boolean floating = false;
 boolean recovery = false;
 int altDelay = 5;
 boolean delayBurn = false;
+long backupTimer = 0;
 
 //Heating
 float t_low = 283;

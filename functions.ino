@@ -60,6 +60,7 @@ void autopilot(){
    checkCut();
    blinkMode();
    Fixblink();
+   opcControl();
    if(bacon){
     beacon();
    }
@@ -322,6 +323,36 @@ void beacon(){
     }
     backupTimer = millis();
   }
-} 
+}
+void opcControl(){
+  static byte checktimes;
+  if(!opcON && GPS.altitude.feet()>=75,000){
+    checktimes++;
+    if(checktimes>=15){
+      opcRelay.openRelay();
+      opcON=true;
+    }
+  }
+}
+//Relay class functions
+Relay::Relay(int on,int off){
+  onPin=on;
+  offPin=off;
+}
+void Relay::init(){
+  pinMode(onPin,OUTPUT);
+  pinMode(offPin,OUTPUT);
+}
+void Relay::openRelay(){
+  digitalWrite(onPin,HIGH);
+  delay(10);
+  digitalWrite(onPin,LOW);
+}
+void Relay::closeRelay(){
+  digitalWrite(offPin,HIGH);
+  delay(10);
+  digitalWrite(onPin,LOW);
+}
+
   
 

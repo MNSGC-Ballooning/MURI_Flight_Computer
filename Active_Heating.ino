@@ -17,27 +17,19 @@ void actHeat(){
 
 // turn heater on/off:
   if(coldBattery && strcmp(Bat_heaterStatus.c_str(),OFF)==0){
-    digitalWrite(BAT_HEATER_ON, HIGH);
-    delay(10);
-    digitalWrite(BAT_HEATER_ON, LOW); 
+    batHeatRelay.openRelay();
     Bat_heaterStatus = "on";
   }
   else if(!coldBattery && strcmp(Bat_heaterStatus.c_str(),ON)==0){
-    digitalWrite(BAT_HEATER_OFF, HIGH);
-    delay(10);
-    digitalWrite(BAT_HEATER_OFF, LOW);
+    batHeatRelay.closeRelay();
     Bat_heaterStatus = "off";
   }
   if(coldOPC && strcmp(OPC_heaterStatus.c_str(),OFF)==0){
-    digitalWrite(OPC_HEATER_ON, HIGH);
-    delay(10);
-    digitalWrite(OPC_HEATER_ON, LOW);
+    opcHeatRelay.openRelay();
     OPC_heaterStatus = "on"; 
   }
   else if(!coldOPC && strcmp(OPC_heaterStatus.c_str(),ON)==0){
-    digitalWrite(OPC_HEATER_OFF, HIGH);
-    delay(10);
-    digitalWrite(OPC_HEATER_OFF, LOW);
+    opcHeatRelay.closeRelay();
     OPC_heaterStatus = "off";
   }
 }

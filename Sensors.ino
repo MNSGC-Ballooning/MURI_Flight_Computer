@@ -45,7 +45,7 @@ void updateSensors() {
           lastGPS = GPS.time.hour() * 3600 + GPS.time.minute() * 60 + GPS.time.second();
         }
         data += (String(x) + "," + String(y) + "," + String(z) + ","); 
-        data += (String(t1) + "," +String(t2) + "," + String(t3) + String(t4) + ",");
+        data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
         data += (Bat_heaterStatus + "," + OPC_heaterStatus + ",");
         data += (String(psi));
         Flog.println(data);

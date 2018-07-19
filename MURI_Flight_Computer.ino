@@ -6,7 +6,6 @@
 #include <SPI.h>
 #include <SD.h>
 #include <TinyGPS++.h>
-#include <SoftwareSerial.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <SparkFun_ADXL345.h>      //accelerometer library
@@ -94,6 +93,16 @@ class Blink: public action {
     Blink(int on, int off, int times, String NAM, unsigned long tim);
     int getOnTimes();
 };
+class Relay {
+  protected:
+    int onPin;
+    int offPin;
+  public:
+    Relay(int on, int off);
+    void init();
+    void openRelay();
+    void closeRelay();;
+};
 
 /////////////////////////////////////////////
 /////////////////Define Pins/////////////////
@@ -114,6 +123,13 @@ class Blink: public action {
 #define OPC_HEATER_OFF 25
 #define BAT_HEATER_ON 26
 #define BAT_HEATER_OFF 27
+///////////////////////////////////////////////
+////////////////Power Relays///////////////////
+///////////////////////////////////////////////
+Relay opcRelay(OPC_ON, OPC_OFF);
+Relay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
+Relay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
+boolean opcON = false;
 ///////////////////////////////////////////////
 ///////////////Command Variables///////////////
 ///////////////////////////////////////////////
@@ -229,12 +245,15 @@ void setup() {
   pinMode(ledSD, OUTPUT);
   pinMode(chipSelect, OUTPUT);    // this needs to be be declared as output for data logging to work
   pinMode(fix_led, OUTPUT);
-  pinMode(OPC_ON, OUTPUT);
-  pinMode(OPC_OFF, OUTPUT);
-  pinMode(OPC_HEATER_ON, OUTPUT);
-  pinMode(OPC_HEATER_OFF, OUTPUT);
-  pinMode(BAT_HEATER_ON, OUTPUT);
-  pinMode(BAT_HEATER_OFF, OUTPUT);
+
+  //Initialize Relays
+  opcRelay.init();
+  opcHeatRelay.init();
+  batHeatRelay.init();
+  opcRelay.closeRelay();
+  opcHeatRelay.closeRelay();
+  batHeatRelay.closeRelay();
+
   
   //Initialize SMART
   smartOne.initialize();

@@ -224,8 +224,8 @@ long backupTimer = 0;
 //Heating
 float t_low = 283;
 float t_high = 289;
-String Bat_heaterStatus;
-String OPC_heaterStatus;
+String Bat_heaterStatus = "";
+String OPC_heaterStatus = "";
 boolean coldBattery = false;
 boolean coldOPC = false;
 
@@ -238,6 +238,7 @@ String Fname = "";
 File eventLog;
 String Ename = "";
 boolean SDcard = true;
+  
 
 void setup() {
   // initialize pins
@@ -269,7 +270,7 @@ void setup() {
   sensor4.begin(); 
 
   // initiate xbee
-  Serial.begin(9600);
+  Serial.begin(115200);
   sendXBee("xBee begin");
   //Initiate GPS Data lines
   sendXBee("GPS begin");

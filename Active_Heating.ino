@@ -1,6 +1,6 @@
 void actHeat(){
   const char ON[] = "on";
-  const char OFF[] = "of";
+  const char OFF[] = "off";
   // Compare digital temp. to critical temp.:  
   if(t3 < t_low) {
     coldBattery = true; // if temperature is below low critical temperature
@@ -15,7 +15,7 @@ void actHeat(){
     coldOPC = false;
   }
 
-// turn heater on/off:
+//turn heater on/off:
   if(coldBattery && strcmp(Bat_heaterStatus.c_str(),OFF)==0){
     batHeatRelay.openRelay();
     Bat_heaterStatus = "on";
@@ -32,6 +32,7 @@ void actHeat(){
     opcHeatRelay.closeRelay();
     OPC_heaterStatus = "off";
   }
+  Serial.println("I made it here");
 }
 
 

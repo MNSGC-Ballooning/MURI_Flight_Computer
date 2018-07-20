@@ -49,11 +49,13 @@ void updateSensors() {
         data += (Bat_heaterStatus + "," + OPC_heaterStatus + ",");
         data += (String(psi));
         Flog.println(data);
+        delay(10);
         closeFlightlog();
       }
     }
     prevTime=millis();
   }
+  
 }
 int getGPStime() {
   return (GPS.time.hour() * 3600 + GPS.time.minute() * 60 + GPS.time.second());

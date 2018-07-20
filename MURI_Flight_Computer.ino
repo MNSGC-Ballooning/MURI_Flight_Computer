@@ -349,8 +349,13 @@ void setup() {
 
 }
 void loop(){
+  Serial.println("Main loop: calling xBeeCommand()");
   xBeeCommand(); //Checks for xBee commands
+  Serial.println("xBeeCommand() complete, calling updateSensors()");
   updateSensors();   //updates the GPS
+  Serial.println("updateSensors() complete, calling autopilot()");
   autopilot();   //autopilot function that checks status and runs actions
+  Serial.println("autopilot() complete, calling actHeat()");
   actHeat();
+  Serial.println("actHeat() complete, loop end.");
 }

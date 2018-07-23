@@ -38,7 +38,7 @@
 //  /_____/\__,_/_/  /_/ /_/  /_____/\___/_/\__,_/\__, /   \____/\____/_/ /_/_/ /_/\__, /\__,_/_/   \__,_/\__/_/\____/_/ /_/
 //                                               /____/                           /____/
 
-int Master_Timer = 14400; //Flight master timer that terminates flight when the timer runs out! Changeable via xBee.
+int Master_Timer = 14400; //Flight master timer that terminates flight when the timer runs out! Make longer
 bool judgementDay = true;   //set to true to activate master timer. can be changed through Xbee
 int float_Time = 300; //Float Duration in seconds
 bool marryPoppins = true;
@@ -129,13 +129,13 @@ class Relay {
 Relay opcRelay(OPC_ON, OPC_OFF);
 Relay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
 Relay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
-boolean opcON = false;
+boolean  opcON = false;
 ///////////////////////////////////////////////
 ///////////////Command Variables///////////////
 ///////////////////////////////////////////////
 //variables for the altitude cutting command
-boolean bacon = true;  //true for beacon updates
-boolean backup = true; //true for data backup to alphasense payload
+boolean  bacon = false;  //true for beacon updates
+boolean  backup = false; //true for data backup to alphasense payload
 //~~~~~~~~~~~~~~~Timing Variables~~~~~~~~~~~~~~~
 //////////////////////////////////////////
 //////////////Communication///////////////
@@ -200,7 +200,7 @@ int x,y,z;
 int pressure = 0;
 float pressureV = 0;
 float psi = 0;
-
+int i;
 ///////////////////////////////////////////
 //////////////Control System///////////////
 ///////////////////////////////////////////
@@ -218,14 +218,13 @@ unsigned long floatStart = 0;
 extern boolean floating = false;
 boolean recovery = false;
 int altDelay = 5;
-boolean delayBurn = false;
 long backupTimer = 0;
 
 //Heating
 float t_low = 283;
 float t_high = 289;
-String Bat_heaterStatus = "";
-String OPC_heaterStatus = "";
+String Bat_heaterStatus = "off";
+String OPC_heaterStatus = "off";
 boolean coldBattery = false;
 boolean coldOPC = false;
 
@@ -241,19 +240,37 @@ boolean SDcard = true;
   
 
 void setup() {
-  // initialize pins
-  pinMode(ledPin, OUTPUT);
-  pinMode(ledSD, OUTPUT);
-  pinMode(chipSelect, OUTPUT);    // this needs to be be declared as output for data logging to work
-  pinMode(fix_led, OUTPUT);
+  //Initiate Serial
+  Serial.begin(9600);
+
+  //Initiate Temp Sensors
+  sensor1.begin();
+  sensor2.begin();
+  sensor3.begin();
+  sensor4.begin();
 
   //Initialize Relays
   opcRelay.init();
   opcHeatRelay.init();
   batHeatRelay.init();
+  opcRelay.openRelay();
+  opcHeatRelay.openRelay();
+  batHeatRelay.openRelay();
+  delay(1000);
   opcRelay.closeRelay();
   opcHeatRelay.closeRelay();
   batHeatRelay.closeRelay();
+
+  
+  // initialize pins
+  pinMode(ledPin, OUTPUT);
+  pinMode(ledSD, OUTPUT);
+  pinMode(chipSelect, OUTPUT);    // this needs to be be declared as output for data logging to work
+  pinMode(fix_led, OUTPUT);
+  pinMode(ONE_WIRE_BUS,INPUT);
+  pinMode(TWO_WIRE_BUS,INPUT);
+  pinMode(THREE_WIRE_BUS,INPUT);
+  pinMode(FOUR_WIRE_BUS,INPUT);
 
   
   //Initialize SMART
@@ -261,29 +278,22 @@ void setup() {
   smartTwo.initialize();
   
   //initiate GPS serial
-   Serial1.begin(4800);    //
+   Serial1.begin(4800);
 
-  //Initiate Temp Sensors
-  sensor1.begin();
-  sensor2.begin();
-  sensor3.begin();
-  sensor4.begin(); 
 
-  // initiate xbee
-  Serial.begin(115200);
-  sendXBee("xBee begin");
+  Serial.println("xBee begin");
   //Initiate GPS Data lines
-  sendXBee("GPS begin");
+  Serial.println("GPS begin");
 
   //GPS setup and config
-  sendXBee("GPS configured");
+  Serial.println("GPS configured");
 
   adxl.powerOn();
   adxl.setRangeSetting(16);
   adxl.setSpiBit(0);
 
   //initialize SD card
-  while (!SD.begin(chipSelect)) {        //power LED will blink if no card is inserted
+  while (!SD.begin(chipSelect)) {//power LED will blink if no card is inserted
     Serial.println("No SD");
     digitalWrite(ledSD, HIGH);
     delay(500);
@@ -292,7 +302,7 @@ void setup() {
     SDcard = false;
   }
   SDcard = true;
-  sendXBee("Checking for existing file");
+  Serial.println("Checking for existing file");
   //Check for existing event logs and creates a new one
   for (int i = 0; i < 100; i++) {
     if (!SD.exists("Elog" + String(i / 10) + String(i % 10))) {
@@ -301,7 +311,7 @@ void setup() {
       break;
     }
   }
-  sendXBee("event log created: " + Ename);
+  Serial.println("event log created: " + Ename);
 
   //Same but for Flight Log
   for (int i = 0; i < 100; i++) {
@@ -311,51 +321,29 @@ void setup() {
       break;
     }
   }
-  sendXBee("Flight log created: " + Fname);
-
-  /*  while (!eventLog) {                   //both power and data LEDs will blink together if card is inserted but file fails to be created                 /
-        sendXBee("Eventlog file creation failed");
-        digitalWrite(ledSD, HIGH);
-        digitalWrite(ledPin, HIGH);
-        delay(500);
-        digitalWrite(ledSD, LOW);
-        digitalWrite(ledPin, LOW);
-        delay(500);
-    }
-    while(!GPSlog){
-        sendXBee("GPS file creation failed");
-        digitalWrite(ledSD, HIGH);
-        digitalWrite(ledPin, HIGH);
-        delay(1500);
-        digitalWrite(ledSD, LOW);
-        digitalWrite(ledPin, LOW);
-        delay(1500);
-    }*/
+  Serial.println("Flight log created: " + Fname);
   
   String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI)";
-  Flog.println(FHeader);//set up GPS log format
-  sendXBee("Flight log header added");
+  Flog.println(FHeader);//set up Flight log format
+  Serial.println("Flight log header added");
 
 
   String eventLogHeader = "Time, Sent/Received, Command";
   eventLog.println(eventLogHeader);
-  sendXBee("Eventlog header added");
+  Serial.println("Eventlog header added");
 
   closeEventlog();
   closeFlightlog();
-  
 
-  sendXBee("Setup Complete");
+  Serial.println("Setup Complete");
+  i=0;
 
 }
 void loop(){
-  Serial.println("Main loop: calling xBeeCommand()");
   xBeeCommand(); //Checks for xBee commands
-  Serial.println("xBeeCommand() complete, calling updateSensors()");
   updateSensors();   //updates the GPS
-  Serial.println("updateSensors() complete, calling autopilot()");
   autopilot();   //autopilot function that checks status and runs actions
-  Serial.println("autopilot() complete, calling actHeat()");
   actHeat();
-  Serial.println("actHeat() complete, loop end.");
+  i++;
+  Serial.println(String(i));
 }

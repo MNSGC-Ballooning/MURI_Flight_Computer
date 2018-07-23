@@ -61,9 +61,6 @@ void autopilot(){
    blinkMode();
    Fixblink();
    opcControl();
-   if(bacon){
-    beacon();
-   }
    if(shift==false){
     detectShift(x,y,z);
    }
@@ -74,20 +71,20 @@ void autopilot(){
     deathScythe();
    }
 
-   if((millis()>=masterTimer)&&!delayBurn&&judgementDay){       
+   if((millis()>=masterTimer) && judgementDay){       
     smartOne.release();
     smartTwo.release();                                       
     logAction("You are TERMINATED!");
 
    }
-   if((millis()>=maxBackUpTimer) && !delayBurn && max_BackUp && !floating){
+   if((millis()>=maxBackUpTimer) && max_BackUp && !floating){
     smartOne.release();
     max_BackUp = false;
     sendXBee("Max altitude back up timer fired");
    
     
    }
-   if((millis()>=minBackUpTimer) && !delayBurn && min_BackUp){
+   if((millis()>=minBackUpTimer) && min_BackUp){
     smartTwo.release();
     sendXBee("Min altitude back up timer fired");
    }
@@ -306,24 +303,24 @@ void beacon(){
   }
 }*/
 
-void beacon(){
-  if(millis()-backupTimer>OPC_srate){ //if 1.4 seconds have passed
-    //String toSend = "";
-    if(GPS.Fix && GPS.altitude.feet()!= 0){
-      //toSend += (String(GPS.time.hour())+ "," + String(GPS.time.minute()) + "," + String(GPS.time.second()) + ","
-      //+ String(GPS.location.lat()) + "," + String(GPS.location.lng()) + "," + String(GPS.altitude.feet()) +
-      //"," + Temperature + "," + String(x) + "," + String(y) + "," + String(z));
-      sendXBee(data);
-      }
-    else{
-     // toSend += (String(GPS.time.hour()) + "," + String(GPS.time.minute()) + "," + String(GPS.time.second()) + ","
-      //+ "0" + "," + "0" + "," + "0" + "," + Temperature + "," + String(x) + "," + String(y) + "," + String(z));
-      sendXBee(data);
-      
-    }
-    backupTimer = millis();
-  }
-}
+//void beacon(){
+//  if(millis()-backupTimer>OPC_srate){ //if 1.4 seconds have passed
+//    //String toSend = "";
+//    if(GPS.Fix && GPS.altitude.feet()!= 0){
+//      //toSend += (String(GPS.time.hour())+ "," + String(GPS.time.minute()) + "," + String(GPS.time.second()) + ","
+//      //+ String(GPS.location.lat()) + "," + String(GPS.location.lng()) + "," + String(GPS.altitude.feet()) +
+//      //"," + Temperature + "," + String(x) + "," + String(y) + "," + String(z));
+//      sendXBee(data);
+//      }
+//    else{
+//     // toSend += (String(GPS.time.hour()) + "," + String(GPS.time.minute()) + "," + String(GPS.time.second()) + ","
+//      //+ "0" + "," + "0" + "," + "0" + "," + Temperature + "," + String(x) + "," + String(y) + "," + String(z));
+//      sendXBee(data);
+//      
+//    }
+//    backupTimer = millis();
+//  }
+//}
 void opcControl(){
   static byte checktimes;
   if(!opcON && GPS.altitude.feet()>=75,000){

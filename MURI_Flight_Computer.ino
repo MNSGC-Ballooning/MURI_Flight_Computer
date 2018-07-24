@@ -113,10 +113,10 @@ class Relay {
 #define fix_led 6         //led  which blinks for fix
 #define smartPin2 7       //SMART unit 2 PWM
 #define smartPin1 2       //SMART unit 1 PWM
-#define ONE_WIRE_BUS 28   //Temp Sensors
-#define TWO_WIRE_BUS 29
-#define THREE_WIRE_BUS 30
-#define FOUR_WIRE_BUS 31
+#define ONE_WIRE_BUS 28   //Internal Temp
+#define TWO_WIRE_BUS 29   //External Temp
+#define THREE_WIRE_BUS 30 //Battery Temp
+#define FOUR_WIRE_BUS 31  //OPC Temp
 #define OPC_ON 22         //Relay switches
 #define OPC_OFF 23
 #define OPC_HEATER_ON 24
@@ -181,15 +181,6 @@ float t4;
 
 //Copernicus GPS
 TinyGPSPlus GPS;
-int GPSstartTime;
-boolean newDay = false;
-boolean firstFix = false;
-int days = 0;          //used to store previous altitude values to check for burst
-boolean sliced = false;
-boolean checkingCut = false;
-boolean scythed = false;
-boolean newData = false;
-int checkTime;
 
 //Accelerometer
 ADXL345 adxl = ADXL345();
@@ -200,6 +191,7 @@ int x,y,z;
 int pressure = 0;
 float pressureV = 0;
 float psi = 0;
+float kpa = 0;
 int i;
 ///////////////////////////////////////////
 //////////////Control System///////////////
@@ -219,6 +211,11 @@ extern boolean floating = false;
 boolean recovery = false;
 int altDelay = 5;
 long backupTimer = 0;
+boolean sliced = false;
+boolean checkingCut = false;
+boolean scythed = false;
+int checkTime;
+float checkAlt;
 
 //Heating
 float t_low = 283;
@@ -253,11 +250,11 @@ void setup() {
   opcRelay.init();
   opcHeatRelay.init();
   batHeatRelay.init();
-  opcRelay.openRelay();
+  opcRelay.openRelay();     //Uncomment to turn on sensor during initialization
   opcHeatRelay.openRelay();
   batHeatRelay.openRelay();
   delay(1000);
-  opcRelay.closeRelay();
+  //opcRelay.closeRelay();
   opcHeatRelay.closeRelay();
   batHeatRelay.closeRelay();
 
@@ -267,10 +264,6 @@ void setup() {
   pinMode(ledSD, OUTPUT);
   pinMode(chipSelect, OUTPUT);    // this needs to be be declared as output for data logging to work
   pinMode(fix_led, OUTPUT);
-  pinMode(ONE_WIRE_BUS,INPUT);
-  pinMode(TWO_WIRE_BUS,INPUT);
-  pinMode(THREE_WIRE_BUS,INPUT);
-  pinMode(FOUR_WIRE_BUS,INPUT);
 
   
   //Initialize SMART
@@ -341,9 +334,10 @@ void setup() {
 }
 void loop(){
   xBeeCommand(); //Checks for xBee commands
-  updateSensors();   //updates the GPS
+  updateGPS();       //Updates GPS
+  updateSensors();   //Updates and logs all sensor data
   autopilot();   //autopilot function that checks status and runs actions
   actHeat();
-  i++;
-  Serial.println(String(i));
+//  i++;                        //Loop counter for debugging. Uncomment to debug.
+//  Serial.println(String(i));
 }

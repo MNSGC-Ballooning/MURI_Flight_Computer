@@ -123,6 +123,7 @@ class Relay {
 #define OPC_HEATER_OFF 25
 #define BAT_HEATER_ON 26
 #define BAT_HEATER_OFF 27
+//#define test 33
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
 ///////////////////////////////////////////////
@@ -250,14 +251,13 @@ void setup() {
   opcRelay.init();
   opcHeatRelay.init();
   batHeatRelay.init();
-  opcRelay.openRelay();     //Uncomment to turn on sensor during initialization
-  opcHeatRelay.openRelay();
-  batHeatRelay.openRelay();
-  delay(1000);
-  //opcRelay.closeRelay();
+  
+  opcRelay.closeRelay();
   opcHeatRelay.closeRelay();
   batHeatRelay.closeRelay();
+  delay(1000);
 
+  opcRelay.openRelay();
   
   // initialize pins
   pinMode(ledPin, OUTPUT);

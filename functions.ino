@@ -348,7 +348,7 @@ void Relay::openRelay(){
 void Relay::closeRelay(){
   digitalWrite(offPin,HIGH);
   delay(10);
-  digitalWrite(onPin,LOW);
+  digitalWrite(offPin,LOW);
 }
 
   

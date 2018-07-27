@@ -60,7 +60,7 @@ void autopilot(){
    checkCut();
    blinkMode();
    Fixblink();
-   opcControl();
+   //opcControl();
    if(shift==false){
     detectShift(x,y,z);
    }
@@ -117,8 +117,8 @@ void altTheSingleLadies(){
         sendXBee("checking for float: " + String(checkFloat));
         checkFloat++;
         if(checkFloat>15){
-          smartOne.release();
           floating=true;
+          Serial.println("Floating set equal to true");               
           floatStart=millis();
           sendXBee("Burst detected, float timer started");
         }
@@ -131,6 +131,9 @@ void altTheSingleLadies(){
       prevAlt=GPS.altitude.feet();
    }
     if(floating==true){
+      if(!altset && GPS.altitude.feet()!=0 && GPS.Fix && GPS.altitude.feet() > minAlt){
+        altset=true;
+      }
       if(!altset && GPS.altitude.feet() != 0 && GPS.Fix && GPS.altitude.feet() < minAlt){
         sendXBee("Burst occured early, setting altCut to 1000 feet below current altitude");
         minAlt=GPS.altitude.feet()-10000;
@@ -143,7 +146,17 @@ void altTheSingleLadies(){
         altTimer = getLastGPS();
         sent = false;
       }
+      if(checkTimes >= 15){
+        Serial.println("I made it to second cut");
+        sendXBee("running altitude burn");
+        smartOne.release();
+        smartTwo.release();
+        altCut = false;
+        cutCheck = false;
+        recovery=true;
+      }
       else if((getLastGPS()-altTimer > 2)&& prevAlt-GPS.altitude.feet() > 3000){
+        Serial.println("It thinks there is a GPS jump oops");
         cutCheck = false;
         sendXBee("GPS jump detected, resetting cutdown decisions");
       }
@@ -153,8 +166,9 @@ void altTheSingleLadies(){
         prevAlt = GPS.altitude.feet(); 
         altTimer = getLastGPS();
       }
-      else if (checkTimes < 15 && getLastGPS()-altTimer > 2 && GPS.altitude.feet() < minAlt){
-        String toSend = "veryifying proximity to cutdown. will cut in " + String(14-checkTimes) + " GPS hits above cut altitude";
+      else if (getLastGPS()-altTimer > 2 && GPS.altitude.feet() < minAlt){
+        Serial.println("I made to min Alt count");
+        String toSend = "veryifying proximity to cutdown. will cut in " + String(14-checkTimes) + " GPS hits below cut altitude";
         sendXBee(toSend);
         checkTimes++;
         prevAlt = GPS.altitude.feet(); 
@@ -166,24 +180,17 @@ void altTheSingleLadies(){
         
         
       }
-      else if(checkTimes > 15){
-        sendXBee("running altitude burn");
-        smartTwo.release();
-        altCut = false;
-        cutCheck = false;
-      }
       
-  
     else{
-      cutCheck = false;
+      //cutCheck = false;
     }
    }
    
   }
-  else if(checkFloat > 1){
-    checkFloat = 0;
-    sendXBee("no fix, cutfloat reset");
-  }
+//  else if(checkFloat > 1){
+//    checkFloat = 0;
+//    sendXBee("no fix, cutfloat reset");
+//  }
 }
 
 void deathScythe(){
@@ -210,6 +217,9 @@ void detectShift(int x, int y, int z){
     shift=true;
   }
 }
+
+
+  
 
 /*void burnAction::Burn(){
   

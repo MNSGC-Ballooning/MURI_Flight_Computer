@@ -38,16 +38,16 @@
 //  /_____/\__,_/_/  /_/ /_/  /_____/\___/_/\__,_/\__, /   \____/\____/_/ /_/_/ /_/\__, /\__,_/_/   \__,_/\__/_/\____/_/ /_/
 //                                               /____/                           /____/
 
-int Master_Timer = 14400; //Flight master timer that terminates flight when the timer runs out! Make longer
+int Master_Timer = 19000; //Flight master timer that terminates flight when the timer runs out! 
 bool judgementDay = true;   //set to true to activate master timer. can be changed through Xbee
-int float_Time = 300; //Float Duration in seconds
+int float_Time = 1800; //Float Duration in seconds
 bool marryPoppins = true;
 const String xBeeID = "WA"; //xBee ID, change second letter to "B" and "C" for their respective stacks, see Readme for more
 long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
-int minBackUp_Timer = 9900; //Min alt cut backup timer in seconds!
+int minBackUp_Timer = 10800; //Min alt cut backup timer in seconds!
 bool min_BackUp = true;
-long maxAlt = 100000; //Default max cutdown altitude in feet! Changeable via xBee
-int maxBackUp_Timer = 7800; //Max alt cut backup timer in seconds!
+long maxAlt = 110000; //Default max cutdown altitude in feet! Changeable via xBee
+int maxBackUp_Timer = 9000; //Max alt cut backup timer in seconds!
 bool max_BackUp = true;
 boolean altCut = true;  //set to true to perfom an altitude cutdown. can be toggled through Xbee.
 int OPC_srate=1400;     //OPC sample rate in milliseconds.

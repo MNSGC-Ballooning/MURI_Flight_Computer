@@ -1,5 +1,5 @@
 //Takes a string to send out via xBee, and logs the transmission to the SD card with a timestamp
-/*void sendXBee(String out) {
+void sendXBee(String out) {
   Serial.println(xBeeID + ";" + out + "!");
   openEventlog();
   if(SDcard){
@@ -220,11 +220,11 @@ commandTime = millis();
     if(floating){
       sendXBee("floating time remaining in seconds: " + String((floatTimer - (millis()-floatStart))/1000));
     }
-  }
+  }*/
       
   else {
     //If no recognizable command was received, inform ground station
     logCommand(Com, "Unknown Command");
     sendXBee(String(Com) + ":  Command Not Recognized");
   }
-}*/
+}

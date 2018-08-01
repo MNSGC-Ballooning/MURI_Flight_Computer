@@ -2,16 +2,16 @@ void actHeat(){
   const char ON[] = "on";
   const char OFF[] = "off";
   // Compare digital temp. to critical temp.:  
-  if(t3 < t_low) {
+  if(sensors.getTempInK(3) < t_low) {
     coldBattery = true; // if temperature is below low critical temperature
   }
-  if(t3 > t_high) {
+  if(sensors.getTempInK(3) > t_high) {
     coldBattery = false; // if temperature is above high critical temperature
   }
-  if(t4 > t_low){
+  if(sensors.getTempInK(4) > t_low){
     coldOPC = true;    
   }
-  if(t4 > t_high){
+  if(sensors.getTempInK(4)){
     coldOPC = false;
   }
 

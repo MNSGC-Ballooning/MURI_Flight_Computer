@@ -1,5 +1,5 @@
 //Takes a string to send out via xBee, and logs the transmission to the SD card with a timestamp
-void sendXBee(String out) {
+/*void sendXBee(String out) {
   Serial.println(xBeeID + ";" + out + "!");
   openEventlog();
   if(SDcard){
@@ -213,7 +213,7 @@ commandTime = millis();
   /*else if(Com.substring(0,2).equals("TE")){
     logCommand(Com, "poll temperature");
     sendXBee("Battery Temperature: " + Temperature);
-  }*/
+  }
   else if(Com.substring(0,2).equals("PF")){
     logCommand(Com, "poll float time");
     sendXBee("Float time in seconds: " + String(floatTimer/1000));
@@ -227,4 +227,4 @@ commandTime = millis();
     logCommand(Com, "Unknown Command");
     sendXBee(String(Com) + ":  Command Not Recognized");
   }
-}
+}*/

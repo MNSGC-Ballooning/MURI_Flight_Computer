@@ -38,17 +38,11 @@
 //  /_____/\__,_/_/  /_/ /_/  /_____/\___/_/\__,_/\__, /   \____/\____/_/ /_/_/ /_/\__, /\__,_/_/   \__,_/\__/_/\____/_/ /_/
 //                                               /____/                           /____/
 
-int Master_Timer = 19000; //Flight master timer that terminates flight when the timer runs out! 
-bool judgementDay = true;   //set to true to activate master timer. can be changed through Xbee
-int float_Time = 1800; //Float Duration in seconds
+long Release_Timer = 19000; //Flight master timer that terminates flight when the timer runs out! 
 bool marryPoppins = true;
 const String xBeeID = "WA"; //xBee ID, change second letter to "B" and "C" for their respective stacks, see Readme for more
 long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
-int minBackUp_Timer = 10800; //Min alt cut backup timer in seconds!
-bool min_BackUp = true;
-long maxAlt = 110000; //Default max cutdown altitude in feet! Changeable via xBee
-int maxBackUp_Timer = 9000; //Max alt cut backup timer in seconds!
-bool max_BackUp = true;
+long maxAlt = 120000; //Default max cutdown altitude in feet! Changeable via xBee
 boolean altCut = true;  //set to true to perfom an altitude cutdown. can be toggled through Xbee.
 int OPC_srate=1400;     //OPC sample rate in milliseconds.
 
@@ -102,6 +96,16 @@ class Relay {
     void init();
     void openRelay();
     void closeRelay();;
+};
+class ACTIVE_TIMER{
+  protected:
+    Smart* smartUnit;
+    unsigned long duration;
+    unsigned long starT;
+  public:
+    ACTIVE_TIMER(Smart * smart,long d,long s);
+    void hammerTime();
+    void updateTimer(float);
 };
 
 /////////////////////////////////////////////
@@ -201,22 +205,14 @@ int i;
 //2SMART
 Smart smartOne = Smart(smartPin1);
 Smart smartTwo = Smart(smartPin2);
+Smart * smarty = &smartOne;
 unsigned long beaconTimer= 0;
 boolean burnerON = false;
-long masterTimer = long(Master_Timer) * 1000;
-long floatTimer = long(float_Time)* 1000;
-long minBackUpTimer = long(minBackUp_Timer) * 1000;
-long maxBackUpTimer = long(maxBackUp_Timer) * 1000;
-unsigned long floatStart = 0;
+long releaseTimer = Release_Timer * 1000;
+long starty = 0;
 extern boolean floating = false;
 boolean recovery = false;
-int altDelay = 5;
-long backupTimer = 0;
-boolean sliced = false;
-boolean checkingCut = false;
-boolean scythed = false;
-int checkTime;
-float checkAlt;
+ACTIVE_TIMER tickTock = ACTIVE_TIMER(smarty,releaseTimer,starty);
 
 //Heating
 float t_low = 283;
@@ -330,13 +326,14 @@ void setup() {
 
   Serial.println("Setup Complete");
   i=0;
+  
 
 }
 void loop(){
   xBeeCommand(); //Checks for xBee commands
   updateGPS();       //Updates GPS
   updateSensors();   //Updates and logs all sensor data
-  autopilot();   //autopilot function that checks status and runs actions
+  stateMachine();   //autopilot function that checks status and runs actions
   actHeat();
 //  i++;                        //Loop counter for debugging. Uncomment to debug.
 //  Serial.println(String(i));

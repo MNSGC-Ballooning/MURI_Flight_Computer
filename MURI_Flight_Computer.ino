@@ -6,9 +6,7 @@
 #include <SPI.h>
 #include <SD.h>
 #include <TinyGPS++.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
-#include <SparkFun_ADXL345.h>      //accelerometer library
+#include <Sensor.h>
 #include <Smart.h>
 
 //==============================================================
@@ -113,10 +111,10 @@ class Relay {
 #define fix_led 6         //led  which blinks for fix
 #define smartPin2 7       //SMART unit 2 PWM
 #define smartPin1 2       //SMART unit 1 PWM
-#define ONE_WIRE_BUS 28   //Temp Sensors
-#define TWO_WIRE_BUS 29
-#define THREE_WIRE_BUS 30
-#define FOUR_WIRE_BUS 31
+#define AMBIENT_SENSOR 28   //Temp Sensors
+#define OUTTER_SENSOR 29
+#define BATTERY_SENSOR 30
+#define OPC_SENSOR 31
 #define OPC_ON 22         //Relay switches
 #define OPC_OFF 23
 #define OPC_HEATER_ON 24
@@ -164,21 +162,6 @@ Blink* currentBlink = &countdownBlink;
 /////////////Sensor Variables////////////////
 /////////////////////////////////////////////
 
-//Dallas Digital Temp Sensors
-OneWire oneWire1(ONE_WIRE_BUS);
-OneWire oneWire2(TWO_WIRE_BUS);
-OneWire oneWire3(THREE_WIRE_BUS);
-OneWire oneWire4(FOUR_WIRE_BUS);
-DallasTemperature sensor1(&oneWire1);
-DallasTemperature sensor2(&oneWire2);
-DallasTemperature sensor3(&oneWire3);
-DallasTemperature sensor4(&oneWire4);
-float t1;
-float t2;
-float t3;
-float t4;
-
-
 //Copernicus GPS
 TinyGPSPlus GPS;
 int GPSstartTime;
@@ -191,15 +174,10 @@ boolean scythed = false;
 boolean newData = false;
 int checkTime;
 
-//Accelerometer
-ADXL345 adxl = ADXL345();
+//Sensors
+byte sensorPins[] = {AMBIENT_SENSOR, OUTTER_SENSOR, BATTERY_SENSOR, OPC_SENSOR};
+Sensor sensors = Sensor(sensorPins, &GPS);
 boolean shift = false;
-int x,y,z;
-
-//HoneyWell Pressure Sensor 
-int pressure = 0;
-float pressureV = 0;
-float psi = 0;
 
 ///////////////////////////////////////////
 //////////////Control System///////////////
@@ -263,11 +241,7 @@ void setup() {
   //initiate GPS serial
    Serial1.begin(4800);    //
 
-  //Initiate Temp Sensors
-  sensor1.begin();
-  sensor2.begin();
-  sensor3.begin();
-  sensor4.begin(); 
+  sensors.initialize();
 
   // initiate xbee
   Serial.begin(115200);
@@ -277,10 +251,6 @@ void setup() {
 
   //GPS setup and config
   sendXBee("GPS configured");
-
-  adxl.powerOn();
-  adxl.setRangeSetting(16);
-  adxl.setSpiBit(0);
 
   //initialize SD card
   while (!SD.begin(chipSelect)) {        //power LED will blink if no card is inserted
@@ -332,7 +302,7 @@ void setup() {
         delay(1500);
     }*/
   
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI)";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, External Pressure (PSI), Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status";
   Flog.println(FHeader);//set up GPS log format
   sendXBee("Flight log header added");
 
@@ -349,13 +319,8 @@ void setup() {
 
 }
 void loop(){
-  Serial.println("Main loop: calling xBeeCommand()");
   xBeeCommand(); //Checks for xBee commands
-  Serial.println("xBeeCommand() complete, calling updateSensors()");
-  updateSensors();   //updates the GPS
-  Serial.println("updateSensors() complete, calling autopilot()");
+  logSensorData(); //Updates sensors and logs data with GPS data
   autopilot();   //autopilot function that checks status and runs actions
-  Serial.println("autopilot() complete, calling actHeat()");
   actHeat();
-  Serial.println("actHeat() complete, loop end.");
 }

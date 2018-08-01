@@ -2,7 +2,7 @@ float checkAlt;
 
 void logSensorData()
 {
-  openFlightLog();
+  openFlightlog();
   String data = "";
 
   sensors.updateSensors();
@@ -10,7 +10,7 @@ void logSensorData()
   data += (Bat_heaterStatus + "," + OPC_heaterStatus);
   Flog.println(data);
   delay(10);
-  closeFlightLog();
+  closeFlightlog();
 }
 /*long lastGPS = -1000000;  //for testing purposes
 
@@ -82,12 +82,12 @@ int getGPStime() {
 }*/
 
 int getLastGPS() {    //returns time in seconds between last successful fix and initial fix. Used to match with altitude data
-  if (!newDay && lastGPS < GPSstartTime) {
+  if (!newDay && sensors.getLastGps() < GPSstartTime) {
     days++;
     newDay = true;
   }
-  else if (newDay && lastGPS > GPSstartTime)
+  else if (newDay && sensors.getLastGps() > GPSstartTime)
     newDay = false;
-  return days * 86400 + lastGPS;
+  return days * 86400 + sensors.getLastGps();
 }
 

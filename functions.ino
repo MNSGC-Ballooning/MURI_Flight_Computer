@@ -65,7 +65,7 @@ void autopilot(){
     beacon();
    }
    if(shift==false){
-    detectShift(x,y,z);
+    detectShift(sensors.getX(),sensors.getY(),sensors.getZ());
    }
    if(altCut){
     altTheSingleLadies();

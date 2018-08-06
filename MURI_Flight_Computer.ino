@@ -38,7 +38,8 @@
 //  /_____/\__,_/_/  /_/ /_/  /_____/\___/_/\__,_/\__, /   \____/\____/_/ /_/_/ /_/\__, /\__,_/_/   \__,_/\__/_/\____/_/ /_/
 //                                               /____/                           /____/
 
-long Release_Timer = 19000; //Flight master timer that terminates flight when the timer runs out! 
+long Release_Timer = 19000; //Starting value for active timer that terminates flight when the timer runs out!
+long Master_Timer =  36000; //Master cut timer 
 bool marryPoppins = true;
 const String xBeeID = "WA"; //xBee ID, change second letter to "B" and "C" for their respective stacks, see Readme for more
 long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
@@ -209,6 +210,7 @@ Smart * smarty = &smartOne;
 unsigned long beaconTimer= 0;
 boolean burnerON = false;
 long releaseTimer = Release_Timer * 1000;
+long masterTimer = Master_Timer * 1000;
 long starty = 0;
 extern boolean floating = false;
 boolean recovery = false;

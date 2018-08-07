@@ -3,7 +3,7 @@
 //function to handle both retrieval of data from GPS module and sensors, as well as recording it on the SD card
 void updateSensors() {
   static unsigned long prevTime = 0;
-  if(millis() - prevTime >= 1400){
+  if(millis() - prevTime >= 1000){
     adxl.readAccel(&x,&y,&z);
     sensor1.requestTemperatures();
     sensor2.requestTemperatures();
@@ -17,11 +17,9 @@ void updateSensors() {
     pressureV=pressure*(5.0/1024);
     psi = (pressureV - (0.1*5.0))/(4.0/15.0);
     kpa = psi * 6.89476; //Pressure in kpa
-    Serial.println("Clearing data string");
     String data = "";
     openFlightlog();
     if (GPS.Fix && GPS.altitude.feet()!=0) {
-    Serial.println("I updated");
       data += (flightTimeStr() + "," + String(GPS.location.lat(), 6) + "," + String(GPS.location.lng(), 6) + ",");
       data += ((String(GPS.altitude.feet())) + ",");    //convert meters to feet for datalogging
       data += (String(GPS.date.month()) + "/" + String(GPS.date.day()) + "/" + String(GPS.date.year()) + ",");
@@ -30,7 +28,7 @@ void updateSensors() {
     }
     else{
     data += (flightTimeStr() + ",0.000000,0.000000,0.00,0/0/2000,00:00:00,No Fix,");
-    Serial.println("I made it motherfucker");
+    
     }
     data += (String(x) + "," + String(y) + "," + String(z) + ","); 
     data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
@@ -40,8 +38,6 @@ void updateSensors() {
     Flog.println(data);
     delay(10);
     closeFlightlog();
-    Serial.println("Closing flight log.");
-   
     prevTime=millis();
   }
   

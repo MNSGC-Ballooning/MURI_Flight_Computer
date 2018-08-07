@@ -40,11 +40,8 @@
 
 long Release_Timer = 19000; //Starting value for active timer that terminates flight when the timer runs out!
 long Master_Timer =  36000; //Master cut timer 
-bool marryPoppins = true;
-const String xBeeID = "WA"; //xBee ID, change second letter to "B" and "C" for their respective stacks, see Readme for more
 long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
 long maxAlt = 120000; //Default max cutdown altitude in feet! Changeable via xBee
-boolean altCut = true;  //set to true to perfom an altitude cutdown. can be toggled through Xbee.
 int OPC_srate=1400;     //OPC sample rate in milliseconds.
 
 //=============================================================================================================================================
@@ -153,18 +150,6 @@ boolean LEDon = false;
 Blink recoveryBlink = Blink(200, 2000, -1, "recoveryBlink", 0);
 Blink countdownBlink = Blink(200, 850, -1, "countdownBlink", 0);
 Blink* currentBlink = &countdownBlink;
-
-/*class burnAction: public action {
-  private:
-    int ondelay;
-    int offdelay;
-    int ontimes;
-    int stagger;
-  public:
-    void Burn();
-    burnAction(int on, int off, int ont, int stag, unsigned long tim);
-    int getOnTimes();
-};*/
 
 /////////////////////////////////////////////
 /////////////Sensor Variables////////////////
@@ -327,16 +312,9 @@ void setup() {
   closeFlightlog();
 
   Serial.println("Setup Complete");
-  i=0;
-  
-
 }
 void loop(){
-  xBeeCommand(); //Checks for xBee commands
   updateGPS();       //Updates GPS
   updateSensors();   //Updates and logs all sensor data
   stateMachine();   //autopilot function that checks status and runs actions
-  actHeat();
-//  i++;                        //Loop counter for debugging. Uncomment to debug.
-//  Serial.println(String(i));
 }

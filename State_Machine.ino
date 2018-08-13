@@ -1,28 +1,33 @@
 //PID controller that looks at the derivative of altitude and the current altitude state
-#define STATE_MURI_ASCENT 0x00          //0000 0001
+#define STATE_MURI_INIT 0x00            //0000 0000
+#define STATE_MURI_ASCENT 0x01          //0000 0001
 #define STATE_MURI_FAST_DESCENT 0x02    //0000 0010
 #define STATE_MURI_SLOW_DESCENT 0x04    //0000 0100
 #define STATE_MURI_SLOW_ASCENT 0x08     //0000 1000
 #define STATE_MURI_CAST_AWAY 0x10       //0001 0000
 #define STATE_MURI_RECOVERY 0x20        //0010 0000
+
 uint8_t muriState;
+
 
 void stateMachine(){
   unsigned long castAway = 0;
+  static byte initCounter = 0;
   static byte skyCheck = 0;
   static byte floorCheck = 0;
   static byte snail = 0;
   static bool init = false;
   static bool first = false;
+  static bool fast = false;
+  static bool cast =false;
   if(!init){
-    muriState = STATE_MURI_ASCENT;
+    muriState = STATE_MURI_INIT;
     init=true;
   }
   if(millis() >= masterTimer){
     smartOne.release();
     smartTwo.release();
     muriState = STATE_MURI_RECOVERY;
-    Serial.println("Oops, you dumbass!");
   }
   blinkMode();                          //Controls Data LED that shows payload state
   Fixblink();                           //Controls LED that gives GPS fix information
@@ -33,16 +38,31 @@ void stateMachine(){
   PID();                                //Controller that changes State based on derivative of altitude
   
 ///////////Finite State Machine/////////////
+  if(muriState == STATE_MURI_INIT && !hdotInit){
+    Serial.println("STATE_MURI_INIT");
+    if(GPS.Fix && GPS.altitude.feet()!=0){
+      if(GPS.altitude.feet()>2000){
+        initCounter++;
+        if(initCounter>10){
+          hdotInit=true;
+          Serial.println("h_dot initialized!");
+        }
+      }
+    }
+  }
   if(muriState == STATE_MURI_ASCENT){
     Serial.println("STATE_MURI_ASCENT");
     if(GPS.Fix && GPS.altitude.feet()!=0){
       if(GPS.altitude.feet()>maxAlt){
         skyCheck++;
         Serial.println("Max alt hits: " + String(skyCheck));
-        if(skyCheck>5){
+        if(skyCheck>10){
           smartOne.release();
-          if(GPS.altitude.feet()<minAlt && first){
-            minAlt=minAlt-10000;
+          if(!first){
+            if(GPS.altitude.feet()<minAlt){
+              minAlt=minAlt-10000;
+            }
+            first=true;
           }
           skyCheck = 0;
         }
@@ -56,7 +76,7 @@ void stateMachine(){
       if(GPS.altitude.feet()<minAlt){
         floorCheck++;
         Serial.println("Min alt hits: " + String(floorCheck));
-        if(floorCheck>5){
+        if(floorCheck>10){
           smartTwo.release();
           smartOne.release();
           floorCheck = 0;
@@ -66,6 +86,11 @@ void stateMachine(){
   }
   else if(muriState == STATE_MURI_FAST_DESCENT){
     Serial.println("STATE_MURI_FAST_DESCENT");
+    if(!fast){
+      smartTwo.release();
+      smartOne.release();
+      fast=true;
+    }
     opcRelay.closeRelay();
     opcHeatRelay.closeRelay();
     batHeatRelay.closeRelay();
@@ -75,7 +100,7 @@ void stateMachine(){
     if(GPS.Fix && GPS.altitude.feet()!=0){
       if(GPS.altitude.feet()<minAlt){
         snail++;
-        if(snail>5){
+        if(snail>10){
           smartOne.release();
           //smartTwo.release();
           snail = 0;
@@ -85,7 +110,10 @@ void stateMachine(){
   }
   else if(muriState == STATE_MURI_CAST_AWAY){
     Serial.println("STATE_MURI_CAST_AWAY");
-    castAway = millis();
+    if(!cast){
+      castAway = millis();
+      cast = true;
+    }
     if(millis()-castAway >= 600000){
       smartOne.release();
       smartTwo.release();
@@ -95,6 +123,7 @@ void stateMachine(){
     Serial.println("STATE_MURI_RECOVERY");
     recovery = true;
     //siren on, add when Asif makes relay cicuit
+    sirenRelay.openRelay();
   }
   else{
     
@@ -103,7 +132,6 @@ void stateMachine(){
 }
 
 void PID(){
-  static bool hdotInit = false;
   static byte ascent = 0;
   static byte ascentS = 0;
   static byte descentS = 0;
@@ -111,22 +139,20 @@ void PID(){
   static byte recov = 0;
   static unsigned long prevAlt = 0;
   static int prevTime = 0;
+  static unsigned long prevT = 0;
   static byte wilson = 0;
   static float h_dot=0; 
   if(GPS.Fix && GPS.altitude.feet()!=0){
-    if(getLastGPS()> prevTime){
+    if(getLastGPS()-prevTime>2){
       h_dot=((GPS.altitude.feet()-prevAlt)/(getLastGPS()-prevTime))*60; //h_dot in feet per minute
       Serial.println("h_dot was set!");
       Serial.println("h_dot = " + String(h_dot));
-      if(!hdotInit){
-        hdotInit = true;
-        Serial.println("h_dot initialized!");
-      }
     }
     prevTime = getLastGPS();
-    prevAlt = GPS.altitude.feet(); 
+    prevAlt = GPS.altitude.feet();
   }
-  if(hdotInit && GPS.Fix && GPS.altitude.feet()!=0){
+  if(hdotInit && GPS.Fix && GPS.altitude.feet()!=0 && !recovery){
+    Serial.println("In control loop");
     tickTock.updateTimer(h_dot);
     tickTock.hammerTime();
     if(h_dot>=3000 || h_dot<=-3000){
@@ -139,14 +165,14 @@ void PID(){
         ascent = 0;
       }
     }
-    else if(h_dot>50 && h_dot<=300){
+    else if(h_dot>25 && h_dot<=300){
       ascentS++;
       if(ascentS>5){
         muriState = STATE_MURI_SLOW_ASCENT;
         ascentS=0;
       }
     }
-    else if(h_dot > -700 && h_dot < -50){
+    else if(h_dot > -800 && h_dot < -25){
       descentS++;
       if(descentS>5){
         muriState = STATE_MURI_SLOW_DESCENT;
@@ -154,23 +180,23 @@ void PID(){
       }
       
     }
-    else if(h_dot<=-700){
+    else if(h_dot<=-1500 && GPS.altitude.feet()>=7000){
       descentF++;
-      if(descentF>5){
+      if(descentF>20){
         muriState = STATE_MURI_FAST_DESCENT;
         descentF = 0;
       }
     }
-    else if(h_dot>=-50 && h_dot<=50){
+    else if(muriState == STATE_MURI_ASCENT && h_dot>=-25 && h_dot<=25 && GPS.altitude.feet()>minAlt){
       wilson++;
-      if(wilson>15){
+      if(wilson>100){
         muriState = STATE_MURI_CAST_AWAY;
         wilson=0;
       }
     }
     else if(muriState == STATE_MURI_FAST_DESCENT && GPS.altitude.feet()<7000){
       recov++;
-      if(recov>5){
+      if(recov>100){
         muriState = STATE_MURI_RECOVERY;
         recov=0;
       }

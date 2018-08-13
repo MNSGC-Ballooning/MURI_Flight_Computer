@@ -12,33 +12,30 @@
 #include <Smart.h>
 
 //==============================================================
-//               Code For MURI Flight Computer
-//               Written by Garrett Ailts - ailts008 Summer 2018 
-//               Adapted from TungstenCut.ino by Danny Toth Summer 2017 - tothx051 and Simon Peterson- pet00291
-//                 
+//               MURI Flight Computer
+//               Written by Garrett Ailts - ailts008 Summer 2018                  
 //==============================================================
 
-//Version Description: Working xBee with limited commands (add/sub time, request time/cutdown). SD logging with poor formatting.
+//Version Description: MURI Flight Computer for double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
+//Switches states through the use of a PID controller
 
-// Use: When payload is powered (i.e. batteries plugged in and switch in "on" position), it will be in flight mode.
+// Use: There are three switches to activate the payload fully. Switches should be flipped in order from right to left. Switch one powers the motherboard, switch two
+//powers the microcontroller, and switch three initializes the recovery siren (does not turn it on, this is done by the microcontroller in the recovery state).
 //
-//     Flight Mode:
-//                 Payload will count up in milliseconds from zero until a specified time. One blink equals 5 minutes remaining. Once specified time has passed, payload will then
-//                 fire the burner continuously until the burner breaks. Payload will then enter Recovery Mode.
-//    Recovery Mode:
-//                 Payload will continuously flash LED's to indicate its status until it is recovered or powered off. If it decides that
-//                 the burn was unsuccessful, it will attempt to re-try burning until it decides it worked.
-
 //=============================================================================================================================================
 //=============================================================================================================================================
-//      ____                      ____       __               ______            _____                        __  _
-//     / __ )__  ___________     / __ \___  / /___ ___  __   / ____/___  ____  / __(_)___ ___  ___________ _/ /_(_)___  ____
-//    / __  / / / / ___/ __ \   / / / / _ \/ / __ `/ / / /  / /   / __ \/ __ \/ /_/ / __ `/ / / / ___/ __ `/ __/ / __ \/ __ \
-//   / /_/ / /_/ / /  / / / /  / /_/ /  __/ / /_/ / /_/ /  / /___/ /_/ / / / / __/ / /_/ / /_/ / /  / /_/ / /_/ / /_/ / / / /
-//  /_____/\__,_/_/  /_/ /_/  /_____/\___/_/\__,_/\__, /   \____/\____/_/ /_/_/ /_/\__, /\__,_/_/   \__,_/\__/_/\____/_/ /_/
-//                                               /____/                           /____/
 
-long Release_Timer = 19000; //Starting value for active timer that terminates flight when the timer runs out!
+
+//       _________       __    __     ____                                  __                
+//      / ____/ (_)___ _/ /_  / /_   / __ \____ __________ _____ ___  ___  / /____  __________
+//     / /_  / / / __ `/ __ \/ __/  / /_/ / __ `/ ___/ __ `/ __ `__ \/ _ \/ __/ _ \/ ___/ ___/
+//    / __/ / / / /_/ / / / / /_   / ____/ /_/ / /  / /_/ / / / / / /  __/ /_/  __/ /  (__  ) 
+//   /_/   /_/_/\__, /_/ /_/\__/  /_/    \__,_/_/   \__,_/_/ /_/ /_/\___/\__/\___/_/  /____/  
+//             /____/                                                                         
+
+
+//In seconds
+long Release_Timer = 21000; //Starting value for active timer that terminates flight when the timer runs out!
 long Master_Timer =  36000; //Master cut timer 
 long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
 long maxAlt = 120000; //Default max cutdown altitude in feet! Changeable via xBee
@@ -125,6 +122,8 @@ class ACTIVE_TIMER{
 #define OPC_HEATER_OFF 25
 #define BAT_HEATER_ON 26
 #define BAT_HEATER_OFF 27
+#define SIREN_ON 32
+#define SIREN_OFF 33
 //#define test 33
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
@@ -132,14 +131,8 @@ class ACTIVE_TIMER{
 Relay opcRelay(OPC_ON, OPC_OFF);
 Relay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
 Relay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
+Relay sirenRelay(SIREN_ON, SIREN_OFF);
 boolean  opcON = false;
-///////////////////////////////////////////////
-///////////////Command Variables///////////////
-///////////////////////////////////////////////
-//variables for the altitude cutting command
-boolean  bacon = false;  //true for beacon updates
-boolean  backup = false; //true for data backup to alphasense payload
-//~~~~~~~~~~~~~~~Timing Variables~~~~~~~~~~~~~~~
 //////////////////////////////////////////
 //////////////Communication///////////////
 //////////////////////////////////////////
@@ -183,7 +176,6 @@ int pressure = 0;
 float pressureV = 0;
 float psi = 0;
 float kpa = 0;
-int i;
 ///////////////////////////////////////////
 //////////////Control System///////////////
 ///////////////////////////////////////////
@@ -197,8 +189,8 @@ boolean burnerON = false;
 long releaseTimer = Release_Timer * 1000;
 long masterTimer = Master_Timer * 1000;
 long starty = 0;
-extern boolean floating = false;
 boolean recovery = false;
+boolean hdotInit=false;
 ACTIVE_TIMER tickTock = ACTIVE_TIMER(smarty,releaseTimer,starty);
 
 //Heating
@@ -234,10 +226,12 @@ void setup() {
   opcRelay.init();
   opcHeatRelay.init();
   batHeatRelay.init();
+  sirenRelay.init();
   
   opcRelay.closeRelay();
   opcHeatRelay.closeRelay();
   batHeatRelay.closeRelay();
+  sirenRelay.closeRelay();
   delay(1000);
 
   opcRelay.openRelay();

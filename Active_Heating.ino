@@ -1,6 +1,6 @@
 void actHeat(){
-  const char ON[] = "on";
-  const char OFF[] = "off";
+  const char ON[] = "OPEN";
+  const char OFF[] = "CLOSED";
   // Compare digital temp. to critical temp.:  
   if(150 < t3 < t_low) {
     coldBattery = true; // if temperature is below low critical temperature
@@ -16,21 +16,17 @@ void actHeat(){
   }
 
 //turn heater on/off:
-  if(coldBattery && strcmp(Bat_heaterStatus.c_str(),OFF)==0){
+  if(coldBattery && strcmp(batHeatRelay.getRelayStatus(),OFF)==0){
     batHeatRelay.openRelay();
-    Bat_heaterStatus = "on";
   }
-  else if(!coldBattery && strcmp(Bat_heaterStatus.c_str(),ON)==0){
+  else if(!coldBattery && strcmp(batHeatRelay.getRelayStatus(),ON)==0){
     batHeatRelay.closeRelay();
-    Bat_heaterStatus = "off";
   }
-  if(coldOPC && strcmp(OPC_heaterStatus.c_str(),OFF)==0){
+  if(coldOPC && strcmp(opcHeatRelay.getRelayStatus(),OFF)==0){
     opcHeatRelay.openRelay();
-    OPC_heaterStatus = "on"; 
   }
-  else if(!coldOPC && strcmp(OPC_heaterStatus.c_str(),ON)==0){
+  else if(!coldOPC && strcmp(opcHeatRelay.getRelayStatus(),ON)==0){
     opcHeatRelay.closeRelay();
-    OPC_heaterStatus = "off";
   }
 }
 

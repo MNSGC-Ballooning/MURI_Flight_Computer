@@ -35,6 +35,20 @@ void closeFlightlog() {
   }
 }
 
+void writeEvents() {
+  String eventString = "";
+  eventString += flightTimeStr() + "," + stateString + ",";
+  eventString += [hdot.getHdot()] + "," + tickTock.getDuration() + ",";
+  eventString += opcRelay.getRelayStatus() + "," + opcHeatRelay.getRelayStatus() + "," + batHeatRelay.getRelayStatus() + ",";
+  eventString += smartOneString + "," + smartTwoString;
+
+  if (SDcard){
+    openEventLog();
+    eventLog.println(eventString);
+    closeEventLog();
+  }
+}
+
 //Takes a string describing any event that takes place and records it in the eventlog with a timestamp. 
 void logAction(String event) {
   if(SDcard){

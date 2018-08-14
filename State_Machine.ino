@@ -8,6 +8,7 @@
 #define STATE_MURI_RECOVERY 0x20        //0010 0000
 
 uint8_t muriState;
+String stateString = "";
 
 
 void stateMachine(){
@@ -22,12 +23,14 @@ void stateMachine(){
   static bool cast =false;
   if(!init){
     muriState = STATE_MURI_INIT;
+    stateString = "INITIALIZATION";
     init=true;
   }
   if(millis() >= masterTimer){
     smartOne.release();
     smartTwo.release();
     muriState = STATE_MURI_RECOVERY;
+    stateString = "RECOVERY";
   }
   blinkMode();                          //Controls Data LED that shows payload state
   Fixblink();                           //Controls LED that gives GPS fix information
@@ -58,6 +61,7 @@ void stateMachine(){
         Serial.println("Max alt hits: " + String(skyCheck));
         if(skyCheck>10){
           smartOne.release();
+          smartOneString = "RELEASED";
           if(!first){
             if(GPS.altitude.feet()<minAlt){
               minAlt=minAlt-10000;
@@ -78,7 +82,9 @@ void stateMachine(){
         Serial.println("Min alt hits: " + String(floorCheck));
         if(floorCheck>10){
           smartTwo.release();
+          smartTwoString = "RELEASED";
           smartOne.release();
+          smartOneString = "RELEASED";
           floorCheck = 0;
         }
       }
@@ -88,7 +94,9 @@ void stateMachine(){
     Serial.println("STATE_MURI_FAST_DESCENT");
     if(!fast){
       smartTwo.release();
+      smartTwoString = "RELEASED";
       smartOne.release();
+      smartOneString = "RELEASED";
       fast=true;
     }
     opcRelay.closeRelay();
@@ -102,6 +110,7 @@ void stateMachine(){
         snail++;
         if(snail>10){
           smartOne.release();
+          smartOneString = "RELEASED";
           //smartTwo.release();
           snail = 0;
         }
@@ -116,7 +125,9 @@ void stateMachine(){
     }
     if(millis()-castAway >= 600000){
       smartOne.release();
+      smartOneString = "RELEASED";
       smartTwo.release();
+      smartTwoString = "RELEASED";
     }
   }
   else if(muriState == STATE_MURI_RECOVERY){
@@ -162,6 +173,7 @@ void PID(){
       ascent++;
       if(ascent>5){
         muriState = STATE_MURI_ASCENT;
+        stateString = "ASCENT";
         ascent = 0;
       }
     }
@@ -169,6 +181,7 @@ void PID(){
       ascentS++;
       if(ascentS>5){
         muriState = STATE_MURI_SLOW_ASCENT;
+        stateString = "SLOW ASCENT";
         ascentS=0;
       }
     }
@@ -176,6 +189,7 @@ void PID(){
       descentS++;
       if(descentS>5){
         muriState = STATE_MURI_SLOW_DESCENT;
+        stateString = "SLOW DESCENT";
         descentS=0;
       }
       
@@ -184,6 +198,7 @@ void PID(){
       descentF++;
       if(descentF>20){
         muriState = STATE_MURI_FAST_DESCENT;
+        stateString = "FAST DESCENT";
         descentF = 0;
       }
     }
@@ -191,6 +206,7 @@ void PID(){
       wilson++;
       if(wilson>100){
         muriState = STATE_MURI_CAST_AWAY;
+        stateString = "CAST AWAY";
         wilson=0;
       }
     }
@@ -198,6 +214,7 @@ void PID(){
       recov++;
       if(recov>100){
         muriState = STATE_MURI_RECOVERY;
+        stateString = "RECOVERY";
         recov=0;
       }
     }
@@ -224,16 +241,21 @@ Relay::Relay(int on,int off){
   onPin=on;
   offPin=off;
 }
+String Relay::getRelayStatus(){
+  return (relayStatus);
+}
 void Relay::init(){
   pinMode(onPin,OUTPUT);
   pinMode(offPin,OUTPUT);
 }
 void Relay::openRelay(){
+  relayStatus = "OPEN";
   digitalWrite(onPin,HIGH);
   delay(10);
   digitalWrite(onPin,LOW);
 }
 void Relay::closeRelay(){
+  relayStatus = "CLOSED";
   digitalWrite(offPin,HIGH);
   delay(10);
   digitalWrite(offPin,LOW);
@@ -257,3 +279,4 @@ void ACTIVE_TIMER::hammerTime(){
     smartUnit->release();
   }
 }
+String ACTIVE_TIMER::getDuration() {return (String(duration));)}

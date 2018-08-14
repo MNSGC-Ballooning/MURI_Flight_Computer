@@ -84,13 +84,15 @@ class Blink: public action {
 };
 class Relay {
   protected:
+    String relayStatus;
     int onPin;
     int offPin;
   public:
     Relay(int on, int off);
+    String getRelayStatus();
     void init();
     void openRelay();
-    void closeRelay();;
+    void closeRelay();
 };
 class ACTIVE_TIMER{
   protected:
@@ -99,6 +101,7 @@ class ACTIVE_TIMER{
     unsigned long starT;
   public:
     ACTIVE_TIMER(Smart * smart,long d,long s);
+    String getDuration();
     void hammerTime();
     void updateTimer(float);
 };
@@ -196,8 +199,6 @@ ACTIVE_TIMER tickTock = ACTIVE_TIMER(smarty,releaseTimer,starty);
 //Heating
 float t_low = 283;
 float t_high = 289;
-String Bat_heaterStatus = "off";
-String OPC_heaterStatus = "off";
 boolean coldBattery = false;
 boolean coldOPC = false;
 
@@ -209,6 +210,8 @@ String data;
 String Fname = "";
 File eventLog;
 String Ename = "";
+String smartOneString = "";
+String smartTwoString = "";
 boolean SDcard = true;
   
 
@@ -245,7 +248,9 @@ void setup() {
   
   //Initialize SMART
   smartOne.initialize();
+  smartOneString = "CLOSED";
   smartTwo.initialize();
+  smartTwoString = "CLOSED";
   
   //initiate GPS serial
    Serial1.begin(4800);
@@ -281,7 +286,7 @@ void setup() {
       break;
     }
   }
-  Serial.println("event log created: " + Ename);
+  Serial.println("Event log created: " + Ename);
 
   //Same but for Flight Log
   for (int i = 0; i < 100; i++) {
@@ -298,7 +303,7 @@ void setup() {
   Serial.println("Flight log header added");
 
 
-  String eventLogHeader = "Time, Sent/Received, Command";
+  String eventLogHeader = "Flight Time, State, hdot, Active Timer, OPC Relay, OPC Heater Relay, Battery Heater Relay, Smart 1, Smart 2";
   eventLog.println(eventLogHeader);
   Serial.println("Eventlog header added");
 
@@ -311,4 +316,5 @@ void loop(){
   updateGPS();       //Updates GPS
   updateSensors();   //Updates and logs all sensor data
   stateMachine();   //autopilot function that checks status and runs actions
+  writeEvents();     //Writes event to log
 }

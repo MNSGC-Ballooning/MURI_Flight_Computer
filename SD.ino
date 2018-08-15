@@ -38,14 +38,14 @@ void closeFlightlog() {
 void writeEvents() {
   String eventString = "";
   eventString += flightTimeStr() + "," + stateString + ",";
-  eventString += [hdot.getHdot()] + "," + tickTock.getDuration() + ",";
-  eventString += opcRelay.getRelayStatus() + "," + opcHeatRelay.getRelayStatus() + "," + batHeatRelay.getRelayStatus() + ",";
+  eventString += hDOT.getHDot() + "," + tickTock.getDuration() + ",";
+  eventString += String(opcRelay.getRelayStatus()) + "," + String(opcHeatRelay.getRelayStatus()) + "," + String(batHeatRelay.getRelayStatus()) + ",";
   eventString += smartOneString + "," + smartTwoString;
 
   if (SDcard){
-    openEventLog();
+    openEventlog();
     eventLog.println(eventString);
-    closeEventLog();
+    closeEventlog();
   }
 }
 

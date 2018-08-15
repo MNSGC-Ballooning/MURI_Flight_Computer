@@ -32,7 +32,7 @@ void updateSensors() {
     }
     data += (String(x) + "," + String(y) + "," + String(z) + ","); 
     data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
-    data += (Bat_heaterStatus + "," + OPC_heaterStatus + ",");
+    data += (String(batHeatRelay.getRelayStatus()) + "," + String(opcHeatRelay.getRelayStatus()) + ",");
     data += (String(kpa));
     Serial.println(data);
     Flog.println(data);

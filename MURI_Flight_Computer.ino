@@ -102,6 +102,27 @@ class ACTIVE_TIMER{
     void hammerTime();
     void updateTimer(float);
 };
+class ASCENT_RATE{
+  protected:
+    float h_dot;
+    float prevh;
+    unsigned long prevt;
+    float h_dotArr[5];
+    float hQ[5];
+    unsigned long tQ[5];
+    float h_dotQ[5];
+    float sum;
+  public:
+    ASCENT_RATE();
+    void updateRate();
+    void checkHit();
+    float geth_dot();
+    float getPrevh();
+    float getPrevt();
+    float getPrevh_dot();
+    
+};
+
 
 /////////////////////////////////////////////
 /////////////////Define Pins/////////////////
@@ -184,6 +205,7 @@ float kpa = 0;
 Smart smartOne = Smart(smartPin1);
 Smart smartTwo = Smart(smartPin2);
 Smart * smarty = &smartOne;
+ASCENT_RATE hDOT = ASCENT_RATE();
 unsigned long beaconTimer= 0;
 boolean burnerON = false;
 long releaseTimer = Release_Timer * 1000;

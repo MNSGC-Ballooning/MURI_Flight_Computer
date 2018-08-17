@@ -1,5 +1,6 @@
 boolean eventlogOpen = false;
 boolean FlightlogOpen = false;
+boolean BloxlogOpen = false;
 //The following functions handle both opening files and controlling the data indicator LED
 
 void openEventlog() {
@@ -9,7 +10,6 @@ void openEventlog() {
     digitalWrite(ledSD, HIGH);
   }
 }
-
 void closeEventlog() {
   if (eventlogOpen&&SDcard) {
     eventLog.close();
@@ -34,6 +34,23 @@ void closeFlightlog() {
       digitalWrite(ledSD, LOW);
   }
 }
+
+//void openBloxlog() {
+//  if (!BloxlogOpen&&SDcard) {
+//    bloxLog = SD.open(Bname, FILE_WRITE);
+//    BloxlogOpen = true;
+//    digitalWrite(ledSD, HIGH);
+//  }
+//}
+//
+//void closeBloxlog() {
+//  if (BloxlogOpen&&SDcard) {
+//    bloxLog.close();
+//    BloxlogOpen = false;
+//    if (!BloxlogOpen)
+//      digitalWrite(ledSD, LOW);
+//  }
+//}
 
 void writeEvents() {
   String eventString = "";

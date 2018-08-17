@@ -9,8 +9,6 @@
 
 uint8_t muriState;
 
-
-
 void stateMachine(){
   unsigned long castAway = 0;
   static byte initCounter = 0;
@@ -20,11 +18,12 @@ void stateMachine(){
   static bool init = false;
   static bool fast = false;
   static bool cast =false;
-  static int prevTime = 0;
+  static unsigned long prevTimes = 0;
   if(!init){
     muriState = STATE_MURI_INIT;
     stateString = "INITIALIZATION";
     init=true;
+    Serial.println("Initializing...");
   }
   if(millis() >= masterTimer){
     smartOne.release();
@@ -40,12 +39,16 @@ void stateMachine(){
   }
   PID();                                //Controller that changes State based on derivative of altitude
   
-///////////Finite State Machine/////////////
-  if(GPS.Fix && GPS.altitude.feet()!=0 && getLastGPS()-prevTime>=1){
+///////////Finite State Machine///////////////
+//Serial.println("GLGPS: " + String(getLastGPS()));
+//Serial.println("Prev time: " + String(prevTimes));
+if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
+    hDOT.updateRate();
+    Serial.println("h dot: " + String(hDOT.geth_dot()));
     if(muriState == STATE_MURI_INIT && !hdotInit){
       Serial.println("STATE_MURI_INIT");
-      if((float(millis())/1000)>hDOT.getPrevt()&&GPS.altitude.feet()>hDOT.getPrevh()&&hDOT.geth_dot()>250){
-        hDOT.updateRate();
+      if(hDOT.getRate()>250 && hDOT.getRate()<1500){
+        hDOT.addHit();
       }
       else{
         hDOT.checkHit();
@@ -60,8 +63,8 @@ void stateMachine(){
     }
     if(muriState == STATE_MURI_ASCENT){
       Serial.println("STATE_MURI_ASCENT");
-      if((float(millis())/1000)>hDOT.getPrevt()&&GPS.altitude.feet()>hDOT.getPrevh()&&hDOT.geth_dot()>250){
-        hDOT.updateRate();
+      if(hDOT.getRate()>250 && hDOT.getRate()<1500){
+        hDOT.addHit();
       }
       else{
         hDOT.checkHit();
@@ -78,8 +81,8 @@ void stateMachine(){
     }
     else if(muriState == STATE_MURI_SLOW_DESCENT){
       Serial.println("STATE_MURI_SLOW_DESCENT");
-      if((float(millis())/1000)>hDOT.getPrevt() && GPS.altitude.feet()<hDOT.getPrevh() && hDOT.geth_dot()>-2000){
-        hDOT.updateRate();
+      if(hDOT.getRate()>-2000 && hDOT.getRate()<-50){
+        hDOT.addHit();
       }
       else{
         hDOT.checkHit();
@@ -98,8 +101,8 @@ void stateMachine(){
     }
     else if(muriState == STATE_MURI_FAST_DESCENT){
       Serial.println("STATE_MURI_FAST_DESCENT");
-      if((float(millis())/1000)>hDOT.getPrevt() && GPS.altitude.feet()<hDOT.getPrevh() && hDOT.geth_dot()>-2000){
-        hDOT.updateRate();
+      if(-50>hDOT.getRate() && hDOT.getRate()<-2000){
+        hDOT.addHit();
       }
       else{
         hDOT.checkHit();
@@ -116,8 +119,8 @@ void stateMachine(){
     }
     else if(muriState == STATE_MURI_SLOW_ASCENT){
       Serial.println("STATE_MURI_SLOW_ASCENT");
-      if((float(millis())/1000)>hDOT.getPrevt() && GPS.altitude.feet()>hDOT.getPrevh() && hDOT.geth_dot()<=250){
-        hDOT.updateRate();
+      if(-50>hDOT.getRate() && hDOT.getRate()<=250){
+        hDOT.addHit();
       }
       else{
         hDOT.checkHit();
@@ -137,8 +140,8 @@ void stateMachine(){
       }
     }
     else if(muriState == STATE_MURI_CAST_AWAY){
-      if((float(millis())/1000) > hDOT.getPrevt() && hDOT.geth_dot()>-50 && hDOT.geth_dot()<50){
-        hDOT.updateRate();
+      if(hDOT.getRate()>-50 && hDOT.getRate()<50){
+        hDOT.addHit();
       }
       else{
         hDOT.checkHit();
@@ -164,8 +167,9 @@ void stateMachine(){
     else{
       
     }
-    prevTime=getLastGPS();
-  }  
+    prevTimes=millis();
+  }
+  
 }
 
 void PID(){
@@ -185,7 +189,7 @@ void PID(){
       muriState = STATE_MURI_SLOW_ASCENT;
       stateString = "SLOW ASCENT";
     }
-    else if(hDOT.geth_dot() > -1000 && hDOT.geth_dot() < -50){
+    else if(hDOT.geth_dot() >= -1500 && hDOT.geth_dot() < -50){
       static bool first = false;
       muriState = STATE_MURI_SLOW_DESCENT;
       stateString = "SLOW DESCENT";
@@ -285,6 +289,7 @@ String ACTIVE_TIMER::getDuration() {return (String(duration));}
 
 //ASCENT_RATE class
 ASCENT_RATE::ASCENT_RATE(){
+  rate=0;
   h_dot=0;
   prevh=0;
   prevt=0;
@@ -298,15 +303,22 @@ ASCENT_RATE::ASCENT_RATE(){
   
 }
 void ASCENT_RATE::updateRate(){
- for(int i=0;i<5;i++){
+ rate=((GPS.altitude.feet()-prevh)/((float(millis())/1000)-prevt))*60; //h_dot in feet per minute
+ prevh=GPS.altitude.feet();
+ prevt=(float(millis())/1000);
+ Serial.println("Rate: " + String(rate));
+ Serial.println("Alt: " + String(prevh));
+ Serial.println("Time: " + String(prevt));
+}
+void ASCENT_RATE::addHit(){
+  Serial.println("Adding hit");
+  for(int i=0;i<5;i++){
   if(h_dotArr[i]==0){
-    h_dotArr[i]=((GPS.altitude.feet()-prevh)/((float(millis())/1000)-prevt))*60; //h_dot in feet per minute
-    prevh=GPS.altitude.feet();
-    prevt=(float(millis())/1000);
+    h_dotArr[i]=rate;
     break;
   }
  }
- if(h_dotArr[5]!=0){
+ if(h_dotArr[4]!=0){
    for(int i=0;i<5;i++){
      sum+=h_dotArr[i];
      h_dotArr[i]=0; //set h dot array element equal to zero after adding to sum to prepare for next five value average
@@ -319,15 +331,14 @@ void ASCENT_RATE::updateRate(){
  } 
 }
 void ASCENT_RATE::checkHit(){
+  Serial.println("Checking hit");
   for(int i=0;i<5;i++){
     if(h_dotQ[i]==0){
-      h_dotQ[i]=((GPS.altitude.feet()-prevh)/((float(millis())/1000)-prevt))*60; //h_dot in feet per minute
-      prevh=GPS.altitude.feet();
-      prevt=(float(millis())/1000);
+      h_dotQ[i]=rate;
       break;
     }
   }
-  if(h_dotQ[5]!=0){
+  if(h_dotQ[4]!=0){
    for(int i=0;i<5;i++){
      sum+=h_dotQ[i];
      h_dotQ[i]=0;      //set normal and questionable array to zero after questionable array is determined to be correct
@@ -336,6 +347,9 @@ void ASCENT_RATE::checkHit(){
    h_dot=sum/5;
    sum=0;
  }
+}
+float ASCENT_RATE::getRate(){
+  return rate;
 }
 float ASCENT_RATE::geth_dot(){
   return h_dot;

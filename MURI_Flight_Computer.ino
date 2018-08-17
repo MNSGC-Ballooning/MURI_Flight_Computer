@@ -5,13 +5,12 @@
 //https://github.com/simonpeterson/TinyGPS/tree/master
 #include <SPI.h>
 #include <SD.h>
-#include <TinyGPS++.h>
-//#include <TinyGPS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <SparkFun_ADXL345.h>      //accelerometer library
 #include <Smart.h>
-//#include <UbloxGPS.h>
+#include <UbloxGPS.h>
+#include <CopernicusGPS.h>
 
 //==============================================================
 //               MURI Flight Computer
@@ -194,8 +193,8 @@ float t4;
 
 
 //GPS
-TinyGPSPlus GPS;
-//UbloxGPS Ublox(&Serial2);
+CopernicusGPS Copernicus(&Serial1);
+UbloxGPS Ublox(&Serial2);
 
 //Accelerometer
 ADXL345 adxl = ADXL345();
@@ -240,8 +239,8 @@ String data;
 String Fname = "";
 File eventLog;
 String Ename = "";
-//File bloxLog;
-//String Bname = "";
+File bloxLog;
+String Bname = "";
 String smartOneString = "";
 String smartTwoString = "";
 boolean SDcard = true;
@@ -285,8 +284,8 @@ void setup() {
   smartTwoString = "CLOSED";
   
   //initiate GPS
-  Serial1.begin(4800);
-  //Ublox.initialize();
+  Copernicus.initialize();
+  Ublox.initialize();
  
 
   Serial.println("xBee begin");
@@ -332,31 +331,31 @@ void setup() {
   
   Serial.println("Flight log created: " + Fname);
 
-//  for (int i = 0; i < 100; i++) {
-//    if (!SD.exists("bloxLog" + String(i / 10) + String(i % 10) + ".csv")) {
-//      Fname = "bloxLog" + String(i / 10) + String(i % 10) + ".csv";
-//      openBloxlog();
-//      break;
-//    }
-//  }
-//
-//  Serial.println("UBlox log created: " + Bname);
+  for (int i = 0; i < 100; i++) {
+    if (!SD.exists("bloxLog" + String(i / 10) + String(i % 10) + ".csv")) {
+      Fname = "bloxLog" + String(i / 10) + String(i % 10) + ".csv";
+      openBloxlog();
+      break;
+    }
+  }
+
+  Serial.println("UBlox log created: " + Bname);
 
   //Set Ublox to airborn mode
-//  byte i = 0;
-//  while (i < 3) {
-//    i++;
-//    if (Ublox.setAirborne()) {
-//      bloxLog.println("Air mode successfully set.");
-//      break;
-//    }
-//    else if (i == 3)
-//      bloxLog.println("WARNING: Failed to set to air mode (3 attemtps). Altitude data may be unreliable.");
-//    else
-//      bloxLog.println("Error: Air mode set unsuccessful. Reattempting...");
-//  }
+  byte i = 0;
+  while (i < 3) {
+    i++;
+    if (Ublox.setAirborne()) {
+      bloxLog.println("Air mode successfully set.");
+      break;
+    }
+    else if (i == 3)
+      bloxLog.println("WARNING: Failed to set to air mode (3 attemtps). Altitude data may be unreliable.");
+    else
+      bloxLog.println("Error: Air mode set unsuccessful. Reattempting...");
+  }
   
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI)";
+  String FHeader = "Flight Time, Lattitude, Longitutde, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI)";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 
@@ -365,15 +364,21 @@ void setup() {
   eventLog.println(eventLogHeader);
   Serial.println("Eventlog header added");
 
+  String bloxLogHeader = "Flight Time, Lattitude, Longitude, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix";
+  bloxLog.println(bloxLogHeader);
+  Serial.println("BloxLog header added");
+
   closeEventlog();
   closeFlightlog();
-  //closeBloxlog();
+  closeBloxlog();
 
 
   Serial.println("Setup Complete");
 }
 void loop(){
-  updateGPS();       //Updates GPS
+  Copernicus.update();
+  Ublox.update();
+  //updateGPS();       //Updates GPS
   updateSensors();   //Updates and logs all sensor data
   stateMachine();    //Finite state machine that makes in flight decsions based on GPS data
   writeEvents();     //Writes event to log

@@ -42,7 +42,8 @@ void stateMachine(){
 ///////////Finite State Machine///////////////
 //Serial.println("GLGPS: " + String(getLastGPS()));
 //Serial.println("Prev time: " + String(prevTimes));
-if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
+if(Copernicus.getFixAge() < 2000 && Copernicus.getAlt()!=0 && millis()-prevTimes>1000 && Copernicus.getAlt()*3.28084!=hDOT.getPrevh()){
+    prevTimes=millis();
     hDOT.updateRate();
     Serial.println("h dot: " + String(hDOT.geth_dot()));
     if(muriState == STATE_MURI_INIT && !hdotInit){
@@ -53,7 +54,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       else{
         hDOT.checkHit();
       }
-      if(GPS.altitude.feet()>5000){
+      if(Copernicus.getAlt()*3.28084>5000){
         initCounter++;
         if(initCounter>5){
           hdotInit=true;
@@ -69,7 +70,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       else{
         hDOT.checkHit();
       }
-      if(GPS.altitude.feet()>maxAlt){
+      if(Copernicus.getAlt()*3.28084>maxAlt){
         skyCheck++;
         Serial.println("Max alt hits: " + String(skyCheck));
         if(skyCheck>5){
@@ -87,7 +88,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       else{
         hDOT.checkHit();
       }
-      if(GPS.altitude.feet()<minAlt){
+      if(Copernicus.getAlt()*3.28084<minAlt){
         floorCheck++;
         Serial.println("Min alt hits: " + String(floorCheck));
         if(floorCheck>5){
@@ -127,10 +128,10 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       }
       snail++;
       if(snail>10){
-        if(GPS.altitude.feet()<30000){
+        if(Copernicus.getAlt()*3.28084<30000){
           smartTwo.release();
         }
-        else if(GPS.altitude.feet()>=30000){
+        else if(Copernicus.getAlt()*3.28084>=30000){
           smartOne.release();
           smartOneString = "RELEASED";
           smartTwo.release();
@@ -167,14 +168,14 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
     else{
       
     }
-    prevTimes=millis();
+    
   }
   
 }
 
 void PID(){
   static byte wilson = 0;
-  if(hdotInit && GPS.Fix && GPS.altitude.feet()!=0 && !recovery){
+  if(hdotInit && Copernicus.getFixAge()<2000 && Copernicus.getAlt()!=0 && !recovery){
     Serial.println("In control loop");
     tickTock.updateTimer(hDOT.geth_dot());
     tickTock.hammerTime();
@@ -195,8 +196,8 @@ void PID(){
       stateString = "SLOW DESCENT";
       if(!first){
         smarty = &smartTwo;
-        if(GPS.altitude.feet()<minAlt){
-          minAlt=GPS.altitude.feet()-10000;
+        if(Copernicus.getAlt()*3.28084<minAlt){
+          minAlt=Copernicus.getAlt()*3.28084-10000;
         }
         first = true;
       }
@@ -213,7 +214,7 @@ void PID(){
         wilson=0;
       }
     }
-    else if(muriState == STATE_MURI_FAST_DESCENT && GPS.altitude.feet()<7000){
+    else if(muriState == STATE_MURI_FAST_DESCENT && Copernicus.getAlt()*3.28084<7000){
       muriState = STATE_MURI_RECOVERY;
       stateString = "RECOVERY";
     }
@@ -224,7 +225,7 @@ void PID(){
 }
 void opcControl(){
   static byte checktimes;
-  if(!opcON && GPS.altitude.feet()>=75,000){
+  if(!opcON && Copernicus.getAlt()*3.28084>=75,000){
     checktimes++;
     if(checktimes>=15){
       opcRelay.openRelay();
@@ -273,11 +274,11 @@ ACTIVE_TIMER::ACTIVE_TIMER(Smart * smart,long d,long s){
   starT=s;
 }
 void ACTIVE_TIMER::updateTimer(float r){
-  if(GPS.Fix && GPS.altitude.feet()!=0 && muriState==STATE_MURI_ASCENT && GPS.altitude.feet()<30000){
-    duration=(((maxAlt-GPS.altitude.feet())/fabs(r))*1.5);
+  if(Copernicus.getFixAge()<2000 && Copernicus.getAlt()!=0 && muriState==STATE_MURI_ASCENT && Copernicus.getAlt()<30000){
+    duration=(((maxAlt-Copernicus.getAlt()*3.28084)/fabs(r))*1.5);
   }
-  else if(GPS.Fix && GPS.altitude.feet()!=0 && muriState==STATE_MURI_SLOW_DESCENT && GPS.altitude.feet()>(minAlt+30000)){
-    duration=(((GPS.altitude.feet()-minAlt)/fabs(r))*1.5);
+  else if(Copernicus.getFixAge()<2000 && Copernicus.getAlt()!=0 && muriState==STATE_MURI_SLOW_DESCENT && Copernicus.getAlt()*3.28084>(minAlt+30000)){
+    duration=(((Copernicus.getAlt()*3.28084-minAlt)/fabs(r))*1.5);
   }
 }
 void ACTIVE_TIMER::hammerTime(){
@@ -303,8 +304,8 @@ ASCENT_RATE::ASCENT_RATE(){
   
 }
 void ASCENT_RATE::updateRate(){
- rate=((GPS.altitude.feet()-prevh)/((float(millis())/1000)-prevt))*60; //h_dot in feet per minute
- prevh=GPS.altitude.feet();
+ rate=((Copernicus.getAlt()*3.28084-prevh)/((float(millis())/1000)-prevt))*60; //h_dot in feet per minute
+ prevh=Copernicus.getAlt()*3.28084;
  prevt=(float(millis())/1000);
  Serial.println("Rate: " + String(rate));
  Serial.println("Alt: " + String(prevh));

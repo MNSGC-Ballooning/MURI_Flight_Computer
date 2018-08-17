@@ -35,22 +35,22 @@ void closeFlightlog() {
   }
 }
 
-//void openBloxlog() {
-//  if (!BloxlogOpen&&SDcard) {
-//    bloxLog = SD.open(Bname, FILE_WRITE);
-//    BloxlogOpen = true;
-//    digitalWrite(ledSD, HIGH);
-//  }
-//}
-//
-//void closeBloxlog() {
-//  if (BloxlogOpen&&SDcard) {
-//    bloxLog.close();
-//    BloxlogOpen = false;
-//    if (!BloxlogOpen)
-//      digitalWrite(ledSD, LOW);
-//  }
-//}
+void openBloxlog() {
+  if (!BloxlogOpen&&SDcard) {
+    bloxLog = SD.open(Bname, FILE_WRITE);
+    BloxlogOpen = true;
+    digitalWrite(ledSD, HIGH);
+  }
+}
+
+void closeBloxlog() {
+  if (BloxlogOpen&&SDcard) {
+    bloxLog.close();
+    BloxlogOpen = false;
+    if (!BloxlogOpen)
+      digitalWrite(ledSD, LOW);
+  }
+}
 
 void writeEvents() {
   String eventString = "";
@@ -75,12 +75,5 @@ void logAction(String event) {
   }
 }
 
-void GPSaction(String action){
-    if(GPS.Fix){   //GPS.fix
-      logAction(action + ", " + flightTimeStr() + "," + String(GPS.location.lat(), 4) + "," + String(GPS.location.lng(), 4) + ", Altitude: " + String(GPS.altitude.feet()) + "ft. FIX");  
-    }
-    else{
-      logAction(action + ", " + flightTimeStr() + "," + String(GPS.location.lat(), 4) + "," + String(GPS.location.lng(), 4) + ", Altitude: " + String(GPS.altitude.feet()) + "ft. NO FIX");
-    }
-  }
+
 

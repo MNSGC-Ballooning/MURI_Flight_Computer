@@ -376,5 +376,5 @@ void loop(){
   updateGPS();       //Updates GPS
   updateSensors();   //Updates and logs all sensor data
   stateMachine();    //Finite state machine that makes in flight decsions based on GPS data
-  writeEvents();     //Writes event to log
+  //writeEvents();     //Writes event to log
 }

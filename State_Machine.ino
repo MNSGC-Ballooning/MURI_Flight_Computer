@@ -43,6 +43,7 @@ void stateMachine(){
 //Serial.println("GLGPS: " + String(getLastGPS()));
 //Serial.println("Prev time: " + String(prevTimes));
 if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
+    prevTimes=millis();
     hDOT.updateRate();
     Serial.println("h dot: " + String(hDOT.geth_dot()));
     if(muriState == STATE_MURI_INIT && !hdotInit){
@@ -69,7 +70,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       else{
         hDOT.checkHit();
       }
-      if(GPS.altitude.feet()>maxAlt){
+      if(GPS.altitude.feet()>maxAlt && GPS.altitude.feet()!=0){
         skyCheck++;
         Serial.println("Max alt hits: " + String(skyCheck));
         if(skyCheck>5){
@@ -87,7 +88,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       else{
         hDOT.checkHit();
       }
-      if(GPS.altitude.feet()<minAlt){
+      if(GPS.altitude.feet()<minAlt && GPS.altitude.feet()!=0){
         floorCheck++;
         Serial.println("Min alt hits: " + String(floorCheck));
         if(floorCheck>5){
@@ -98,10 +99,13 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
           floorCheck = 0;
         }
       }
+      else{
+        floorCheck = 0;
+      }
     }
     else if(muriState == STATE_MURI_FAST_DESCENT){
       Serial.println("STATE_MURI_FAST_DESCENT");
-      if(-50>hDOT.getRate() && hDOT.getRate()<-2000){
+      if(hDOT.getRate()<-2000){
         hDOT.addHit();
       }
       else{
@@ -119,7 +123,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
     }
     else if(muriState == STATE_MURI_SLOW_ASCENT){
       Serial.println("STATE_MURI_SLOW_ASCENT");
-      if(-50>hDOT.getRate() && hDOT.getRate()<=250){
+      if(50>hDOT.getRate() && hDOT.getRate()<=250){
         hDOT.addHit();
       }
       else{
@@ -140,7 +144,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       }
     }
     else if(muriState == STATE_MURI_CAST_AWAY){
-      if(hDOT.getRate()>-50 && hDOT.getRate()<50){
+      if(hDOT.getRate()>=-50 && hDOT.getRate()<=50){
         hDOT.addHit();
       }
       else{
@@ -167,7 +171,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
     else{
       
     }
-    prevTimes=millis();
+    
   }
   
 }
@@ -175,10 +179,11 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
 void PID(){
   static byte wilson = 0;
   if(hdotInit && GPS.Fix && GPS.altitude.feet()!=0 && !recovery){
-    Serial.println("In control loop");
-    tickTock.updateTimer(hDOT.geth_dot());
+    if(hDOT.geth_dot()!=0){
+      tickTock.updateTimer(hDOT.geth_dot());
+    }
     tickTock.hammerTime();
-    if(hDOT.geth_dot()>=3000 || hDOT.geth_dot()<=-3000){
+    if(hDOT.geth_dot()>=5000 || hDOT.geth_dot()<=-5000){
       Serial.println("GPS Jump Detected");
     }
     else if(hDOT.geth_dot() > 250){
@@ -201,13 +206,13 @@ void PID(){
         first = true;
       }
     }
-    else if(hDOT.geth_dot()<=-2000){
+    else if(hDOT.geth_dot()<=-2000 && GPS.altitude.feet()>7000){
       muriState = STATE_MURI_FAST_DESCENT;
       stateString = "FAST DESCENT";
     }
     else if(hDOT.geth_dot()>=-50 && hDOT.geth_dot()<=50){
       wilson++;
-      if(wilson>20){
+      if(wilson>100){
         muriState = STATE_MURI_CAST_AWAY;
         stateString = "CAST AWAY";
         wilson=0;
@@ -274,10 +279,10 @@ ACTIVE_TIMER::ACTIVE_TIMER(Smart * smart,long d,long s){
 }
 void ACTIVE_TIMER::updateTimer(float r){
   if(GPS.Fix && GPS.altitude.feet()!=0 && muriState==STATE_MURI_ASCENT && GPS.altitude.feet()<30000){
-    duration=(((maxAlt-GPS.altitude.feet())/fabs(r))*1.5);
+    duration=((maxAlt/fabs(r))*1.2);
   }
   else if(GPS.Fix && GPS.altitude.feet()!=0 && muriState==STATE_MURI_SLOW_DESCENT && GPS.altitude.feet()>(minAlt+30000)){
-    duration=(((GPS.altitude.feet()-minAlt)/fabs(r))*1.5);
+    duration=((maxAlt-minAlt/fabs(r))*1.2);
   }
 }
 void ACTIVE_TIMER::hammerTime(){
@@ -303,9 +308,9 @@ ASCENT_RATE::ASCENT_RATE(){
   
 }
 void ASCENT_RATE::updateRate(){
- rate=((GPS.altitude.feet()-prevh)/((float(millis())/1000)-prevt))*60; //h_dot in feet per minute
+ rate=((GPS.altitude.feet()-prevh)/(getGPStime()-prevt))*60; //h_dot in feet per minute
  prevh=GPS.altitude.feet();
- prevt=(float(millis())/1000);
+ prevt=getGPStime();
  Serial.println("Rate: " + String(rate));
  Serial.println("Alt: " + String(prevh));
  Serial.println("Time: " + String(prevt));

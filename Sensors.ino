@@ -3,7 +3,8 @@
 //function to handle both retrieval of data from GPS module and sensors, as well as recording it on the SD card
 void updateSensors() {
   static unsigned long prevTime = 0;
-  if(millis() - prevTime >= 1000){
+  if(millis() - prevTime >= 5000){
+    prevTime = millis();
     adxl.readAccel(&x,&y,&z);
     sensor1.requestTemperatures();
     sensor2.requestTemperatures();
@@ -51,8 +52,8 @@ void updateSensors() {
     Flog.println(data);
     //bloxLog.println(data2);
     closeFlightlog();
+    writeEvents();
     //closeBloxlog();
-    prevTime = millis();
   }
   
 }

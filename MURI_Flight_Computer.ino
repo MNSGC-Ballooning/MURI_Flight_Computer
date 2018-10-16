@@ -11,6 +11,9 @@
 #include <DallasTemperature.h>
 #include <SparkFun_ADXL345.h>      //accelerometer library
 #include <Smart.h>
+#include <MS5xxx.h>                //library for MS5607 altimeter, temp, pressure sensor
+#include <Wire.h>                  //I2C required for the temp sensor
+
 //#include <UbloxGPS.h>
 
 //==============================================================
@@ -202,11 +205,17 @@ ADXL345 adxl = ADXL345();
 boolean shift = false;
 int x,y,z;
 
-//HoneyWell Pressure Sensor 
+//HoneyWell Pressure Sensor
+//is this necessary or being used?- Simon 
 int pressure = 0;
 float pressureV = 0;
 float psi = 0;
 float kpa = 0;
+
+//MS5607 pressure and temperature sensor
+float ms_temp = 0;
+float ms_pressure = 0;
+
 ///////////////////////////////////////////
 //////////////Control System///////////////
 ///////////////////////////////////////////

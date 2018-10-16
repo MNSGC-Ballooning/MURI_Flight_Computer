@@ -64,7 +64,7 @@ int OPC_srate=1400;     //OPC sample rate in milliseconds.
      fix                          | D6                    | whether or not we have a GPS fix, must be used with copernicus GPS unit
      Tempread                     | D9                    | temperature sensor reading
      Accel I2C                    | SDA,SCL               | I2C communication for accelerometer (pins 20 and 21)
-
+     
      -------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -213,6 +213,7 @@ float psi = 0;
 float kpa = 0;
 
 //MS5607 pressure and temperature sensor
+MS5xxx MS5(&Wire);
 float ms_temp = 0;
 float ms_pressure = 0;
 
@@ -259,13 +260,21 @@ boolean SDcard = true;
 void setup() {
   //Initiate Serial
   Serial.begin(9600);
-
+  
   //Initiate Temp Sensors
   sensor1.begin();
   sensor2.begin();
   sensor3.begin();
   sensor4.begin();
 
+  //initialize MS5607
+
+  //should this be in a while loop? (see test example)
+  MS5.connect();
+  delay(500);
+
+
+  
   //Initialize Relays
   opcRelay.init();
   opcHeatRelay.init();

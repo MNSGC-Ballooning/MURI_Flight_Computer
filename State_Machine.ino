@@ -42,7 +42,7 @@ void stateMachine(){
 ///////////Finite State Machine///////////////
 //Serial.println("GLGPS: " + String(getLastGPS()));
 //Serial.println("Prev time: " + String(prevTimes));
-if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
+if(millis()-prevTimes>1000 && gpsAltitude!=hDOT.getPrevh()){
     prevTimes=millis();
     hDOT.updateRate();
     Serial.println("h dot: " + String(hDOT.geth_dot()));
@@ -54,7 +54,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       else{
         hDOT.checkHit();
       }
-      if(GPS.altitude.feet()>5000){
+      if(gpsAltitude>5000){
         initCounter++;
         if(initCounter>5){
           hdotInit=true;
@@ -70,7 +70,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       else{
         hDOT.checkHit();
       }
-      if(GPS.altitude.feet()>maxAlt && GPS.altitude.feet()!=0){
+      if(gpsAltitude>maxAlt && gpsAltitude!=0){
         skyCheck++;
         Serial.println("Max alt hits: " + String(skyCheck));
         if(skyCheck>5){
@@ -88,7 +88,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       else{
         hDOT.checkHit();
       }
-      if(GPS.altitude.feet()<minAlt && GPS.altitude.feet()!=0){
+      if(gpsAltitude<minAlt && gpsAltitude!=0){
         floorCheck++;
         Serial.println("Min alt hits: " + String(floorCheck));
         if(floorCheck>5){
@@ -131,10 +131,10 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
       }
       snail++;
       if(snail>10){
-        if(GPS.altitude.feet()<30000){
+        if(gpsAltitude<30000){
           smartTwo.release();
         }
-        else if(GPS.altitude.feet()>=30000){
+        else if(gpsAltitude>=30000){
           smartOne.release();
           smartOneString = "RELEASED";
           smartTwo.release();
@@ -178,7 +178,7 @@ if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.
 
 void PID(){
   static byte wilson = 0;
-  if(hdotInit && GPS.Fix && GPS.altitude.feet()!=0 && !recovery){
+  if(hdotInit &&  gpsAltitude!=0 && !recovery){
     if(hDOT.geth_dot()!=0){
       tickTock.updateTimer(hDOT.geth_dot());
     }
@@ -200,13 +200,13 @@ void PID(){
       stateString = "SLOW DESCENT";
       if(!first){
         smarty = &smartTwo;
-        if(GPS.altitude.feet()<minAlt){
-          minAlt=GPS.altitude.feet()-10000;
+        if(gpsAltitude<minAlt){
+          minAlt=gpsAltitude-10000;
         }
         first = true;
       }
     }
-    else if(hDOT.geth_dot()<=-2000 && GPS.altitude.feet()>7000){
+    else if(hDOT.geth_dot()<=-2000 && gpsAltitude>7000){
       muriState = STATE_MURI_FAST_DESCENT;
       stateString = "FAST DESCENT";
     }
@@ -218,7 +218,7 @@ void PID(){
         wilson=0;
       }
     }
-    else if(muriState == STATE_MURI_FAST_DESCENT && GPS.altitude.feet()<7000){
+    else if(muriState == STATE_MURI_FAST_DESCENT && gpsAltitude<7000){
       muriState = STATE_MURI_RECOVERY;
       stateString = "RECOVERY";
     }
@@ -229,7 +229,7 @@ void PID(){
 }
 void opcControl(){
   static byte checktimes;
-  if(!opcON && GPS.altitude.feet()>=75,000){
+  if(!opcON && gpsAltitude>=75,000){
     checktimes++;
     if(checktimes>=15){
       opcRelay.openRelay();
@@ -278,10 +278,10 @@ ACTIVE_TIMER::ACTIVE_TIMER(Smart * smart,long d,long s){
   starT=s;
 }
 void ACTIVE_TIMER::updateTimer(float r){
-  if(GPS.Fix && GPS.altitude.feet()!=0 && muriState==STATE_MURI_ASCENT && GPS.altitude.feet()<30000){
+  if( gpsAltitude!=0 && muriState==STATE_MURI_ASCENT && gpsAltitude<30000){
     duration=((maxAlt/fabs(r))*1.2);
   }
-  else if(GPS.Fix && GPS.altitude.feet()!=0 && muriState==STATE_MURI_SLOW_DESCENT && GPS.altitude.feet()>(minAlt+30000)){
+  else if( gpsAltitude!=0 && muriState==STATE_MURI_SLOW_DESCENT && gpsAltitude>(minAlt+30000)){
     duration=((maxAlt-minAlt/fabs(r))*1.2);
   }
 }
@@ -308,9 +308,9 @@ ASCENT_RATE::ASCENT_RATE(){
   
 }
 void ASCENT_RATE::updateRate(){
- rate=((GPS.altitude.feet()-prevh)/(getGPStime()-prevt))*60; //h_dot in feet per minute
- prevh=GPS.altitude.feet();
- prevt=getGPStime();
+ rate=((gpsAltitude-prevh)/(getUbloxtime()-prevt))*60; //h_dot in feet per minute
+ prevh=gpsAltitude;
+ prevt=getUbloxtime();
  Serial.println("Rate: " + String(rate));
  Serial.println("Alt: " + String(prevh));
  Serial.println("Time: " + String(prevt));

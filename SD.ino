@@ -1,6 +1,6 @@
 boolean eventlogOpen = false;
 boolean FlightlogOpen = false;
-boolean BloxlogOpen = false;
+boolean eDatlogOpen = false;
 //The following functions handle both opening files and controlling the data indicator LED
 
 void openEventlog() {
@@ -35,22 +35,22 @@ void closeFlightlog() {
   }
 }
 
-//void openBloxlog() {
-//  if (!BloxlogOpen&&SDcard) {
-//    bloxLog = SD.open(Bname, FILE_WRITE);
-//    BloxlogOpen = true;
-//    digitalWrite(ledSD, HIGH);
-//  }
-//}
-//
-//void closeBloxlog() {
-//  if (BloxlogOpen&&SDcard) {
-//    bloxLog.close();
-//    BloxlogOpen = false;
-//    if (!BloxlogOpen)
-//      digitalWrite(ledSD, LOW);
-//  }
-//}
+void openeDatlog() {
+  if (!eDatlogOpen&&SDcard) {
+    eDatLog = SD.open(Dname, FILE_WRITE);
+    eDatlogOpen = true;
+    digitalWrite(ledSD, HIGH);
+  }
+}
+
+void closeeDatlog() {
+  if (eDatlogOpen&&SDcard) {
+    eDatLog.close();
+    eDatlogOpen = false;
+    if (!eDatlogOpen)
+      digitalWrite(ledSD, LOW);
+  }
+}
 
 void writeEvents() {
   static unsigned long prevTime = 0;

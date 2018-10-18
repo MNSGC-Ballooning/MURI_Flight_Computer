@@ -11,6 +11,8 @@
 #include <SparkFun_ADXL345.h>      //accelerometer library
 #include <Smart.h>
 #include <NMEAGPS.h>
+#include <Relay_XBee.h>
+
 
 
 
@@ -99,14 +101,15 @@ class Relay {
 };
 class ACTIVE_TIMER{
   protected:
-    Smart* smartUnit;
+    int smartUnit;
     unsigned long duration;
     unsigned long starT;
   public:
-    ACTIVE_TIMER(Smart * smart,long d,long s);
+    ACTIVE_TIMER(int sm,long d,long s);
     String getDuration();
     void hammerTime();
     void updateTimer(float);
+    void changeSMART(int);
 };
 class ASCENT_RATE{
   protected:
@@ -141,8 +144,6 @@ class ASCENT_RATE{
 #define chipSelect 4      //SD Card pin
 #define ledSD 5           //Pin which controls the SD LED
 #define fix_led 6         //led  which blinks for fix
-#define smartPin2 7       //SMART unit 2 PWM
-#define smartPin1 2       //SMART unit 1 PWM
 #define ONE_WIRE_BUS 28   //Internal Temp
 #define TWO_WIRE_BUS 29   //External Temp
 #define THREE_WIRE_BUS 30 //Battery Temp
@@ -156,6 +157,8 @@ class ASCENT_RATE{
 #define SIREN_ON 32
 #define SIREN_OFF 33
 #define gps_Serial Serial2
+#define xBee_Serial Serial
+#define ID "B"
 //#define test 33
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
@@ -175,6 +178,8 @@ boolean LEDon = false;
 Blink recoveryBlink = Blink(200, 2000, -1, "recoveryBlink", 0);
 Blink countdownBlink = Blink(200, 850, -1, "countdownBlink", 0);
 Blink* currentBlink = &countdownBlink;
+//XBee constructor
+XBee xBee = XBee(&xBee_Serial, ID);
 
 /////////////////////////////////////////////
 /////////////Sensor Variables////////////////
@@ -214,9 +219,6 @@ float kpa = 0;
 ///////////////////////////////////////////
 
 //2SMART
-Smart smartOne = Smart(smartPin1);
-Smart smartTwo = Smart(smartPin2);
-Smart * smarty = &smartOne;
 ASCENT_RATE hDOT = ASCENT_RATE();
 unsigned long beaconTimer= 0;
 boolean burnerON = false;
@@ -225,7 +227,7 @@ long masterTimer = Master_Timer * 1000;
 long starty = 0;
 boolean recovery = false;
 boolean hdotInit=false;
-ACTIVE_TIMER tickTock = ACTIVE_TIMER(smarty,releaseTimer,starty);
+ACTIVE_TIMER tickTock = ACTIVE_TIMER(1,releaseTimer,starty);
 
 //Heating
 float t_low = 283;
@@ -281,10 +283,10 @@ void setup() {
 
   
   //Initialize SMART
-  smartOne.initialize();
-  smartOneString = "CLOSED";
-  smartTwo.initialize();
-  smartTwoString = "CLOSED";
+//  smartOne.initialize();
+//  smartOneString = "CLOSED";
+//  smartTwo.initialize();
+//  smartTwoString = "CLOSED";
   
   //initiate GPS
   Serial1.begin(4800);

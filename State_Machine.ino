@@ -26,8 +26,8 @@ void stateMachine(){
     Serial.println("Initializing...");
   }
   if(millis() >= masterTimer){
-    smartOne.release();
-    smartTwo.release();
+    releaseSMART(1);
+    releaseSMART(2);
     muriState = STATE_MURI_RECOVERY;
     stateString = "RECOVERY";
   }
@@ -74,7 +74,7 @@ if(millis()-prevTimes>1000 && gpsAltitude!=hDOT.getPrevh()){
         skyCheck++;
         Serial.println("Max alt hits: " + String(skyCheck));
         if(skyCheck>5){
-          smartOne.release();
+          releaseSMART(1);
           smartOneString = "RELEASED";
           skyCheck = 0;
         }
@@ -92,9 +92,9 @@ if(millis()-prevTimes>1000 && gpsAltitude!=hDOT.getPrevh()){
         floorCheck++;
         Serial.println("Min alt hits: " + String(floorCheck));
         if(floorCheck>5){
-          smartTwo.release();
+          releaseSMART(2);
           smartTwoString = "RELEASED";
-          smartOne.release();
+          releaseSMART(1);
           smartOneString = "RELEASED";
           floorCheck = 0;
         }
@@ -112,9 +112,9 @@ if(millis()-prevTimes>1000 && gpsAltitude!=hDOT.getPrevh()){
         hDOT.checkHit();
       }
       if(!fast){
-        smartTwo.release();
+        releaseSMART(2);
         smartTwoString = "RELEASED";
-        smartOne.release();
+        releaseSMART(1);
         smartOneString = "RELEASED";
         opcHeatRelay.closeRelay();
         batHeatRelay.closeRelay();
@@ -132,12 +132,12 @@ if(millis()-prevTimes>1000 && gpsAltitude!=hDOT.getPrevh()){
       snail++;
       if(snail>10){
         if(gpsAltitude<30000){
-          smartTwo.release();
+          releaseSMART(2);
         }
         else if(gpsAltitude>=30000){
-          smartOne.release();
+          releaseSMART(1);
           smartOneString = "RELEASED";
-          smartTwo.release();
+          releaseSMART(2);
           smartTwoString = "RELEASED";
         }
         snail = 0;
@@ -156,8 +156,10 @@ if(millis()-prevTimes>1000 && gpsAltitude!=hDOT.getPrevh()){
         cast = true;
       }
       if(millis()-castAway >= 600000){
-        smartOne.release();
-        smartTwo.release();
+        releaseSMART(1);
+        releaseSMART(2);
+        smartOneString = "RELEASED";
+        smartTwoString = "RELEASED";
       }
     }
     else if(muriState == STATE_MURI_RECOVERY){
@@ -199,7 +201,7 @@ void PID(){
       muriState = STATE_MURI_SLOW_DESCENT;
       stateString = "SLOW DESCENT";
       if(!first){
-        smarty = &smartTwo;
+        tickTock.changeSMART(2);
         if(gpsAltitude<minAlt){
           minAlt=gpsAltitude-10000;
         }
@@ -272,8 +274,8 @@ void Relay::closeRelay(){
   digitalWrite(offPin,LOW);
 }
 //ACTIVE_TIMER class
-ACTIVE_TIMER::ACTIVE_TIMER(Smart * smart,long d,long s){
-  smartUnit=smart;
+ACTIVE_TIMER::ACTIVE_TIMER(int sm,long d,long s){
+  smartUnit=sm;
   duration=d;
   starT=s;
 }
@@ -287,10 +289,14 @@ void ACTIVE_TIMER::updateTimer(float r){
 }
 void ACTIVE_TIMER::hammerTime(){
   if(((millis()-starT)/60000)>=duration){
-    smartUnit->release();
+    releaseSMART(smartUnit);
   }
 }
 String ACTIVE_TIMER::getDuration() {return (String(duration));}
+
+void ACTIVE_TIMER::changeSMART(int i){
+  smartUnit=i;
+}
 
 //ASCENT_RATE class
 ASCENT_RATE::ASCENT_RATE(){

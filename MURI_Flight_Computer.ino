@@ -217,7 +217,7 @@ float kpa = 0;
 ///////////////////////////////////////////
 //////////////Control System///////////////
 ///////////////////////////////////////////
-
+//See State_Machine.ino for control logic
 //2SMART
 ASCENT_RATE hDOT = ASCENT_RATE();
 unsigned long beaconTimer= 0;

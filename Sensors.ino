@@ -19,25 +19,25 @@ void updateSensors() {
     psi = (pressureV - (0.1*5.0))/(4.0/15.0);
     kpa = psi * 6.89476; //Pressure in kpa
     String data = "";
-    String data2 = "";
+    //String data2 = "";
     openFlightlog();
-    openeDatlog();
-    data += flightTimeStr() + "," + String(gpsLattitude) + "," + String(gpsLongitude) + "," + String(gpsAltitude*meters2feet) + "," + String(gpsHours) + ":" + String(gpsMinutes) + ":" + String(gpsSeconds) + "," + String(gpsSatellites) + ",";
-    if(gpsLattitude!=0 && gpsLongitude!=0){
+    //openeDatlog();
+//    data2 += flightTimeStr() + "," + String(gpsLattitude) + "," + String(gpsLongitude) + "," + String(gpsAltitude*meters2feet) + "," + String(gpsHours) + ":" + String(gpsMinutes) + ":" + String(gpsSeconds) + "," + String(gpsSatellites) + ",";
+//    if(gpsLattitude!=0 && gpsLongitude!=0){
+//      data2 += "fix,";
+//    }
+//    else{
+//      data2 += "no fix,";
+//    }
+    if(GPS.Fix && GPS.altitude.feet()!=0) {
+      data += (flightTimeStr() + "," + String(GPS.location.lat(), 6) + "," + String(GPS.location.lng(), 6) + ",");
+      data += ((String(GPS.altitude.feet())) + ",");    //convert meters to feet for datalogging
+      data += (String(GPS.date.month()) + "/" + String(GPS.date.day()) + "/" + String(GPS.date.year()) + ",");
+      data += (String(GPS.time.hour()) + ":" + String(GPS.time.minute()) + ":" + String(GPS.time.second()) + ",");
       data += "fix,";
     }
     else{
-      data += "no fix,";
-    }
-    if(GPS.Fix && GPS.altitude.feet()!=0) {
-      data2 += (flightTimeStr() + "," + String(GPS.location.lat(), 6) + "," + String(GPS.location.lng(), 6) + ",");
-      data2 += ((String(GPS.altitude.feet())) + ",");    //convert meters to feet for datalogging
-      data2 += (String(GPS.date.month()) + "/" + String(GPS.date.day()) + "/" + String(GPS.date.year()) + ",");
-      data2 += (String(GPS.time.hour()) + ":" + String(GPS.time.minute()) + ":" + String(GPS.time.second()) + ",");
-      data2 += "fix,";
-    }
-    else{
-    data2 += (flightTimeStr() + ",0.000000,0.000000,0.00,0/0/2000,00:00:00,No Fix,");
+    data += (flightTimeStr() + ",0.000000,0.000000,0.00,0/0/2000,00:00:00,No Fix,");
     
     }
     data += (String(x) + "," + String(y) + "," + String(z) + ","); 
@@ -46,11 +46,11 @@ void updateSensors() {
     data += (String(kpa) + ",");
 
     Serial.println(data);
-    Serial.println(data2);
+    //Serial.println(data2);
     Flog.println(data);
-    eDatLog.println(data2);
+    //eDatLog.println(data2);
     closeFlightlog();
-    closeeDatlog();
+    //closeeDatlog();
     writeEvents();
     
   }

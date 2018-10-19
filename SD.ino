@@ -35,22 +35,22 @@ void closeFlightlog() {
   }
 }
 
-void openeDatlog() {
-  if (!eDatlogOpen&&SDcard) {
-    eDatLog = SD.open(Dname, FILE_WRITE);
-    eDatlogOpen = true;
-    digitalWrite(ledSD, HIGH);
-  }
-}
-
-void closeeDatlog() {
-  if (eDatlogOpen&&SDcard) {
-    eDatLog.close();
-    eDatlogOpen = false;
-    if (!eDatlogOpen)
-      digitalWrite(ledSD, LOW);
-  }
-}
+//void openeDatlog() {
+//  if (!eDatlogOpen&&SDcard) {
+//    eDatLog = SD.open(Dname, FILE_WRITE);
+//    eDatlogOpen = true;
+//    digitalWrite(ledSD, HIGH);
+//  }
+//}
+//
+//void closeeDatlog() {
+//  if (eDatlogOpen&&SDcard) {
+//    eDatLog.close();
+//    eDatlogOpen = false;
+//    if (!eDatlogOpen)
+//      digitalWrite(ledSD, LOW);
+//  }
+//}
 
 void writeEvents() {
   static unsigned long prevTime = 0;

@@ -12,8 +12,9 @@
 #include <Smart.h>
 //#include <NMEAGPS.h>
 #include <Relay_XBee.h>
-
-
+#include <MS5xxx.h>                //library for MS5607 altimeter, temp, pressure sensor
+#include <Wire.h>                  //I2C required for the temp sensor
+//#include <UbloxGPS.h>
 
 
 //==============================================================
@@ -64,7 +65,7 @@ int OPC_srate=1400;     //OPC sample rate in milliseconds.
      fix                          | D6                    | whether or not we have a GPS fix, must be used with copernicus GPS unit
      Tempread                     | D9                    | temperature sensor reading
      Accel I2C                    | SDA,SCL               | I2C communication for accelerometer (pins 20 and 21)
-
+     
      -------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -209,11 +210,18 @@ ADXL345 adxl = ADXL345();
 boolean shift = false;
 int x,y,z;
 
-//HoneyWell Pressure Sensor 
+//HoneyWell Pressure Sensor
+//is this necessary or being used?- Simon 
 int pressure = 0;
 float pressureV = 0;
 float psi = 0;
 float kpa = 0;
+
+//MS5607 pressure and temperature sensor
+MS5xxx MS5(&Wire);
+float ms_temp = 0;
+float ms_pressure = 0;
+
 ///////////////////////////////////////////
 //////////////Control System///////////////
 ///////////////////////////////////////////
@@ -254,13 +262,21 @@ boolean SDcard = true;
 void setup() {
   //Initiate Serial
   Serial.begin(9600);
-
+  
   //Initiate Temp Sensors
   sensor1.begin();
   sensor2.begin();
   sensor3.begin();
   sensor4.begin();
 
+  //initialize MS5607
+
+  //should this be in a while loop? (see test example)
+  MS5.connect();
+  delay(500);
+
+
+  
   //Initialize Relays
   opcRelay.init();
   opcHeatRelay.init();
@@ -346,10 +362,7 @@ void setup() {
 //
 //  Serial.println("Extra data log created: " + Dname);
 
-
-  
-  //String FHeader = "Flight Time, Lat, Long, Altitude (ft), Hour:Min:Sec, Satellites, fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI)";
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI)";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI), MS5607 temperature (C), MS5607 pressure (PA)";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 

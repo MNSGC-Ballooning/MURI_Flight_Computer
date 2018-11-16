@@ -6,13 +6,13 @@
 #define STATE_MURI_SLOW_ASCENT 0x08     //0000 1000
 #define STATE_MURI_CAST_AWAY 0x10       //0001 0000
 #define STATE_MURI_RECOVERY 0x20        //0010 0000
-
 uint8_t muriState;
 
 void stateMachine(){
   unsigned long castAway = 0;
   static byte initCounter = 0;
   static byte skyCheck = 0;
+  static byte longitude_check = 0;   //how many times we have exceed the given longitude
   static byte floorCheck = 0;
   static byte snail = 0;
   static bool init = false;
@@ -71,14 +71,24 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
         hDOT.checkHit();
       }
       if(GPS.altitude.feet()>maxAlt && GPS.altitude.feet()!=0){
-        skyCheck++;
+        skyCheck++;       //when does skyCheck get reset?
         Serial.println("Max alt hits: " + String(skyCheck));
         if(skyCheck>5){
           releaseSMART(1);
           smartOneString = "RELEASED";
           skyCheck = 0;
         }
-      } 
+      }
+    //east to west longitude based termination
+    else if(float(GPS.location.lng()) > termination_longitude){
+      longitude_check++;
+      Serial.println("Longitude check: " + String(longitude_check));
+      if (longitude_check>5){
+        releaseSMART(1);
+        smartOneString = "RELEASED";
+        longitude_check = 0;
+      }
+    }
     }
     else if(muriState == STATE_MURI_SLOW_DESCENT){
       Serial.println("STATE_MURI_SLOW_DESCENT");

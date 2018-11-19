@@ -46,7 +46,7 @@ long Master_Timer =  36000; //Master cut timer
 long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
 long maxAlt = 120000; //Default max cutdown altitude in feet! Changeable via xBee
 int OPC_srate=1400;     //OPC sample rate in milliseconds.
-float termination_longitude = -92.5;   //longitude at which all flight systems are terminated
+float termination_longitude = -93.2;   //longitude at which all flight systems are terminated
 //=============================================================================================================================================
 //=============================================================================================================================================
 
@@ -159,7 +159,7 @@ class ASCENT_RATE{
 #define SIREN_OFF 33
 //#define gps_Serial Serial2
 #define xBee_Serial Serial
-#define ID "B"
+#define ID "SMART"
 //#define test 33
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
@@ -309,12 +309,12 @@ void setup() {
 //  gps_Serial.begin(9600);
  
 
-  Serial.println("xBee begin");
+  //////////Serial.println("xBee begin");
   //Initiate GPS Data lines
-  Serial.println("GPS begin");
+  //////Serial.println("GPS begin");
 
   //GPS setup and config
-  Serial.println("GPS configured");
+  ////Serial.println("GPS configured");
 
   adxl.powerOn();
   adxl.setRangeSetting(16);
@@ -322,7 +322,7 @@ void setup() {
 
   //initialize SD card
   while (!SD.begin(chipSelect)) {//power LED will blink if no card is inserted
-    Serial.println("No SD");
+    ////Serial.println("No SD");
     digitalWrite(ledSD, HIGH);
     delay(500);
     digitalWrite(ledSD, LOW);
@@ -330,7 +330,7 @@ void setup() {
     SDcard = false;
   }
   SDcard = true;
-  Serial.println("Checking for existing file");
+  ////Serial.println("Checking for existing file");
   //Check for existing event logs and creates a new one
   for (int i = 0; i < 100; i++) {
     if (!SD.exists("Elog" + String(i / 10) + String(i % 10))) {
@@ -339,7 +339,7 @@ void setup() {
       break;
     }
   }
-  Serial.println("Event log created: " + Ename);
+  ////Serial.println("Event log created: " + Ename);
 
   //Same but for Flight Log
   for (int i = 0; i < 100; i++) {
@@ -350,7 +350,7 @@ void setup() {
     }
   }
   
-  Serial.println("Flight log created: " + Fname);
+  ////Serial.println("Flight log created: " + Fname);
 
 //  for (int i = 0; i < 100; i++) {
 //    if (!SD.exists("eDatLog" + String(i / 10) + String(i % 10) + ".csv")) {
@@ -360,27 +360,27 @@ void setup() {
 //    }
 //  }
 //
-//  Serial.println("Extra data log created: " + Dname);
+//  ////Serial.println("Extra data log created: " + Dname);
 
   String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI), MS5607 temperature (C), MS5607 pressure (PA)";
   Flog.println(FHeader);//set up Flight log format
-  Serial.println("Flight log header added");
+  ////Serial.println("Flight log header added");
 
 
   String eventLogHeader = "Flight Time, State, hdot, Active Timer, OPC Relay, OPC Heater Relay, Battery Heater Relay, Smart 1, Smart 2";
   eventLog.println(eventLogHeader);
-  Serial.println("Eventlog header added");
+  ////Serial.println("Eventlog header added");
 
 //  String eDatLogHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix";
 //  eDatLog.println(eDatLogHeader);
-//  Serial.println("eDatLog header added");
+//  ////Serial.println("eDatLog header added");
   
   closeEventlog();
   closeFlightlog();
   //closeeDatlog();
 
 
-  Serial.println("Setup Complete");
+  ////Serial.println("Setup Complete");
 }
 void loop(){
   updateGPS();       //Updates Copernicus GPS

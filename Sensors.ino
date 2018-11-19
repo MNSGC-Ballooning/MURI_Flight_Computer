@@ -63,8 +63,8 @@ void updateSensors() {
 //    else{
 //      data2 += "Fix,";
 //    }
-    Serial.println(data);
-    //Serial.println(data2);
+    ////Serial.println(data);
+    //////Serial.println(data2);
     Flog.println(data);
     //eDatLog.println(data2);
     closeFlightlog();

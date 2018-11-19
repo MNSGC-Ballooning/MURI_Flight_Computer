@@ -24,7 +24,7 @@ void stateMachine(){
     muriState = STATE_MURI_INIT;
     stateString = "INITIALIZATION";
     init=true;
-    Serial.println("Initializing...");
+    //Serial.println("Initializing...");
   }
   if(millis() >= masterTimer){
     releaseSMART(1);
@@ -41,8 +41,8 @@ void stateMachine(){
   PID();                                //Controller that changes State based on derivative of altitude
   
 ///////////Finite State Machine///////////////
-//Serial.println("GLGPS: " + String(getLastGPS()));
-//Serial.println("Prev time: " + String(prevTimes));
+////Serial.println("GLGPS: " + String(getLastGPS()));
+////Serial.println("Prev time: " + String(prevTimes));
 if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
   if(float(GPS.location.lng()) > termination_longitude && GPS.location.lng() != 0){
       termination_longitude_check++;
@@ -60,9 +60,9 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
     }
     prevTimes=millis();
     hDOT.updateRate();
-    Serial.println("h dot: " + String(hDOT.geth_dot()));
+    //Serial.println("h dot: " + String(hDOT.geth_dot()));
     if(muriState == STATE_MURI_INIT && !hdotInit){
-      Serial.println("STATE_MURI_INIT");
+      //Serial.println("STATE_MURI_INIT");
       if(hDOT.getRate()>250 && hDOT.getRate()<1500){
         hDOT.addHit();
       }
@@ -73,12 +73,12 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
         initCounter++;
         if(initCounter>5){
           hdotInit=true;
-          Serial.println("h_dot initialized!");
+          //Serial.println("h_dot initialized!");
         }
       } 
     }
     if(muriState == STATE_MURI_ASCENT){
-      Serial.println("STATE_MURI_ASCENT");
+      //Serial.println("STATE_MURI_ASCENT");
       if(hDOT.getRate()>250 && hDOT.getRate()<1500){
         hDOT.addHit();
       }
@@ -87,7 +87,7 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
       }
       if(GPS.altitude.feet()>maxAlt && GPS.altitude.feet()!=0){
         skyCheck++;       //when does skyCheck get reset?
-        Serial.println("Max alt hits: " + String(skyCheck));
+        //Serial.println("Max alt hits: " + String(skyCheck));
         if(skyCheck>5){
           releaseSMART(1);
           smartOneString = "RELEASED";
@@ -106,7 +106,7 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
     }
     }
     else if(muriState == STATE_MURI_SLOW_DESCENT){
-      Serial.println("STATE_MURI_SLOW_DESCENT");
+      //Serial.println("STATE_MURI_SLOW_DESCENT");
       if(hDOT.getRate()>-2000 && hDOT.getRate()<-50){
         hDOT.addHit();
       }
@@ -115,7 +115,7 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
       }
       if(GPS.altitude.feet()<minAlt && GPS.altitude.feet()!=0){
         floorCheck++;
-        Serial.println("Min alt hits: " + String(floorCheck));
+        //Serial.println("Min alt hits: " + String(floorCheck));
         if(floorCheck>5){
           releaseSMART(2);
           smartTwoString = "RELEASED";
@@ -129,7 +129,7 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
       }
     }
     else if(muriState == STATE_MURI_FAST_DESCENT){
-      Serial.println("STATE_MURI_FAST_DESCENT");
+      //Serial.println("STATE_MURI_FAST_DESCENT");
       if(hDOT.getRate()<-2000){
         hDOT.addHit();
       }
@@ -147,7 +147,7 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
       }
     }
     else if(muriState == STATE_MURI_SLOW_ASCENT){
-      Serial.println("STATE_MURI_SLOW_ASCENT");
+      //Serial.println("STATE_MURI_SLOW_ASCENT");
       if(50>hDOT.getRate() && hDOT.getRate()<=250){
         hDOT.addHit();
       }
@@ -175,7 +175,7 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
       else{
         hDOT.checkHit();
       }
-      Serial.println("STATE_MURI_CAST_AWAY");
+      //Serial.println("STATE_MURI_CAST_AWAY");
       if(!cast){
         castAway = millis();
         cast = true;
@@ -188,7 +188,7 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
       }
     }
     else if(muriState == STATE_MURI_RECOVERY){
-      Serial.println("STATE_MURI_RECOVERY");
+      //Serial.println("STATE_MURI_RECOVERY");
       if(!recovery){
         sirenRelay.openRelay();
         opcRelay.closeRelay();
@@ -211,7 +211,7 @@ void PID(){
     }
     tickTock.hammerTime();
     if(hDOT.geth_dot()>=5000 || hDOT.geth_dot()<=-5000){
-      Serial.println("GPS Jump Detected");
+      //Serial.println("GPS Jump Detected");
     }
     else if(hDOT.geth_dot() > 250){
       muriState = STATE_MURI_ASCENT;
@@ -342,12 +342,12 @@ void ASCENT_RATE::updateRate(){
  rate=((GPS.altitude.feet()-prevh)/(getGPStime()-prevt))*60; //h_dot in feet per minute
  prevh=GPS.altitude.feet();
  prevt=getGPStime();
- Serial.println("Rate: " + String(rate));
- Serial.println("Alt: " + String(prevh));
- Serial.println("Time: " + String(prevt));
+ //Serial.println("Rate: " + String(rate));
+ //Serial.println("Alt: " + String(prevh));
+ //Serial.println("Time: " + String(prevt));
 }
 void ASCENT_RATE::addHit(){
-  Serial.println("Adding hit");
+  //Serial.println("Adding hit");
   for(int i=0;i<5;i++){
   if(h_dotArr[i]==0){
     h_dotArr[i]=rate;
@@ -367,7 +367,7 @@ void ASCENT_RATE::addHit(){
  } 
 }
 void ASCENT_RATE::checkHit(){
-  Serial.println("Checking hit");
+  //Serial.println("Checking hit");
   for(int i=0;i<5;i++){
     if(h_dotQ[i]==0){
       h_dotQ[i]=rate;

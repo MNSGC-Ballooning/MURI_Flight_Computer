@@ -12,7 +12,8 @@ void stateMachine(){
   unsigned long castAway = 0;
   static byte initCounter = 0;
   static byte skyCheck = 0;
-  static byte longitude_check = 0;   //how many times we have exceed the given longitude
+  static byte float_longitude_check = 0;   //how many times we have exceed the given longitude
+  static byte termination_longitude_check = 0;
   static byte floorCheck = 0;
   static byte snail = 0;
   static bool init = false;
@@ -43,6 +44,20 @@ void stateMachine(){
 //Serial.println("GLGPS: " + String(getLastGPS()));
 //Serial.println("Prev time: " + String(prevTimes));
 if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
+  if(float(GPS.location.lng()) > termination_longitude && GPS.location.lng() != 0){
+      termination_longitude_check++;
+      Serial.println("Termination Longitude check: " + String(termination_longitude_check));
+      if (termination_longitude_check>5){
+        releaseSMART(1);
+        releaseSMART(2);
+        smartOneString = "RELEASED";
+        smartTwoString = "RELEASED";
+        termination_longitude_check = 0;
+      }
+    }
+    else{
+      termination_longitude_check = 0;
+    }
     prevTimes=millis();
     hDOT.updateRate();
     Serial.println("h dot: " + String(hDOT.geth_dot()));
@@ -79,14 +94,14 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
           skyCheck = 0;
         }
       }
-    //east to west longitude based termination
-    else if(float(GPS.location.lng()) > termination_longitude && GPS.location.lng() != 0){
-      longitude_check++;
-      Serial.println("Longitude check: " + String(longitude_check));
-      if (longitude_check>5){
+    //east to west longitude based float activation
+    if(float(GPS.location.lng()) > float_longitude && GPS.location.lng() != 0){
+      float_longitude_check++;
+      Serial.println("float Longitude check: " + String(float_longitude_check));
+      if (float_longitude_check>5){
         releaseSMART(1);
         smartOneString = "RELEASED";
-        longitude_check = 0;
+        float_longitude_check = 0;
       }
     }
     }

@@ -80,7 +80,7 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
         }
       }
     //east to west longitude based termination
-    else if(float(GPS.location.lng()) > termination_longitude){
+    else if(float(GPS.location.lng()) > termination_longitude && GPS.location.lng() != 0){
       longitude_check++;
       Serial.println("Longitude check: " + String(longitude_check));
       if (longitude_check>5){

@@ -1,11 +1,11 @@
 //Data variables for Ublox (clean up later and put into data structure)
-byte gpsHours=0;
-byte gpsMinutes=0;
-byte gpsSeconds=0;
-float gpsLattitude=0;
-float gpsLongitude=0;
-float gpsAltitude=0;
-byte gpsSatellites=0;
+//byte gpsHours=0;
+//byte gpsMinutes=0;
+//byte gpsSeconds=0;
+//float gpsLattitude=0;
+//float gpsLongitude=0;
+//float gpsAltitude=0;
+//byte gpsSatellites=0;
 float meters2feet = 3.2808399;
 //functions to manage the GPS
 //time in seconds of last GPS update

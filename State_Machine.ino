@@ -13,6 +13,8 @@ void stateMachine(){
   unsigned long castAway = 0;
   static byte initCounter = 0;
   static byte skyCheck = 0;
+  static byte float_longitude_check = 0;   //how many times we have exceed the given longitude
+  static byte termination_longitude_check = 0;
   static byte floorCheck = 0;
   static byte snail = 0;
   static bool init = false;
@@ -42,12 +44,26 @@ void stateMachine(){
 ///////////Finite State Machine///////////////
 //Serial.println("GLGPS: " + String(getLastGPS()));
 //Serial.println("Prev time: " + String(prevTimes));
-if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
+if(GPS.Fix && GPS.altitude.feet()!=0 && millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
     prevTimes=millis();
     hDOT.updateRate();
-    Serial.println("h dot: " + String(hDOT.geth_dot()));
+    if(float(GPS.location.lng()) > termination_longitude && GPS.location.lng() != 0){
+      termination_longitude_check++;
+      Serial.println("Termination Longitude check: " + String(termination_longitude_check));
+      if (termination_longitude_check>5){
+        releaseSMART(1);
+        releaseSMART(2);
+        smartOneString = "RELEASED";
+        smartTwoString = "RELEASED";
+        termination_longitude_check = 0;
+      }
+    }
+    else{
+      termination_longitude_check = 0;
+    }
+    //Serial.println("h dot: " + String(hDOT.geth_dot()));
     if(muriState == STATE_MURI_INIT && !hdotInit){
-      Serial.println("STATE_MURI_INIT");
+      //Serial.println("STATE_MURI_INIT");
       if(hDOT.getRate()>250 && hDOT.getRate()<1500){
         hDOT.addHit();
       }
@@ -78,7 +94,19 @@ if(millis()-prevTimes>1000 && GPS.altitude.feet()!=hDOT.getPrevh()){
           smartOneString = "RELEASED";
           skyCheck = 0;
         }
-      } 
+      }
+      else{
+        skyCheck = 0; 
+      }
+      if(float(GPS.location.lng()) > float_longitude && GPS.location.lng() != 0){
+        float_longitude_check++;
+        Serial.println("float Longitude check: " + String(float_longitude_check));
+        if (float_longitude_check>5){
+          releaseSMART(1);
+          smartOneString = "RELEASED";
+          float_longitude_check = 0;
+        }
+      }
     }
     else if(muriState == STATE_MURI_SLOW_DESCENT){
       Serial.println("STATE_MURI_SLOW_DESCENT");

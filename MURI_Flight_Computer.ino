@@ -45,6 +45,8 @@ long Master_Timer =  36000; //Master cut timer
 long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
 long maxAlt = 120000; //Default max cutdown altitude in feet! Changeable via xBee
 int OPC_srate=1400;     //OPC sample rate in milliseconds.
+float termination_longitude = -92.5; //longitude at which all flight systems are terminated
+float float_longitude = -92; //longitude at which the balloon begins to float
 
 //=============================================================================================================================================
 //=============================================================================================================================================

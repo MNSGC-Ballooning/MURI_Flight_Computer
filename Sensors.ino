@@ -18,10 +18,6 @@ void updateSensors() {
     t2 = sensor2.getTempCByIndex(0) + 273.15;
     t3 = sensor3.getTempCByIndex(0) + 273.15;
     t4 = sensor4.getTempCByIndex(0) + 273.15;
-    pressure = analogRead(A0);
-    pressureV=pressure*(5.0/1024);
-    psi = (pressureV - (0.1*5.0))/(4.0/15.0);
-    kpa = psi * 6.89476; //Pressure in kpa
     String data = "";
     openFlightlog();
     if(GPS.Fix && GPS.altitude.feet()!=0) {
@@ -37,7 +33,6 @@ void updateSensors() {
     }
     data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
     data += (String(batHeatRelay.getRelayStatus()) + "," + String(opcHeatRelay.getRelayStatus()) + ",");
-    data += (String(kpa) + ",");
     data += (String(ms_temp)+ ",");
     data += (String(ms_pressure) + ",");
     

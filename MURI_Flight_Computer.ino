@@ -9,7 +9,6 @@
 //#include <TinyGPS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <SparkFun_ADXL345.h>      //accelerometer library
 #include <Smart.h>
 #include <MS5xxx.h>                //library for MS5607 altimeter, temp, pressure sensor
 #include <Wire.h>                  //I2C required for the temp sensor
@@ -150,17 +149,9 @@ float t2;
 float t3;
 float t4;
 
-
 //GPS
 TinyGPSPlus GPS;
 //UbloxGPS Ublox(&Serial2);
-
-//HoneyWell Pressure Sensor
-//is this necessary or being used?- Simon 
-int pressure = 0;
-float pressureV = 0;
-float psi = 0;
-float kpa = 0;
 
 //MS5607 pressure and temperature sensor
 MS5xxx MS5(&Wire);

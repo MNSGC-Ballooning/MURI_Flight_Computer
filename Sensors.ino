@@ -5,7 +5,6 @@ void updateSensors() {
   static unsigned long prevTime = 0;
   if(millis() - prevTime >= 5000){
     prevTime = millis();
-    adxl.readAccel(&x,&y,&z);
     sensor1.requestTemperatures();
     sensor2.requestTemperatures();
     sensor3.requestTemperatures();
@@ -25,7 +24,6 @@ void updateSensors() {
     kpa = psi * 6.89476; //Pressure in kpa
     String data = "";
     openFlightlog();
-    //openBloxlog();
     if(GPS.Fix && GPS.altitude.feet()!=0) {
       data += (flightTimeStr() + "," + String(GPS.location.lat(), 6) + "," + String(GPS.location.lng(), 6) + ",");
       data += ((String(GPS.altitude.feet())) + ",");    //convert meters to feet for datalogging
@@ -37,31 +35,16 @@ void updateSensors() {
     data += (flightTimeStr() + ",0.000000,0.000000,0.00,0/0/2000,00:00:00,No Fix,");
     
     }
-    data += (String(x) + "," + String(y) + "," + String(z) + ","); 
     data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
     data += (String(batHeatRelay.getRelayStatus()) + "," + String(opcHeatRelay.getRelayStatus()) + ",");
     data += (String(kpa) + ",");
     data += (String(ms_temp)+ ",");
     data += (String(ms_pressure) + ",");
     
-//    String data2 = String(Ublox.getMonth()) + "/" + String(Ublox.getDay()) + "/" + String(Ublox.getYear()) + ","
-//    + String(Ublox.getHour()) + ":" + String(Ublox.getMinute()) + ":" + String(Ublox.getSecond()) + ","
-//    + String(Ublox.getLat(), 4) + "," + String(Ublox.getLon(), 4) + "," + String(Ublox.getAlt(), 1) + ","
-//    + String(Ublox.getSats()) + ",";
-//    //GPS should update once per second, if data is more than 2 seconds old, fix was likely lost
-//    if(Ublox.getFixAge() > 2000){
-//      data2 += "No Fix,";
-//    }
-//    else{
-//      data2 += "Fix,";
-//    }
+
     Serial.println(data);
-    //Serial.println(data2);
     Flog.println(data);
-    //bloxLog.println(data2);
     closeFlightlog();
-    writeEvents();
-    //closeBloxlog();
   }
   
 }

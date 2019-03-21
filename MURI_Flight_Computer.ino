@@ -38,16 +38,6 @@
 //   /_/   /_/_/\__, /_/ /_/\__/  /_/    \__,_/_/   \__,_/_/ /_/ /_/\___/\__/\___/_/  /____/  
 //             /____/                                                                         
 
-
-//In seconds
-long Release_Timer = 21000; //Starting value for active timer that terminates flight when the timer runs out!
-long Master_Timer =  36000; //Master cut timer 
-long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
-long maxAlt = 120000; //Default max cutdown altitude in feet! Changeable via xBee
-int OPC_srate=1400;     //OPC sample rate in milliseconds.
-float termination_longitude = -92.0; //longitude at which all flight systems are terminated
-float float_longitude = -92.5; //longitude at which the balloon begins to float
-
 //=============================================================================================================================================
 //=============================================================================================================================================
 
@@ -101,41 +91,6 @@ class Relay {
     void openRelay();
     void closeRelay();
 };
-class ACTIVE_TIMER{
-  protected:
-    Smart* smartUnit;
-    unsigned long duration;
-    unsigned long starT;
-  public:
-    ACTIVE_TIMER(Smart * smart,long d,long s);
-    String getDuration();
-    void hammerTime();
-    void updateTimer(float);
-};
-class ASCENT_RATE{
-  protected:
-    float rate;
-    float h_dot;
-    float prevh;
-    unsigned long prevt;
-    float h_dotArr[5];
-    float hQ[5];
-    unsigned long tQ[5];
-    float h_dotQ[5];
-    float sum;
-  public:
-    ASCENT_RATE();
-    void updateRate();
-    void addHit();
-    void checkHit();
-    float getRate();
-    float geth_dot();
-    float getPrevh();
-    float getPrevt();
-    float getPrevh_dot();
-    String getHDot();
-    
-};
 
 
 /////////////////////////////////////////////
@@ -145,8 +100,6 @@ class ASCENT_RATE{
 #define chipSelect 4      //SD Card pin
 #define ledSD 5           //Pin which controls the SD LED
 #define fix_led 6         //led  which blinks for fix
-#define smartPin2 7       //SMART unit 2 PWM
-#define smartPin1 2       //SMART unit 1 PWM
 #define ONE_WIRE_BUS 28   //Internal Temp
 #define TWO_WIRE_BUS 29   //External Temp
 #define THREE_WIRE_BUS 30 //Battery Temp
@@ -202,11 +155,6 @@ float t4;
 TinyGPSPlus GPS;
 //UbloxGPS Ublox(&Serial2);
 
-//Accelerometer
-ADXL345 adxl = ADXL345();
-boolean shift = false;
-int x,y,z;
-
 //HoneyWell Pressure Sensor
 //is this necessary or being used?- Simon 
 int pressure = 0;
@@ -223,20 +171,6 @@ float ms_pressure = 0;
 //////////////Control System///////////////
 ///////////////////////////////////////////
 
-//2SMART
-Smart smartOne = Smart(smartPin1);
-Smart smartTwo = Smart(smartPin2);
-Smart * smarty = &smartOne;
-ASCENT_RATE hDOT = ASCENT_RATE();
-unsigned long beaconTimer= 0;
-boolean burnerON = false;
-long releaseTimer = Release_Timer * 1000;
-long masterTimer = Master_Timer * 1000;
-long starty = 0;
-boolean recovery = false;
-boolean hdotInit=false;
-ACTIVE_TIMER tickTock = ACTIVE_TIMER(smarty,releaseTimer,starty);
-
 //Heating
 float t_low = 283;
 float t_high = 289;
@@ -250,12 +184,6 @@ String stateString = "";
 File Flog;
 String data;
 String Fname = "";
-File eventLog;
-String Ename = "";
-//File bloxLog;
-//String Bname = "";
-String smartOneString = "";
-String smartTwoString = "";
 boolean SDcard = true;
   
 
@@ -296,29 +224,15 @@ void setup() {
   pinMode(ledSD, OUTPUT);
   pinMode(chipSelect, OUTPUT);    // this needs to be be declared as output for data logging to work
   pinMode(fix_led, OUTPUT);
-
-  
-  //Initialize SMART
-  smartOne.initialize();
-  smartOneString = "CLOSED";
-  smartTwo.initialize();
-  smartTwoString = "CLOSED";
   
   //initiate GPS
   Serial1.begin(4800);
-  //Ublox.initialize();
- 
-
-  Serial.println("xBee begin");
+  
   //Initiate GPS Data lines
   Serial.println("GPS begin");
 
   //GPS setup and config
   Serial.println("GPS configured");
-
-  adxl.powerOn();
-  adxl.setRangeSetting(16);
-  adxl.setSpiBit(0);
 
   //initialize SD card
   while (!SD.begin(chipSelect)) {//power LED will blink if no card is inserted
@@ -330,16 +244,6 @@ void setup() {
     SDcard = false;
   }
   SDcard = true;
-  Serial.println("Checking for existing file");
-  //Check for existing event logs and creates a new one
-  for (int i = 0; i < 100; i++) {
-    if (!SD.exists("Elog" + String(i / 10) + String(i % 10))) {
-      Ename = "Elog" + String(i / 10) + String(i % 10);
-      openEventlog();
-      break;
-    }
-  }
-  Serial.println("Event log created: " + Ename);
 
   //Same but for Flight Log
   for (int i = 0; i < 100; i++) {
@@ -352,49 +256,20 @@ void setup() {
   
   Serial.println("Flight log created: " + Fname);
 
-//  for (int i = 0; i < 100; i++) {
-//    if (!SD.exists("bloxLog" + String(i / 10) + String(i % 10) + ".csv")) {
-//      Fname = "bloxLog" + String(i / 10) + String(i % 10) + ".csv";
-//      openBloxlog();
-//      break;
-//    }
-//  }
-//
-//  Serial.println("UBlox log created: " + Bname);
 
-  //Set Ublox to airborn mode
-//  byte i = 0;
-//  while (i < 3) {
-//    i++;
-//    if (Ublox.setAirborne()) {
-//      bloxLog.println("Air mode successfully set.");
-//      break;
-//    }
-//    else if (i == 3)
-//      bloxLog.println("WARNING: Failed to set to air mode (3 attemtps). Altitude data may be unreliable.");
-//    else
-//      bloxLog.println("Error: Air mode set unsuccessful. Reattempting...");
-//  }
   
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI), MS5607 temperature (C), MS5607 pressure (PA)";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI), MS5607 temperature (C), MS5607 pressure (PA)";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 
-
-  String eventLogHeader = "Flight Time, State, hdot, Active Timer, OPC Relay, OPC Heater Relay, Battery Heater Relay, Smart 1, Smart 2";
-  eventLog.println(eventLogHeader);
-  Serial.println("Eventlog header added");
-
-  closeEventlog();
   closeFlightlog();
-  //closeBloxlog();
 
 
   Serial.println("Setup Complete");
 }
 void loop(){
+  blinkMode();
+  Fixblink();
   updateGPS();       //Updates GPS
   updateSensors();   //Updates and logs all sensor data
-  stateMachine();    //Finite state machine that makes in flight decsions based on GPS data
-  //writeEvents();     //Writes event to log
 }

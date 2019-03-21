@@ -51,13 +51,8 @@ void switchLED(){
 
 void blinkMode(){
   if(currentBlink->getOnTimes()==0){
-    delete currentBlink;
-    if(recovery){
-      currentBlink = &recoveryBlink;
-    }
-    else{
+      delete currentBlink;
       currentBlink = &countdownBlink;
-    }
   }
   currentBlink -> BLINK();
   

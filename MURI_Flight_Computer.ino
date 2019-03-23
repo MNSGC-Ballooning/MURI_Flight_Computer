@@ -85,7 +85,7 @@ class Relay {
     int offPin;
   public:
     Relay(int on, int off);
-    const char* getRelayStatus();
+    String getRelayStatus();
     void init();
     void openRelay();
     void closeRelay();

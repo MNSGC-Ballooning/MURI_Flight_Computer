@@ -31,8 +31,9 @@ void updateSensors() {
     data += (flightTimeStr() + ",0.000000,0.000000,0.00,0/0/2000,00:00:00,No Fix,");
     
     }
+    
     data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
-    data += (String(batHeatRelay.getRelayStatus()) + "," + String(opcHeatRelay.getRelayStatus()) + ",");
+    data += (batHeatRelay.getRelayStatus() + "," + opcHeatRelay.getRelayStatus() + ",");
     data += (String(ms_temp)+ ",");
     data += (String(ms_pressure) + ",");
     

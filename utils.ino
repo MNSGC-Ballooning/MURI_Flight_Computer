@@ -4,14 +4,14 @@ Relay::Relay(int on,int off)
   , offPin(off)
   , isOpen(false)
   {}
-const char* Relay::getRelayStatus(){
-  const char _open[] = "ON";
-  const char _closed[] = "CLOSED";
+String Relay::getRelayStatus(){
+  String Open = "ON";
+  String Close = "CLOSED";
   if (isOpen){
-    return (_open);
+    return (Open);
   }
   else {
-    return (_closed);
+    return (Close);
   }
 }
 void Relay::init(){

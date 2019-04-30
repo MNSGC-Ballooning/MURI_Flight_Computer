@@ -12,8 +12,7 @@
 #include <Smart.h>
 #include <MS5xxx.h>                //library for MS5607 altimeter, temp, pressure sensor
 #include <Wire.h>                  //I2C required for the temp sensor
-
-//#include <UbloxGPS.h>
+#include <UbloxGPS.h>
 
 //==============================================================
 //               MURI Flight Computer
@@ -150,8 +149,8 @@ float t3;
 float t4;
 
 //GPS
-TinyGPSPlus GPS;
-//UbloxGPS Ublox(&Serial2);
+//TinyGPSPlus GPS;
+UbloxGPS Ublox(&Serial1);
 
 //MS5607 pressure and temperature sensor
 MS5xxx MS5(&Wire);
@@ -217,8 +216,8 @@ void setup() {
   pinMode(fix_led, OUTPUT);
   
   //initiate GPS
-  Serial1.begin(4800);
-  
+  Serial1.begin(UBLOX_BAUD);
+  Ublox.init();
   //Initiate GPS Data lines
   Serial.println("GPS begin");
 
@@ -261,6 +260,7 @@ void setup() {
 void loop(){
   blinkMode();
   Fixblink();
-  updateGPS();       //Updates GPS
+  //updateGPS();       //Updates GPS
+  Ublox.update();
   updateSensors();   //Updates and logs all sensor data
 }

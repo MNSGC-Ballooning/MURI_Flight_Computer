@@ -151,6 +151,7 @@ float t4;
 //GPS
 //TinyGPSPlus GPS;
 UbloxGPS Ublox(&Serial1);
+boolean fixU = false;
 
 //MS5607 pressure and temperature sensor
 MS5xxx MS5(&Wire);
@@ -220,6 +221,10 @@ void setup() {
   Ublox.init();
   //Initiate GPS Data lines
   Serial.println("GPS begin");
+  delay(50);
+  if(Ublox.setAirborne()){
+    Serial.println("Airbrone mode set!");
+  }
 
   //GPS setup and config
   Serial.println("GPS configured");
@@ -260,7 +265,6 @@ void setup() {
 void loop(){
   blinkMode();
   Fixblink();
-  //updateGPS();       //Updates GPS
   Ublox.update();
   updateSensors();   //Updates and logs all sensor data
 }

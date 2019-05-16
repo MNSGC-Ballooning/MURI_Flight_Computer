@@ -20,7 +20,7 @@ void updateSensors() {
     t4 = sensor4.getTempCByIndex(0) + 273.15;
     String data = "";
     openFlightlog();
-    String data1 = flightTimeStr()+ "," + String(Ublox.getLat(), 4) + "," + String(Ublox.getLon(), 4) + "," 
+    data = flightTimeStr()+ "," + String(Ublox.getLat(), 4) + "," + String(Ublox.getLon(), 4) + "," 
     + String(Ublox.getAlt_feet(), 1) + ","
     + String(Ublox.getMonth()) + "/" + String(Ublox.getDay()) + "/" + String(Ublox.getYear()) + ","
     + String(Ublox.getHour()) + ":" + String(Ublox.getMinute()) + ":" + String(Ublox.getSecond()) + ","
@@ -28,10 +28,12 @@ void updateSensors() {
     + String(Ublox.getSats()) + ",";
     //GPS should update once per second, if data is more than 2 seconds old, fix was likely lost
     if(Ublox.getFixAge() > 2000){
-      data1 += "No Fix,";
+      data += "No Fix,";
+      fixU == false;
     }
-    else{
-      data1 += "Fix,";
+  else{
+      data += "Fix,";
+      fixU == true;
     }
 //    if(GPS.Fix && GPS.altitude.feet()!=0) {
 //      data += (flightTimeStr() + "," + String(GPS.location.lat(), 6) + "," + String(GPS.location.lng(), 6) + ",");
@@ -57,5 +59,3 @@ void updateSensors() {
   }
   
 }
-
-

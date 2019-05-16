@@ -34,6 +34,30 @@ void Blink::BLINK(){
   }
 }
 
+void Fixblink(){
+  static unsigned long timer = 0;
+  static bool fixON = false;
+  static int Delay = noFixDelay;
+  
+  if(!fixU && Ublox.getAlt_feet()!=0){
+      Delay = noFixDelay;  
+  }
+  else{
+    Delay = FixDelay;
+  }
+  if((millis()-timer>=Delay)&&!fixON){
+    fixON = true;
+    digitalWrite(fix_led, HIGH);
+    timer= millis();
+  }
+  if((millis()-timer>=300)&&fixON){
+    fixON = false;
+    digitalWrite(fix_led, LOW);
+    timer = millis();
+  }
+}
+
+
 int Blink::getOnTimes(){
   return ontimes;
 }
@@ -61,28 +85,6 @@ void blinkMode(){
 void testBlink(){
   currentBlink = new Blink(100,300,7, "testBlink", millis());
 };
-void Fixblink(){
-  static unsigned long timer = 0;
-  static bool fixON = false;
-  static int Delay = noFixDelay;
-  
-  if(Ublox.getAlt_feet()!=0){
-      Delay = noFixDelay;  
-  }
-  else{
-    Delay = FixDelay;
-  }
-  if((millis()-timer>=Delay)&&!fixON){
-    fixON = true;
-    digitalWrite(fix_led, HIGH);
-    timer= millis();
-  }
-  if((millis()-timer>=300)&&fixON){
-    fixON = false;
-    digitalWrite(fix_led, LOW);
-    timer = millis();
-  }
-}
+
 
   
-

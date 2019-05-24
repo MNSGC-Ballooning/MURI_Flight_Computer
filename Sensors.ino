@@ -6,10 +6,17 @@ void updateSensors() {
   if(millis() - prevTime >= 5000){
     prevTime = millis();
     adxl.readAccel(&x,&y,&z);
+    //Request temp values
     sensor1.requestTemperatures();
     sensor2.requestTemperatures();
     sensor3.requestTemperatures();
     sensor4.requestTemperatures();
+    //MS5607 temp and pressure
+    MS5.ReadProm();
+    MS5.Readout();
+    ms_temp = (MS5.GetTemp()/100);    //because temp is given in .01 C
+    ms_pressure = MS5.GetPres();
+    //Get temp values
     t1 = sensor1.getTempCByIndex(0) + 273.15;
     t2 = sensor2.getTempCByIndex(0) + 273.15;
     t3 = sensor3.getTempCByIndex(0) + 273.15;
@@ -36,6 +43,8 @@ void updateSensors() {
     data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
     data += (String(batHeatRelay.getRelayStatus()) + "," + String(opcHeatRelay.getRelayStatus()) + ",");
     data += (String(kpa) + ",");
+    data += (String(ms_temp)+ ",");
+    data += (String(ms_pressure) + ",");
 //    String data2 = String(Ublox.getMonth()) + "/" + String(Ublox.getDay()) + "/" + String(Ublox.getYear()) + ","
 //    + String(Ublox.getHour()) + ":" + String(Ublox.getMinute()) + ":" + String(Ublox.getSecond()) + ","
 //    + String(Ublox.getLat(), 4) + "," + String(Ublox.getLon(), 4) + "," + String(Ublox.getAlt(), 1) + ","
@@ -57,5 +66,3 @@ void updateSensors() {
   }
   
 }
-
-

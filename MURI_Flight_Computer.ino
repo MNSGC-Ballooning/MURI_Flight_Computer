@@ -11,6 +11,7 @@
 #include <DallasTemperature.h>
 #include <SparkFun_ADXL345.h>      //accelerometer library
 #include <Smart.h>
+#include <MS5xxx.h> 
 //#include <UbloxGPS.h>
 
 //==============================================================
@@ -209,6 +210,13 @@ int pressure = 0;
 float pressureV = 0;
 float psi = 0;
 float kpa = 0;
+
+//MS5607 pressure and temperature sensor
+MS5xxx MS5(&Wire);
+float ms_temp = 0;
+float ms_pressure = 0;
+
+
 ///////////////////////////////////////////
 //////////////Control System///////////////
 ///////////////////////////////////////////
@@ -302,6 +310,10 @@ void setup() {
   adxl.setRangeSetting(16);
   adxl.setSpiBit(0);
 
+  //Initiate MS5607 Pressure and Temperature Sensor
+  MS5.connect();
+  delay(500);
+
   //initialize SD card
   while (!SD.begin(chipSelect)) {//power LED will blink if no card is inserted
     Serial.println("No SD");
@@ -358,7 +370,7 @@ void setup() {
 //      bloxLog.println("Error: Air mode set unsuccessful. Reattempting...");
 //  }
   
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI)";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI), MS5607 temperature (C), MS5607 pressure (PA)";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 

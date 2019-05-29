@@ -256,6 +256,7 @@ String smartOneString = "";
 String smartTwoString = "";
 boolean SDcard = true;
   
+//useless comment
 
 void setup() {
   //Initiate Serial

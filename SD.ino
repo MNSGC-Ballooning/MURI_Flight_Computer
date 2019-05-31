@@ -4,6 +4,7 @@ boolean FlightlogOpen = false;
 
 void openFlightlog() {
   if (!FlightlogOpen&&SDcard) {
+    //add .c_str() next to Fname
     Flog = SD.open(Fname, FILE_WRITE);
     FlightlogOpen = true;
     digitalWrite(ledSD, HIGH);

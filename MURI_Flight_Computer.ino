@@ -242,6 +242,7 @@ void setup() {
 
   //Same but for Flight Log
   for (int i = 0; i < 100; i++) {
+    //Change to c.str()
     if (!SD.exists("FLog" + String(i / 10) + String(i % 10) + ".csv")) {
       Fname = "FLog" + String(i / 10) + String(i % 10) + ".csv";
       openFlightlog();

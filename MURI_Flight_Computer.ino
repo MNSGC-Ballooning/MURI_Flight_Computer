@@ -1,4 +1,4 @@
-
+// This flight computer sucks!
 //Libraries change
 //this requires a special modded version of the TinyGPS library because for whatever
 //reason the TinyGPS library does not include a "Fix" variable. the library can be found here:

@@ -2,9 +2,6 @@
 
 ///// Variables /////
 long Pressure_Alt; // altitude in feet based on pressure and temp
-int Lock; // counter for good GPS fixes
-int NoLock; // counter for bad GPS fixes
-
 
 ///// Function Declarations /////
 
@@ -12,22 +9,12 @@ int NoLock; // counter for bad GPS fixes
 bool CheckEstimate()
 {
   Pressure_Alt = Pressure_Alt_Calc(pres,temp); // not sure where these come from but pressure should be in 'Pa' and temp should be in 'K'
-  if(GPS.altitude.feet() > (Pressure_Alt - 3000) && GPS.altitude.feet() < (Pressure_Alt + 3000))
+  if(Ublox.getAlt_feet() > (Pressure_Alt - 3000) && Ublox.getAlt_feet() < (Pressure_Alt + 3000))
   {
-    Lock++; // increment counter for Lock
-    if( Lock >= 5)
-    {
-      NoLock = 0; // if we get 5 locks in a row, reset NoLock 
-    }
-
-    return true;
-    
+    return true; 
   }
   else
   {
-    NoLock++;
-    Lock = 0; // if we get a bad lock, reset Lock
-
     return false;
   }
 }
@@ -42,16 +29,4 @@ long Pressure_Alt_Calc(long Pressure, long Temperature)
   long Pressure_Alt = Pressure_Alt_SI*3.28084; // converts m to ft
 
   return Pressure_Alt;
-}
-
-// get the current value of Lock
-int GetLock()
-{
-  return Lock;
-}
-
-// get the curret value of NoLock
-int GetNoLock()
-{
-  return NoLock
 }

@@ -5,11 +5,10 @@ void updateSensors() {
   static unsigned long prevTime = 0;
   if(millis() - prevTime >= 5000){
     prevTime = millis();
-<<<<<<< HEAD
+    
     adxl.readAccel(&x,&y,&z);
+    
     //Request temp values
-=======
->>>>>>> 2dd4390faa01a7aa178d519d7b730ace763b479f
     sensor1.requestTemperatures();
     sensor2.requestTemperatures();
     sensor3.requestTemperatures();
@@ -19,15 +18,13 @@ void updateSensors() {
     MS5.Readout();
     ms_temp = (MS5.GetTemp()/100);    //because temp is given in .01 C
     ms_pressure = MS5.GetPres();
-<<<<<<< HEAD
+
     //Get temp values
-=======
->>>>>>> 2dd4390faa01a7aa178d519d7b730ace763b479f
     t1 = sensor1.getTempCByIndex(0) + 273.15;
     t2 = sensor2.getTempCByIndex(0) + 273.15;
     t3 = sensor3.getTempCByIndex(0) + 273.15;
     t4 = sensor4.getTempCByIndex(0) + 273.15;
-<<<<<<< HEAD
+
     pressure = analogRead(A0);
     pressureV=pressure*(5.0/1024);
     psi = (pressureV - (0.1*5.0))/(4.0/15.0);
@@ -70,7 +67,7 @@ void updateSensors() {
     closeFlightlog();
     writeEvents();
     //closeBloxlog();
-=======
+
     String data = "";
     openFlightlog();
     data = flightTimeStr()+ "," + String(Ublox.getLat(), 4) + "," + String(Ublox.getLon(), 4) + "," 
@@ -109,7 +106,6 @@ void updateSensors() {
     Serial.println(data);
     Flog.println(data);
     closeFlightlog();
->>>>>>> 2dd4390faa01a7aa178d519d7b730ace763b479f
   }
   
 }

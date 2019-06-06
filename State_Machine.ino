@@ -50,7 +50,7 @@ void stateMachine()
 
   if(FixStatus == Fix)
   {
-    alt_feet = GPS.altitude.feet();  
+    alt_feet = Ublox.getAlt_feet();  
   }
   if(FixStatus == NoFix)
   {

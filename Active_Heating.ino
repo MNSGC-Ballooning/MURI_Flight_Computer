@@ -16,16 +16,16 @@ void actHeat(){
   }
 
 //turn heater on/off:
-  if(coldBattery && strcmp(batHeatRelay.getRelayStatus(),OFF)==0){
+  if(coldBattery && strcmp(batHeatRelay.getRelayStatus().c_str(),OFF)==0){
     batHeatRelay.openRelay();
   }
-  else if(!coldBattery && strcmp(batHeatRelay.getRelayStatus(),ON)==0){
+  else if(!coldBattery && strcmp(batHeatRelay.getRelayStatus().c_str(),ON)==0){
     batHeatRelay.closeRelay();
   }
-  if(coldOPC && strcmp(opcHeatRelay.getRelayStatus(),OFF)==0){
+  if(coldOPC && strcmp(opcHeatRelay.getRelayStatus().c_str(),OFF)==0){
     opcHeatRelay.openRelay();
   }
-  else if(!coldOPC && strcmp(opcHeatRelay.getRelayStatus(),ON)==0){
+  else if(!coldOPC && strcmp(opcHeatRelay.getRelayStatus().c_str(),ON)==0){
     opcHeatRelay.closeRelay();
   }
 }

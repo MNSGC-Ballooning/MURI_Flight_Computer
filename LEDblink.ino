@@ -34,44 +34,12 @@ void Blink::BLINK(){
   }
 }
 
-int Blink::getOnTimes(){
-  return ontimes;
-}
-
-void switchLED(){
-  if(LEDon){
-    LEDon = false;
-    digitalWrite(ledPin, LOW);
-  }
-  else{
-    LEDon= true;
-    digitalWrite(ledPin, HIGH);
-  }
-}
-
-void blinkMode(){
-  if(currentBlink->getOnTimes()==0){
-    delete currentBlink;
-    if(recovery){
-      currentBlink = &recoveryBlink;
-    }
-    else{
-      currentBlink = &countdownBlink;
-    }
-  }
-  currentBlink -> BLINK();
-  
-}
-
-void testBlink(){
-  currentBlink = new Blink(100,300,7, "testBlink", millis());
-};
 void Fixblink(){
   static unsigned long timer = 0;
   static bool fixON = false;
   static int Delay = noFixDelay;
   
-  if(GPS.Fix && GPS.altitude.feet()!= 0 ){
+  if(!fixU && Ublox.getAlt_feet()!=0){
       Delay = noFixDelay;  
   }
   else{
@@ -89,5 +57,34 @@ void Fixblink(){
   }
 }
 
-  
 
+int Blink::getOnTimes(){
+  return ontimes;
+}
+
+void switchLED(){
+  if(LEDon){
+    LEDon = false;
+    digitalWrite(ledPin, LOW);
+  }
+  else{
+    LEDon= true;
+    digitalWrite(ledPin, HIGH);
+  }
+}
+
+void blinkMode(){
+  if(currentBlink->getOnTimes()==0){
+      delete currentBlink;
+      currentBlink = &countdownBlink;
+  }
+  currentBlink -> BLINK();
+  
+}
+
+void testBlink(){
+  currentBlink = new Blink(100,300,7, "testBlink", millis());
+};
+
+
+  

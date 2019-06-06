@@ -39,7 +39,7 @@ void Fixblink(){
   static bool fixON = false;
   static int Delay = noFixDelay;
   
-  if(!fixU && Ublox.getAlt_feet()!=0){
+  if(!fixU && GPS.getAlt_feet()!=0){
       Delay = noFixDelay;  
   }
   else{

@@ -9,7 +9,7 @@ long Pressure_Alt; // altitude in feet based on pressure and temp
 bool CheckEstimate()
 {
   Pressure_Alt = Pressure_Alt_Calc(pres,temp); // not sure where these come from but pressure should be in 'Pa' and temp should be in 'K'
-  if(Ublox.getAlt_feet() > (Pressure_Alt - 3000) && Ublox.getAlt_feet() < (Pressure_Alt + 3000))
+  if(GPS.getAlt_feet() > (Pressure_Alt - 3000) && GPS.getAlt_feet() < (Pressure_Alt + 3000))
   {
     return true; 
   }

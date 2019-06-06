@@ -49,12 +49,12 @@ void updateSensors() {
     data += (String(kpa) + ",");
     data += (String(ms_temp)+ ",");
     data += (String(ms_pressure) + ",");
-//    String data2 = String(Ublox.getMonth()) + "/" + String(Ublox.getDay()) + "/" + String(Ublox.getYear()) + ","
-//    + String(Ublox.getHour()) + ":" + String(Ublox.getMinute()) + ":" + String(Ublox.getSecond()) + ","
-//    + String(Ublox.getLat(), 4) + "," + String(Ublox.getLon(), 4) + "," + String(Ublox.getAlt(), 1) + ","
-//    + String(Ublox.getSats()) + ",";
+//    String data2 = String(GPS.getMonth()) + "/" + String(GPS.getDay()) + "/" + String(GPS.getYear()) + ","
+//    + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()) + ","
+//    + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," + String(GPS.getAlt(), 1) + ","
+//    + String(GPS.getSats()) + ",";
 //    //GPS should update once per second, if data is more than 2 seconds old, fix was likely lost
-//    if(Ublox.getFixAge() > 2000){
+//    if(GPS.getFixAge() > 2000){
 //      data2 += "No Fix,";
 //    }
 //    else{
@@ -70,14 +70,14 @@ void updateSensors() {
 
     String data = "";
     openFlightlog();
-    data = flightTimeStr()+ "," + String(Ublox.getLat(), 4) + "," + String(Ublox.getLon(), 4) + "," 
-    + String(Ublox.getAlt_feet(), 1) + ","
-    + String(Ublox.getMonth()) + "/" + String(Ublox.getDay()) + "/" + String(Ublox.getYear()) + ","
-    + String(Ublox.getHour()) + ":" + String(Ublox.getMinute()) + ":" + String(Ublox.getSecond()) + ","
+    data = flightTimeStr()+ "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
+    + String(GPS.getAlt_feet(), 1) + ","
+    + String(GPS.getMonth()) + "/" + String(GPS.getDay()) + "/" + String(GPS.getYear()) + ","
+    + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()) + ","
     
-    + String(Ublox.getSats()) + ",";
+    + String(GPS.getSats()) + ",";
     //GPS should update once per second, if data is more than 2 seconds old, fix was likely lost
-    if(Ublox.getFixAge() > 2000){
+    if(GPS.getFixAge() > 2000){
       data += "No Fix,";
       fixU == false;
     }

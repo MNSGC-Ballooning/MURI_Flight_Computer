@@ -71,7 +71,7 @@ void stateMachine()
   // determine the best altitude to use based on lock or no lock)
   if(GPSstatus == Lock)
   {
-    alt_feet = Ublox.getAlt_feet();
+    alt_feet = GPS.getAlt_feet();
   }
   else if(GPSstatus == NoLock)
   {

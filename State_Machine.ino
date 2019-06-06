@@ -7,7 +7,11 @@
 #define STATE_MURI_CAST_AWAY 0x10       //0001 0000
 #define STATE_MURI_RECOVERY 0x20        //0010 0000
 
+#define Lock 0xAA;
+#define NoLock 0xBB;
+
 uint8_t muriState;
+uint8_t GPSstatus = NoLock;
 
 void stateMachine()
 {
@@ -23,7 +27,8 @@ void stateMachine()
   static bool cast =false;
   static unsigned long prevTimes = 0;
 
-  long alt_feet; // altitude in feet
+  float alt_feet; // altitude in feet
+  int i; // counter for getting GPS Lock
   
   if(!init)
   {
@@ -48,11 +53,27 @@ void stateMachine()
   }
 
 
+  // determine GPSstatus (lock or no lock)
   if(FixStatus == Fix)
   {
-    alt_feet = Ublox.getAlt_feet();  
+    i++;
+    if(i>=5)
+    {
+      GPSstatus = Lock;
+    }  
   }
   if(FixStatus == NoFix)
+  {
+    GPSstatus = Nolock;
+    i = 0;
+  }
+
+  // determine the best altitude to use based on lock or no lock)
+  if(GPSstatus == Lock)
+  {
+    alt_feet = Ublox.getAlt_feet();
+  }
+  else if(GPSstatus == NoLock)
   {
     alt_feet = Pressure_Alt_Calc(pressure,temperature); // not sure what the pressure and temp variables are called
   }

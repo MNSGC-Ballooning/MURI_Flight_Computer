@@ -95,7 +95,6 @@ class Relay {
 /////////////////Define Pins/////////////////
 /////////////////////////////////////////////
 #define ledPin 3          //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
-#define chipSelect 4      //SD Card pin
 #define ledSD 5           //Pin which controls the SD LED
 #define fix_led 6         //led  which blinks for fix
 #define ONE_WIRE_BUS 28   //Internal Temp
@@ -110,6 +109,7 @@ class Relay {
 #define BAT_HEATER_OFF 27
 #define SIREN_ON 32
 #define SIREN_OFF 33
+const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
 //#define test 33
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
@@ -150,7 +150,7 @@ float t4;
 
 //GPS
 //TinyGPSPlus GPS;
-UbloxGPS Ublox(&Serial1);
+UbloxGPS Ublox(&Serial2);
 boolean fixU = false;
 
 //MS5607 pressure and temperature sensor
@@ -217,7 +217,7 @@ void setup() {
   pinMode(fix_led, OUTPUT);
   
   //initiate GPS
-  Serial1.begin(UBLOX_BAUD);
+  Serial2.begin(UBLOX_BAUD);
   Ublox.init();
   //Initiate GPS Data lines
   Serial.println("GPS begin");
@@ -242,9 +242,8 @@ void setup() {
 
   //Same but for Flight Log
   for (int i = 0; i < 100; i++) {
-    //Change to c.str()
-    if (!SD.exists("FLog" + String(i / 10) + String(i % 10) + ".csv")) {
-      Fname = "FLog" + String(i / 10) + String(i % 10) + ".csv";
+    Fname = String("FLog" + String(i / 10) + String(i % 10) + ".csv");
+    if (!SD.exists(Fname.c_str())) {
       openFlightlog();
       break;
     }

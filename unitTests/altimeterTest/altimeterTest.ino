@@ -1,10 +1,13 @@
 // Author: Asif ALly
 #include <MS5xxx.h>
+#include <WireKinetis.h>
+
 
 MS5xxx MS5(&Wire);
 int ms_temp=0;
 int ms_pressure = 0;
 
+unsigned long prevTime = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -27,6 +30,7 @@ void setup() {
 
 void ms5Update() {
   MS5.ReadProm();
+  delay(50);
   MS5.Readout();
   ms_temp = (MS5.GetTemp()/100); //because temp is given in .01 C
   ms_pressure =(MS5.GetPres());
@@ -36,8 +40,10 @@ void ms5Update() {
 }
 
 void loop() {
-  ms5Update();
-
+  if(millis()-prevTime>=1000){//run loop at 1 Hz
+     prevTime = millis();
+     ms5Update();
+  }
 }
 
 //float MS5607::getPressure() {

@@ -8,7 +8,7 @@ long Pressure_Alt; // altitude in feet based on pressure and temp
 // check if gps fix is good
 bool CheckEstimate()
 {
-  Pressure_Alt = Pressure_Alt_Calc(pres,temp); // not sure where these come from but pressure should be in 'Pa' and temp should be in 'K'
+  Pressure_Alt = Pressure_Alt_Calc(******pres,******temp); // not sure where these come from but pressure should be in 'Pa' and temp should be in 'K'
   if(Ublox.getAlt_feet() > (Pressure_Alt - 3000) && Ublox.getAlt_feet() < (Pressure_Alt + 3000))
   {
     return true; 
@@ -29,4 +29,35 @@ float Pressure_Alt_Calc(float Pressure, float Temperature)
   float Pressure_Alt = Pressure_Alt_SI*3.28084; // converts m to ft
 
   return Pressure_Alt;
+}
+
+
+
+///// ASCENT_RATE class /////
+ASCENT_RATE::ASCENT_RATE()
+{
+  rate=0;
+  prevh=0;
+  prevt=0;
+}
+
+void ASCENT_RATE::updateRate()
+{
+ rate=((alt_feet-prevh)/(getGPStime()-prevt))*60; //h_dot in feet per minute
+ prevh=alt_feet;
+ prevt=getGPStime();
+ Serial.println("Rate: " + String(rate));
+ Serial.println("Alt: " + String(prevh));
+ Serial.println("Time: " + String(prevt));
+}
+
+float ASCENT_RATE::getRate(){
+  updateRate();
+  return rate;
+}
+float ASCENT_RATE::getPrevh(){
+  return prevh;
+}
+float ASCENT_RATE::getPrevt(){
+  return prevt;
 }

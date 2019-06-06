@@ -71,11 +71,11 @@ void stateMachine()
   // determine the best altitude to use based on lock or no lock)
   if(GPSstatus == Lock)
   {
-    alt_feet = Ublox.getAlt_feet();
+    alt_feet = GPS.altitude.feet();
   }
   else if(GPSstatus == NoLock)
   {
-    alt_feet = Pressure_Alt_Calc(pressure,temperature); // not sure what the pressure and temp variables are called
+    alt_feet = Pressure_Alt_Calc(*******pres,******temp); // not sure what the pressure and temp variables are called
   }
   
   PID();                                //Controller that changes State based on derivative of altitude
@@ -83,13 +83,9 @@ void stateMachine()
 ///////////Finite State Machine///////////////
 //Serial.println("GLGPS: " + String(getLastGPS()));
 //Serial.println("Prev time: " + String(prevTimes));
-if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh()) 
-{
-  // enter when alt >0, it has been more than 1 sec since last update, and the altitudde is changing 
-
-///////////////////////////////////////////////////////////////////////////////////
-    // can this only be done if there is a fix?  
-    if(FixStatus == Fix && float(GPS.location.lng()) > termination_longitude && GPS.location.lng() != 0) // if paload drifts outide of longitude bounds and longitude is not 0 (gps has fix)
+  if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh()) 
+  {
+    if(GPS.Fix && float(GPS.location.lng()) > termination_longitude && GPS.location.lng() != 0) // if paload drifts outide of longitude bounds and longitude is not 0 (gps has fix)
     {
       termination_longitude_check++; // and 1 to # of times outside mission area
       Serial.println("Termination Longitude check: " + String(termination_longitude_check));
@@ -111,7 +107,7 @@ if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh())
     
     prevTimes=millis(); // set time
     hDOT.updateRate(); // get ascent rate
-    Serial.println("h dot: " + String(hDOT.geth_dot()));
+    Serial.println("h dot: " + String(getRate());
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////    
@@ -139,8 +135,117 @@ if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh())
     }
     // overall not sure what the point of this state is. maybe the hits are important but i dont know. it just seems like it isnt doing anything of value
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
-    if(muriState == STATE_MURI_ASCENT) // checks to see if the state is ascent
+
+    switch(muriState)
+    {
+      case 0x01 // Ascent
+        Serial.println("STATE_MURI_ASCENT");
+        if(alt_feet>maxAlt && alt_feet!=0)// checks to see if payload has hit the max mission alt
+        {
+          skyCheck++;
+          Serial.println("Max alt hits: " + String(skyCheck));
+          if(skyCheck>5)
+          {
+            // if the payload is consistenly above max mission alt. , the first balloon is released
+            smartOne.release();
+            smartOneString = "RELEASED";
+            skyCheck = 0;
+          }
+        }
+        break;
+      ////////////////////////////////////////////////////////////////////////////////////////////////
+      case 0x02 // Fast Descent
+        Serial.println("STATE_MURI_FAST_DESCENT");
+        if(hDOT.getRate()<-2000)
+        {
+          hDOT.addHit();
+        }
+        else
+        {
+          hDOT.checkHit();
+        }
+        if(!fast)
+        {
+          smartTwo.release();
+          smartTwoString = "RELEASED";
+          smartOne.release();
+          smartOneString = "RELEASED";
+          opcHeatRelay.closeRelay();
+          batHeatRelay.closeRelay();
+          fast=true;
+        }
+        break;
+      /////////////////////////////////////////////////////////////////////////////////////////////////////
+      case 0x04 // Slow Descent
+        Serial.println("STATE_MURI_SLOW_DESCENT");
+        if(alt_feet<minAlt && alt_feet!=0) // checks to see if it is below data collection range...
+        {
+          floorCheck++;
+          Serial.println("Min alt hits: " + String(floorCheck));
+          if(floorCheck>5)
+          {
+            // if consistently below data collection range then release all balloons again just in case
+            smartTwo.release();
+            smartTwoString = "RELEASED";
+            smartOne.release();
+            smartOneString = "RELEASED";
+            floorCheck = 0;
+          }
+        }
+        else
+        {
+          floorCheck = 0;
+        }
+        break;
+      /////////////////////////////////////////////////////////////////////////////////////////////////////
+      case 0x08 // Slow Ascent
+        Serial.println("STATE_MURI_SLOW_ASCENT");
+        snail++;
+        if(snail>10)
+        {
+          if(alt_feet<30000)
+          {
+            smartTwo.release();
+          }
+          else if(alt_feet>=30000)
+          {
+            smartOne.release();
+            smartOneString = "RELEASED";
+            smartTwo.release();
+            smartTwoString = "RELEASED";
+          }
+          snail = 0;
+         }
+         break;
+      /////////////////////////////////////////////////////////////////////////////////////////////////////
+      case 0x10 // Cast Away
+        Serial.println("STATE_MURI_CAST_AWAY");
+        if(!cast)
+        {
+          castAway = millis();
+          cast = true;
+        }
+        if(millis()-castAway >= 600000)
+        {
+          smartOne.release();
+          smartTwo.release();
+        }
+        break;
+      /////////////////////////////////////////////////////////////////////////////////////////////////////
+      case 0x20 // Recovery
+        Serial.println("STATE_MURI_RECOVERY");
+        if(!recovery)
+        {
+          sirenRelay.openRelay();
+          opcRelay.closeRelay();
+          recovery = true;
+        }
+        break;
+    }   
+  }
+}
+
+   /*  if(muriState == STATE_MURI_ASCENT) // checks to see if the state is ascent
     {
       Serial.println("STATE_MURI_ASCENT");
       // again not sure what hits are
@@ -169,7 +274,7 @@ if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh())
         skyCheck = 0; // if not above max alt consistently, set counter back to 0
       }
       // can this only run with a fix?
-      if(FixStatus == Fix && float(GPS.location.lng()) > float_longitude && GPS.location.lng() != 0) // not entirely sure what floating is.... but it seams like a cut off to start descent 
+      if(GPS.Fix && float(GPS.location.lng()) > float_longitude && GPS.location.lng() != 0) // not entirely sure what floating is.... but it seams like a cut off to start descent 
       {
         float_longitude_check++;
         Serial.println("float Longitude check: " + String(float_longitude_check));
@@ -181,9 +286,8 @@ if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh())
         }
       }
     }
-    
-////////////////////////////////////////////////////////////////////////////////////////////////////////    
-    else if(muriState == STATE_MURI_SLOW_DESCENT) // checks if in slow descent (1 balloon)
+    */    
+   /* else if(muriState == STATE_MURI_SLOW_DESCENT) // checks if in slow descent (1 balloon)
     {
       Serial.println("STATE_MURI_SLOW_DESCENT");
       if(hDOT.getRate()>-2000 && hDOT.getRate()<-50)
@@ -212,10 +316,8 @@ if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh())
       {
         floorCheck = 0;
       }
-    }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////    
-    else if(muriState == STATE_MURI_FAST_DESCENT)
+    } */    
+   /* else if(muriState == STATE_MURI_FAST_DESCENT)
     {
       Serial.println("STATE_MURI_FAST_DESCENT");
       if(hDOT.getRate()<-2000)
@@ -236,10 +338,8 @@ if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh())
         batHeatRelay.closeRelay();
         fast=true;
       }
-    }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////    
-    else if(muriState == STATE_MURI_SLOW_ASCENT)
+    }*/    
+   /* else if(muriState == STATE_MURI_SLOW_ASCENT)
     {
       Serial.println("STATE_MURI_SLOW_ASCENT");
       if(50>hDOT.getRate() && hDOT.getRate()<=250)
@@ -266,10 +366,8 @@ if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh())
         }
         snail = 0;
       }
-    }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////    
-    else if(muriState == STATE_MURI_CAST_AWAY)
+    }*/    
+   /* else if(muriState == STATE_MURI_CAST_AWAY)
     {
       if(hDOT.getRate()>=-50 && hDOT.getRate()<=50)
       {
@@ -290,10 +388,8 @@ if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh())
         smartOne.release();
         smartTwo.release();
       }
-    }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////    
-    else if(muriState == STATE_MURI_RECOVERY)
+    }*/    
+   /* else if(muriState == STATE_MURI_RECOVERY)
     {
       Serial.println("STATE_MURI_RECOVERY");
       if(!recovery)
@@ -302,16 +398,97 @@ if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh())
         opcRelay.closeRelay();
         recovery = true;
       }
-    }
-    
-  }
-  
-}
-
-
+    }*/ 
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
 
 void PID()
+{
+  static byte wilson = 0; // counter for castaway
+  if(hdotInit && alt_feet!=0 && !recovery) // if it has been initialized, it is above sea level, and it is not in recovery
+  {
+    if(hDOT.getRate!=0)
+    {
+      tickTock.updateTimer(hDOT.geth_dot());
+    }
+    tickTock.hammerTime();
+    if(hDOT.getRate()>=5000 || hDOT.getRate()<=-5000)
+    {
+      Serial.println("GPS Jump Detected");
+    }
+    else if(hDOT.getRate() > 250)
+    {
+      muriState = STATE_MURI_ASCENT;
+      stateString = "ASCENT";
+    }
+    else if(hDOT.getRate()>50 && hDOT.getRate()<=250)
+    {
+      muriState = STATE_MURI_SLOW_ASCENT;
+      stateString = "SLOW ASCENT";
+    }
+    else if(hDOT.getRate() >= -1500 && hDOT.getRate() < -50)
+    {
+      static bool first = false;
+      muriState = STATE_MURI_SLOW_DESCENT;
+      stateString = "SLOW DESCENT";
+      if(!first)
+      {
+        smarty = &smartTwo; // what does this do?
+        if(alt_feet<minAlt) // determine minimum altitude
+        {
+          minAlt=alt_feet-10000;
+        }
+        first = true;
+      }
+    }
+    else if(hDOT.geth_dot()<=-2000 && alt_feet>7000)
+    {
+      muriState = STATE_MURI_FAST_DESCENT;
+      stateString = "FAST DESCENT";
+    }
+    else if(hDOT.geth_dot()>=-50 && hDOT.geth_dot()<=50)
+    {
+      wilson++;
+      if(wilson>100)
+      {
+        muriState = STATE_MURI_CAST_AWAY;
+        stateString = "CAST AWAY";
+        wilson=0;
+      }
+    }
+    else if(muriState == STATE_MURI_FAST_DESCENT && alt_feet<7000)
+    {
+      muriState = STATE_MURI_RECOVERY;
+      stateString = "RECOVERY";
+    } 
+  } 
+}
+
+
+/////////Control Classes Definitions////////////
+//ACTIVE_TIMER class
+ACTIVE_TIMER::ACTIVE_TIMER(Smart * smart,long d,long s){
+  smartUnit=smart;
+  duration=d;
+  starT=s;
+}
+void ACTIVE_TIMER::updateTimer(float r){
+  if(GPS.Fix && GPS.altitude.feet()!=0 && muriState==STATE_MURI_ASCENT && GPS.altitude.feet()<30000){
+    duration=((maxAlt/fabs(r))*1.2);
+  }
+  else if(GPS.Fix && alt_feet!=0 && muriState==STATE_MURI_SLOW_DESCENT && GPS.altitude.feet()>(minAlt+30000)){
+    duration=((maxAlt-minAlt/fabs(r))*1.2);
+  }
+}
+void ACTIVE_TIMER::hammerTime(){
+  if(((millis()-starT)/60000)>=duration){
+    smartUnit->release();
+  }
+}
+String ACTIVE_TIMER::getDuration() {return (String(duration));}
+
+
+
+/*void PID()
 {
   static byte wilson = 0;
   if(hdotInit && alt_feet!=0 && !recovery)
@@ -372,9 +549,8 @@ void PID()
     } 
   } 
 }
-
-
-void opcControl(){
+*/
+/*void opcControl(){
   static byte checktimes;
   if(!opcON && alt_feet>=75,000){
     checktimes++;
@@ -384,63 +560,8 @@ void opcControl(){
     }
   }
 }
-
-
-/////////Control Classes Definitions////////////
-//Relay class functions
-Relay::Relay(int on,int off)
-  : onPin(on)
-  , offPin(off)
-  , isOpen(false)
-  {}
-const char* Relay::getRelayStatus(){
-  const char _open[] = "ON";
-  const char _closed[] = "CLOSED";
-  if (isOpen){
-    return (_open);
-  }
-  else {
-    return (_closed);
-  }
-}
-void Relay::init(){
-  pinMode(onPin,OUTPUT);
-  pinMode(offPin,OUTPUT);
-}
-void Relay::openRelay(){
-  isOpen = true;
-  digitalWrite(onPin,HIGH);
-  delay(10);
-  digitalWrite(onPin,LOW);
-}
-void Relay::closeRelay(){
-  isOpen = false;
-  digitalWrite(offPin,HIGH);
-  delay(10);
-  digitalWrite(offPin,LOW);
-}
-//ACTIVE_TIMER class
-ACTIVE_TIMER::ACTIVE_TIMER(Smart * smart,long d,long s){
-  smartUnit=smart;
-  duration=d;
-  starT=s;
-}
-void ACTIVE_TIMER::updateTimer(float r){
-  if(GPS.Fix && alt_feet!=0 && muriState==STATE_MURI_ASCENT && GPS.altitude.feet()<30000){
-    duration=((maxAlt/fabs(r))*1.2);
-  }
-  else if(GPS.Fix && alt_feet!=0 && muriState==STATE_MURI_SLOW_DESCENT && GPS.altitude.feet()>(minAlt+30000)){
-    duration=((maxAlt-minAlt/fabs(r))*1.2);
-  }
-}
-void ACTIVE_TIMER::hammerTime(){
-  if(((millis()-starT)/60000)>=duration){
-    smartUnit->release();
-  }
-}
-String ACTIVE_TIMER::getDuration() {return (String(duration));}
-
-//ASCENT_RATE class
+*/
+/*//ASCENT_RATE class
 ASCENT_RATE::ASCENT_RATE(){
   rate=0;
   h_dot=0;
@@ -463,7 +584,8 @@ void ASCENT_RATE::updateRate(){
  Serial.println("Alt: " + String(prevh));
  Serial.println("Time: " + String(prevt));
 }
-void ASCENT_RATE::addHit(){
+void ASCENT_RATE::addHit()
+{
   Serial.println("Adding hit");
   for(int i=0;i<5;i++)
   {
@@ -473,15 +595,17 @@ void ASCENT_RATE::addHit(){
       break;
     }
   }
-  if(h_dotArr[4]!=0){
+  if(h_dotArr[4]!=0)
+  {
    for(int i=0;i<5;i++){
      sum+=h_dotArr[i];
      h_dotArr[i]=0; //set h dot array element equal to zero after adding to sum to prepare for next five value average
    }
    h_dot=sum/5;
    sum=0;
- }
- for(int i=0;i<5;i++){
+  }
+ for(int i=0;i<5;i++)
+ {
   h_dotQ[i]=0; //set questionable array equal to zero everytime normal update happens
  } 
 }
@@ -516,3 +640,4 @@ float ASCENT_RATE::getPrevt(){
   return prevt;
 }
 String ASCENT_RATE::getHDot() {return (String(h_dot));}
+ */

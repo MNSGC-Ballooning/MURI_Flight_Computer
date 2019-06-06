@@ -19,5 +19,3 @@ void closeFlightlog() {
       digitalWrite(ledSD, LOW);
   }
 }
-
-

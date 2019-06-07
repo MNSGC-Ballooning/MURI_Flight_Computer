@@ -8,7 +8,7 @@
 //#include <TinyGPS.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <Smart.h>
+#include <SmartController.h>
 #include <MS5xxx.h>                //library for MS5607 altimeter, temp, pressure sensor
 #include <Wire.h>                  //I2C required for the temp sensor
 #include <UbloxGPS.h>
@@ -149,7 +149,7 @@ float t4;
 
 //GPS
 //TinyGPSPlus GPS;
-UbloxGPS Ublox(&Serial1);
+UbloxGPS GPS(&Serial1);
 boolean fixU = false;
 
 //MS5607 pressure and temperature sensor
@@ -219,11 +219,11 @@ void setup() {
   
   //initiate GPS
   Serial1.begin(UBLOX_BAUD);
-  Ublox.init();
+  GPS.init();
   //Initiate GPS Data lines
   Serial.println("GPS begin");
   delay(50);
-  if(Ublox.setAirborne()){
+  if(GPS.setAirborne()){
     Serial.println("Airbrone mode set!");
   }
 
@@ -267,6 +267,6 @@ void setup() {
 void loop(){
   blinkMode();
   Fixblink();
-  Ublox.update();
+  GPS.update();
   updateSensors();   //Updates and logs all sensor data
 }

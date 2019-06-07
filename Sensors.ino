@@ -9,11 +9,25 @@ void updateSensors() {
     sensor2.requestTemperatures();
     sensor3.requestTemperatures();
     sensor4.requestTemperatures();
+
+    //Smart Unit temp requests
+
+    if (!tempA){
+      SOCO.request(1);
+      tempA=true;
+    }
+    else {
+      SOCO.request(2);
+      tempA=false;
+    }
+
+    
     //MS5607 temp and pressure
-    MS5.ReadProm();
-    MS5.Readout();
-    ms_temp = (MS5.GetTemp()/100);    //because temp is given in .01 C
-    ms_pressure = MS5.GetPres();
+    myBaro.baroTask();
+    Serial.println(myBaro.getReferencePressure());
+    pressure = myBaro.getPressure()/10;
+    altitude = myBaro.getAltitude(); //- start
+    temperature = myBaro.getTemperature()+C2K;
     t1 = sensor1.getTempCByIndex(0) + 273.15;
     t2 = sensor2.getTempCByIndex(0) + 273.15;
     t3 = sensor3.getTempCByIndex(0) + 273.15;
@@ -26,6 +40,7 @@ void updateSensors() {
     + String(Ublox.getHour()) + ":" + String(Ublox.getMinute()) + ":" + String(Ublox.getSecond()) + ","
     
     + String(Ublox.getSats()) + ",";
+    
     //GPS should update once per second, if data is more than 2 seconds old, fix was likely lost
     if(Ublox.getFixAge() > 2000){
       data += "No Fix,";
@@ -35,23 +50,14 @@ void updateSensors() {
       data += "Fix,";
       fixU == true;
     }
-//    if(GPS.Fix && GPS.altitude.feet()!=0) {
-//      data += (flightTimeStr() + "," + String(GPS.location.lat(), 6) + "," + String(GPS.location.lng(), 6) + ",");
-//      data += ((String(GPS.altitude.feet())) + ",");    //convert meters to feet for datalogging
-//      data += (String(GPS.date.month()) + "/" + String(GPS.date.day()) + "/" + String(GPS.date.year()) + ",");
-//      data += (String(GPS.time.hour()) + ":" + String(GPS.time.minute()) + ":" + String(GPS.time.second()) + ",");
-//      data += "fix,";
-//    }
-//    else{
-//    data += (flightTimeStr() + ",0.000000,0.000000,0.00,0/0/2000,00:00:00,No Fix,");
-//    
-//    }
     
     data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
     data += (batHeatRelay.getRelayStatus() + "," + opcHeatRelay.getRelayStatus() + ",");
-    data += (String(ms_temp)+ ",");
-    data += (String(ms_pressure) + ",");
-    
+    data += (String(temperature)+ ",");
+    data += (String(pressure) + ",");
+    data += (String(altitude) + ",");
+    data += (SmartLog + ",");
+    ChangeData=true; //Telling SmartController that we have logged the data
 
     Serial.println(data);
     Flog.println(data);

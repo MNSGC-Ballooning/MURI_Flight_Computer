@@ -5,18 +5,30 @@
 //https://github.com/simonpeterson/TinyGPS/tree/master
 #include <SPI.h>
 #include <SD.h>
-#include <TinyGPS++.h>
+//#include <TinyGPS++.h>
 //#include <TinyGPS.h>
+#include <LatchRelay.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Smart.h>
-#include <MS5xxx.h>                //library for MS5607 altimeter, temp, pressure sensor
 #include <Wire.h>                  //I2C required for the temp sensor
 #include <UbloxGPS.h>
+#include <i2c_t3.h>                //Required for usage of MS5607 
+#include <Arduino.h>               //"Microcontroller stuff" - Garret Ailts 
+#include <Salus_Baro.h>            //Library for MS5607
+#include <SmartController.h>       //Library for smart units using xbees to send commands
+
+String SmartData; //Just holds temporary copy of Smart data
+static String SmartLog; //Log everytime, is just data from smart
+static bool CutA=false; //Set to true to cut A SMART
+static bool CutB=false; //Set to true to cut B SMART
+static bool ChangeData=true; //Just set true after every data log
+static bool tempA=false; //Just flip flops temp requests from A and B (Stupid make better later)
 
 //==============================================================
 //               MURI Flight Computer
-//               Written by Garrett Ailts - ailts008 Summer 2018                  
+//               Written by Garrett Ailts - ailts008 Summer 2018 
+//               Edited by Asif Ally  - allyx004 Summer 2019                  
 //==============================================================
 
 //Version Description: MURI Flight Computer for double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
@@ -94,30 +106,34 @@ class Relay {
 /////////////////////////////////////////////
 /////////////////Define Pins/////////////////
 /////////////////////////////////////////////
-#define ledPin 3          //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
-#define ledSD 5           //Pin which controls the SD LED
-#define fix_led 6         //led  which blinks for fix
-#define ONE_WIRE_BUS 28   //Internal Temp
-#define TWO_WIRE_BUS 29   //External Temp
-#define THREE_WIRE_BUS 30 //Battery Temp
-#define FOUR_WIRE_BUS 31  //OPC Temp
-#define OPC_ON 22         //Relay switches
-#define OPC_OFF 23
+#define ledPin 21          //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
+#define ledSD 23           //Pin which controls the SD LED
+#define fix_led 22         //led  which blinks for fix
+#define ONE_WIRE_BUS 29   //Internal Temp
+#define TWO_WIRE_BUS 30   //External Temp
+#define THREE_WIRE_BUS 31 //Battery Temp
+#define FOUR_WIRE_BUS 32  //OPC Temp
+#define OPC_ON 5         //Relay switches
+#define OPC_OFF 6
 #define OPC_HEATER_ON 24
 #define OPC_HEATER_OFF 25
-#define BAT_HEATER_ON 26
-#define BAT_HEATER_OFF 27
+#define BAT_HEATER_ON 7
+#define BAT_HEATER_OFF 8
 #define SIREN_ON 32
 #define SIREN_OFF 33
+#define TIMER_RATE (1000) // Check the timer every 1 millisecond
+#define Baro_Rate (TIMER_RATE / 200) //Process MS5607 data at 100Hz
+#define C2K 273.15 
+
+///////////////Defines/////////////////////////
 const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
-//#define test 33
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
 ///////////////////////////////////////////////
-Relay opcRelay(OPC_ON, OPC_OFF);
-Relay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
-Relay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
-Relay sirenRelay(SIREN_ON, SIREN_OFF);
+LatchRelay opcRelay(OPC_ON, OPC_OFF);
+LatchRelay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
+LatchRelay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
+LatchRelay sirenRelay(SIREN_ON, SIREN_OFF);
 boolean  opcON = false;
 //////////////////////////////////////////
 //////////////Communication///////////////
@@ -149,14 +165,16 @@ float t3;
 float t4;
 
 //GPS
-//TinyGPSPlus GPS;
 UbloxGPS Ublox(&Serial2);
 boolean fixU = false;
 
 //MS5607 pressure and temperature sensor
-MS5xxx MS5(&Wire);
-float ms_temp = 0;
-float ms_pressure = 0;
+Salus_Baro myBaro;
+float pressure = 0;
+float altitude = 0;
+float temperature = 0;
+unsigned long prevTime = 0;
+float startAlt = 0;
 
 ///////////////////////////////////////////
 //////////////Control System///////////////
@@ -177,11 +195,13 @@ String data;
 String Fname = "";
 boolean SDcard = true;
   
+SmartController SOCO = SmartController(2,Serial5,200.0); //Smart controller
 
 void setup() {
   //Initiate Serial
   Serial.begin(9600);
-  
+  Serial5.begin(9600); //For smart xBee
+
   //Initiate Temp Sensors
   sensor1.begin();
   sensor2.begin();
@@ -189,23 +209,21 @@ void setup() {
   sensor4.begin();
 
   //initialize MS5607
-
-  //should this be in a while loop? (see test example)
-  MS5.connect();
   delay(500);
-
-
+  Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_400);
+  //initialize the baraometer
+  Serial.println("Initilizing Barometer...");
+  myBaro.begin();
+  startAlt=myBaro.getAltitude();
+  Serial.print("Start Alt: " + startAlt);
+  Serial.println("Barometer Initialized. \n");
+  Wire.setRate(I2C_RATE_400);
   
   //Initialize Relays
-  opcRelay.init();
-  opcHeatRelay.init();
-  batHeatRelay.init();
-  sirenRelay.init();
-  
-  opcRelay.closeRelay();
-  opcHeatRelay.closeRelay();
-  batHeatRelay.closeRelay();
-  sirenRelay.closeRelay();
+  opcRelay.init(false);
+  opcHeatRelay.init(false);
+  batHeatRelay.init(false);
+  sirenRelay.init(false);
   delay(1000);
 
   opcRelay.openRelay();
@@ -253,7 +271,7 @@ void setup() {
 
 
   
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI), MS5607 temperature (C), MS5607 pressure (PA)";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI), MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (m), Smart Unit";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 
@@ -263,6 +281,17 @@ void setup() {
   Serial.println("Setup Complete");
 }
 void loop(){
+
+  SmartData=SOCO.Response();
+  if (ChangeData){
+    SmartLog=SmartData;
+    ChangeData=false;
+  }
+
+  SOCO.Cut(1,CutA);
+  SOCO.Cut(2,CutB);
+
+  
   blinkMode();
   Fixblink();
   Ublox.update();

@@ -14,6 +14,7 @@ float temperature = 0;
 unsigned long prevTime = 0;
 float startAlt = 0;
 
+
 void setup() {
   Serial.begin(9600);
   delay(500);

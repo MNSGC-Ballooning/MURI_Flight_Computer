@@ -1,29 +1,19 @@
-
 //Libraries
 //this requires a special modded version of the TinyGPS library because for whatever
 //reason the TinyGPS library does not include a "Fix" variable. the library can be found here:
-//https://github.com/simonpeterson/TinyGPS/tree/master
+//https://github.com/simonpeterson/TinyGPS/tree/master 
 #include <SPI.h>
 #include <SD.h>
-//#include <TinyGPS++.h>
-//#include <TinyGPS.h>
 #include <LatchRelay.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Smart.h>
-#include <Wire.h>                  //I2C required for the temp sensor
-#include <UbloxGPS.h>
+//#include <Wire.h>                  //I2C required for the temp sensor
+#include <UbloxGPS.h>              //Needs TinyGPS++ in order to function
 #include <i2c_t3.h>                //Required for usage of MS5607 
 #include <Arduino.h>               //"Microcontroller stuff" - Garret Ailts 
-#include <Salus_Baro.h>            //Library for MS5607
+#include "Salus_Baro.h"            //Library for MS5607
 #include <SmartController.h>       //Library for smart units using xbees to send commands
-
-String SmartData; //Just holds temporary copy of Smart data
-static String SmartLog; //Log everytime, is just data from smart
-static bool CutA=false; //Set to true to cut A SMART
-static bool CutB=false; //Set to true to cut B SMART
-static bool ChangeData=true; //Just set true after every data log
-static bool tempA=false; //Just flip flops temp requests from A and B (Stupid make better later)
 
 //==============================================================
 //               MURI Flight Computer
@@ -32,7 +22,7 @@ static bool tempA=false; //Just flip flops temp requests from A and B (Stupid ma
 //==============================================================
 
 //Version Description: MURI Flight Computer for double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
-//Switches states through the use of a PID controller
+//Switches states based on ascent rate
 
 // Use: There are three switches to activate the payload fully. Switches should be flipped in order from right to left. Switch one powers the motherboard, switch two
 //powers the microcontroller, and switch three initializes the recovery siren (does not turn it on, this is done by the microcontroller in the recovery state).
@@ -51,25 +41,34 @@ static bool tempA=false; //Just flip flops temp requests from A and B (Stupid ma
 //=============================================================================================================================================
 //=============================================================================================================================================
 
-/*  Mega ADK pin connections:
-     -------------------------------------------------------------------------------------------------------------------------
-     Component                    | Pins used             | Notes
+boolean opcActive = false;
 
-     xBee serial                  | D0-1                  | IMPORTANT- is hardware serial (controls xBee and hard serial line), cannot upload with xBee plugged in
-     Fireburner                   | D8                    | High to this pin fires tungsten burner
-     Data LED (BLUE)              | D3                    | "action" LED (Blue), tells us what the payload is doing
-     SD                           | D4, D50-52            | 50-52 do not not have wires but they are used!
-     SD LED (RED)                 | D5                    | "SD" LED (Red). Only on when the file is open in SD card
-     Continutity Check OUTPUT     | D6                    | Outputs a voltatge for the continuity check
-     razorcutter pin              | D7                    | High to this pin spins razor blade
-     GPS serial                   | serial 1              | serial for GPS (pins 18 and 19 on the mega
-     fix                          | D6                    | whether or not we have a GPS fix, must be used with copernicus GPS unit
-     Tempread                     | D9                    | temperature sensor reading
-     Accel I2C                    | SDA,SCL               | I2C communication for accelerometer (pins 20 and 21)
+//=============================================================================================================================================
+//=============================================================================================================================================
+
+/*  Teensy 3.5/3.6 pin connections:
+     ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+     Component                    | Pins used             | Notes
      
-     -------------------------------------------------------------------------------------------------------------------------
+     XBee Radio                   | RX5,TX5 (34,35)       | UART bus 5 (Serial5)
+     Action LED (BLUE)            | 21                    | LED is activated by 
+     Logging LED (RED)            | 23                    | Blinks everytime flight log is opened to log data
+     Onboard SD Reader            | None                  | On board SD card reader uses a dedicated SPI bus
+     Fix LED (GREEN)              | 22                    | "SD" LED (Red). Only on when the file is open in SD card
+     Temperature Sensors (4)      | 29-32                 | DS18B20 temp sensors uses one wire digital communication
+     OPC Power Relay              | 5,6                   | Digital pins that serve as the on and off pins for the opc power relay
+     OPC Heater Relay             | 24,25                 | Digital pins that serve as the on and off pins for opc heater relay
+     Battery Heater Relay         | 7,8                   | Digital pins that serve as the on and off pins for the battery heater relay
+     Ublox GPS                    | RX2,TX2 (9,10)        | UART bus 2 (Serial2)
+     PMS5003 Particle Sensor      | RX1,TX1 (1,2)         | UART bus 1 (Serial1)
+     MS5607                       | SCL0,SDA0 (18,19)     | I2C communication for MS5607
+     
+     ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
+////////////////////////////////////////////////////////
+/////////////////Class Definitions//////////////////////
+////////////////////////////////////////////////////////
 class action {
   protected:
     unsigned long Time;
@@ -89,52 +88,53 @@ class Blink: public action {
     Blink(int on, int off, int times, String NAM, unsigned long tim);
     int getOnTimes();
 };
-class Relay {
-  protected:
-    bool isOpen;
-    int onPin;
-    int offPin;
-  public:
-    Relay(int on, int off);
-    String getRelayStatus();
-    void init();
-    void openRelay();
-    void closeRelay();
-};
-
 
 /////////////////////////////////////////////
-/////////////////Define Pins/////////////////
+///////////////Pin Definitions///////////////
 /////////////////////////////////////////////
-#define ledPin 21          //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
-#define ledSD 23           //Pin which controls the SD LED
-#define fix_led 22         //led  which blinks for fix
-#define ONE_WIRE_BUS 29   //Internal Temp
-#define TWO_WIRE_BUS 30   //External Temp
-#define THREE_WIRE_BUS 31 //Battery Temp
-#define FOUR_WIRE_BUS 32  //OPC Temp
-#define OPC_ON 5         //Relay switches
+#define ledPin 21           //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
+#define ledSD 23            //Pin which controls the SD LED
+#define fix_led 22          //led  which blinks for fix
+#define ONE_WIRE_BUS 29     //Internal Temp
+#define TWO_WIRE_BUS 30     //External Temp
+#define THREE_WIRE_BUS 31   //Battery Temp
+#define FOUR_WIRE_BUS 32    //OPC Temp
+#define OPC_ON 5            //Relay switches
 #define OPC_OFF 6
 #define OPC_HEATER_ON 24
 #define OPC_HEATER_OFF 25
 #define BAT_HEATER_ON 7
 #define BAT_HEATER_OFF 8
-#define SIREN_ON 32
-#define SIREN_OFF 33
-#define TIMER_RATE (1000) // Check the timer every 1 millisecond
-#define Baro_Rate (TIMER_RATE / 200) //Process MS5607 data at 100Hz
+#define XBEE_SERIAL Serial5
+#define UBLOX_SERIAL Serial2
+#define PMS5003_SERIAL Serial
+//#define SIREN_ON 32
+//#define SIREN_OFF 33
+
+//////////////////////////////////////////////
+/////////////////Constants////////////////////
+//////////////////////////////////////////////
+#define MAIN_LOOP_TIME 1000          // Main loop runs at 1 Hz
+#define CONTROL_LOOP_TIME 100        // Control loop runs at 10 Hz
+#define TIMER_RATE (1000) 
+#define Baro_Rate (TIMER_RATE / 200)  // Process MS5607 data at 100Hz
 #define C2K 273.15 
 
-///////////////Defines/////////////////////////
+//////////////On Baord SD Chipselect/////////////
 const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
+
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
 ///////////////////////////////////////////////
 LatchRelay opcRelay(OPC_ON, OPC_OFF);
 LatchRelay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
 LatchRelay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
-LatchRelay sirenRelay(SIREN_ON, SIREN_OFF);
+//LatchRelay sirenRelay(SIREN_ON, SIREN_OFF);
 boolean  opcON = false;
+String opcRelay_Status = "";
+String opcHeat_Status = "";
+String batHeat_Status = "";
+
 //////////////////////////////////////////
 //////////////Communication///////////////
 //////////////////////////////////////////
@@ -165,7 +165,7 @@ float t3;
 float t4;
 
 //GPS
-UbloxGPS Ublox(&Serial2);
+UbloxGPS GPS(&UBLOX_SERIAL);
 boolean fixU = false;
 
 //MS5607 pressure and temperature sensor
@@ -177,8 +177,16 @@ unsigned long prevTime = 0;
 float startAlt = 0;
 
 ///////////////////////////////////////////
-//////////////Control System///////////////
+/////////////////Control///////////////////
 ///////////////////////////////////////////
+// SMART
+String SmartData; //Just holds temporary copy of Smart data
+static String SmartLog; //Log everytime, is just data from smart
+static bool CutA=false; //Set to true to cut A SMART
+static bool CutB=false; //Set to true to cut B SMART
+static bool ChangeData=true; //Just set true after every data log
+static bool tempA=false; //Just flip flops temp requests from A and B (Stupid make better later)
+SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0); //Smart controller
 
 //Heating
 float t_low = 283;
@@ -194,106 +202,60 @@ File Flog;
 String data;
 String Fname = "";
 boolean SDcard = true;
-  
-SmartController SOCO = SmartController(2,Serial5,200.0); //Smart controller
 
 void setup() {
-  //Initiate Serial
-  Serial.begin(9600);
-  Serial5.begin(9600); //For smart xBee
 
-  //Initiate Temp Sensors
+  // initialize LEDs
+  pinMode(ledPin, OUTPUT);
+  pinMode(ledSD, OUTPUT);
+  pinMode(fix_led, OUTPUT);
+  
+  //Initialize Serial
+  Serial.begin(9600); //USB Serial for debugging
+  
+  //Initialize Radio
+  XBEE_SERIAL.begin(9600); //For smart xBee
+
+  //Initialize GPS
+  initGPS();
+  
+  //Initialize Temp Sensors
   sensor1.begin();
   sensor2.begin();
   sensor3.begin();
   sensor4.begin();
 
-  //initialize MS5607
-  delay(500);
-  Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_400);
-  //initialize the baraometer
-  Serial.println("Initilizing Barometer...");
-  myBaro.begin();
-  startAlt=myBaro.getAltitude();
-  Serial.print("Start Alt: " + startAlt);
-  Serial.println("Barometer Initialized. \n");
-  Wire.setRate(I2C_RATE_400);
-  
+  //Initialize Pressure Altimeter
+  initMS5607();
+
   //Initialize Relays
-  opcRelay.init(false);
-  opcHeatRelay.init(false);
-  batHeatRelay.init(false);
-  sirenRelay.init(false);
-  delay(1000);
-
-  opcRelay.openRelay();
+  initRelays();
   
-  // initialize pins
-  pinMode(ledPin, OUTPUT);
-  pinMode(ledSD, OUTPUT);
-  pinMode(chipSelect, OUTPUT);    // this needs to be be declared as output for data logging to work
-  pinMode(fix_led, OUTPUT);
-  
-  //initiate GPS
-  Serial2.begin(UBLOX_BAUD);
-  Ublox.init();
-  //Initiate GPS Data lines
-  Serial.println("GPS begin");
-  delay(50);
-  if(Ublox.setAirborne()){
-    Serial.println("Airbrone mode set!");
-  }
-
-  //GPS setup and config
-  Serial.println("GPS configured");
-
-  //initialize SD card
-  while (!SD.begin(chipSelect)) {//power LED will blink if no card is inserted
-    Serial.println("No SD");
-    digitalWrite(ledSD, HIGH);
-    delay(500);
-    digitalWrite(ledSD, LOW);
-    delay(500);
-    SDcard = false;
-  }
-  SDcard = true;
-
-  //Same but for Flight Log
-  for (int i = 0; i < 100; i++) {
-    Fname = String("FLog" + String(i / 10) + String(i % 10) + ".csv");
-    if (!SD.exists(Fname.c_str())) {
-      openFlightlog();
-      break;
-    }
-  }
-  
-  Serial.println("Flight log created: " + Fname);
-
-
-  
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI), MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (m), Smart Unit";
-  Flog.println(FHeader);//set up Flight log format
-  Serial.println("Flight log header added");
-
-  closeFlightlog();
-
-
   Serial.println("Setup Complete");
 }
 void loop(){
+  static unsigned long controlCounter = 0;
+  static unsigned long mainCounter = 0;
 
-  SmartData=SOCO.Response();
-  if (ChangeData){
-    SmartLog=SmartData;
-    ChangeData=false;
+  // Main Thread
+  if (millis()-mainCounter>=MAIN_LOOP_TIME){
+    mainCounter = millis();
+    blinkMode();
+    Fixblink();
+    GPS.update();
+    updateSensors();   //Updates and logs all sensor data
+    actHeat();
   }
-
-  SOCO.Cut(1,CutA);
-  SOCO.Cut(2,CutB);
-
   
-  blinkMode();
-  Fixblink();
-  Ublox.update();
-  updateSensors();   //Updates and logs all sensor data
+  // Control Thread
+  if (millis()-controlCounter>=CONTROL_LOOP_TIME){
+    SmartData=SOCO.Response();
+    if (ChangeData){
+      SmartLog=SmartData;
+      ChangeData=false;
+    }
+    SOCO.Cut(1,CutA);
+    SOCO.Cut(2,CutB);
+    //stateMachine();
+  } 
 }

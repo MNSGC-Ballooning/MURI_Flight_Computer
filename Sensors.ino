@@ -78,6 +78,7 @@ void updateSensors() {
     ChangeData=true; //Telling SmartController that we have logged the data
 
     Serial.println(data);
+    logBlink();
     Flog.println(data);
     closeFlightlog();
   }

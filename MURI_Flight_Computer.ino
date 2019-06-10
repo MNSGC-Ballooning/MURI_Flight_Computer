@@ -8,7 +8,6 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Smart.h>
-//#include <Wire.h>                  //I2C required for the temp sensor
 #include <UbloxGPS.h>              //Needs TinyGPS++ in order to function
 #include <i2c_t3.h>                //Required for usage of MS5607 
 #include <Arduino.h>               //"Microcontroller stuff" - Garret Ailts 
@@ -240,8 +239,8 @@ void loop(){
   // Main Thread
   if (millis()-mainCounter>=MAIN_LOOP_TIME){
     mainCounter = millis();
-    blinkMode();
-    Fixblink();
+    actionBlink();
+    fixBlink();
     GPS.update();
     updateSensors();   //Updates and logs all sensor data
     actHeat();

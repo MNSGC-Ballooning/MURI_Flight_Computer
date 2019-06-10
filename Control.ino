@@ -22,11 +22,11 @@ bool CheckEstimate()
 // determine the altitude from Pressure and Temperature using Hypsometric formula
 float Pressure_Alt_Calc(float Pressure, float Temperature)
 {
-  float R = 287; // gas constant (J/kg*K)
-  float P0 = 101325; // atmospheric pressure at sea level (Pa)
+  float R = 287; // gas constant (J/kg*K) * Should be a pre compiler directive
+  float P0 = 101325; // atmospheric pressure at sea level (Pa) *These should be defined as pre compiler directives since they are constants
 
-  float Pressure_Alt_SI = (R*Temperature/9.81)*log(P0/pressure); // returns altitude based on P and T in meters.
-  float Pressure_Alt = Pressure_Alt_SI*3.28084; // converts m to ft
+  float Pressure_Alt_SI = (R*Temperature/9.81)*log(P0/pressure); // returns altitude based on P and T in meters. * No random numbers. Gravitational constant should be a pre compiler directive
+  float Pressure_Alt = Pressure_Alt_SI*3.28084; // converts m to ft * No random numbers, use precompiler directives. The name of the macro should reflect the constant and be in all caps
 
   return Pressure_Alt;
 }

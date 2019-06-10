@@ -1,4 +1,4 @@
-//PID controller that looks at the derivative of altitude and the current altitude state
+//Controller that looks at the derivative of altitude and the current altitude state
 #define STATE_MURI_INIT 0x00            //0000 0000
 #define STATE_MURI_ASCENT 0x01          //0000 0001
 #define STATE_MURI_FAST_DESCENT 0x02    //0000 0010
@@ -71,11 +71,11 @@ void stateMachine()
   // determine the best altitude to use based on lock or no lock)
   if(GPSstatus == Lock)
   {
-    alt_feet = GPS.altitude.feet(); // Fix this, we should be calculating both at every time step so we have past values to get ascent rate in case we loose fix on the next time step.
-  }                                 // We will also need both when we start doing sensor fusion
+    alt_feet = GPS.altitude.feet(); // *Fix this, we should be calculating both at every time step so we have past values to get ascent rate in case we loose fix on the next time step.
+  }                                 // *We will also need both when we start doing sensor fusion
   else if(GPSstatus == NoLock)
   {
-    alt_feet = Pressure_Alt_Calc(*******pres,******temp); // not sure what the pressure and temp variables are called
+    alt_feet = Pressure_Alt_Calc(*******pres,******temp); // not sure what the pressure and temp variables are called * Called t2
   }
   
   stateSwitch();                                //Controller that changes State based on derivative of altitude
@@ -116,7 +116,7 @@ void stateMachine()
       Serial.println("STATE_MURI_INIT"); // records current state
       if(hDOT.getRate()>250 && hDOT.getRate()<1500)
       {
-        hDOT.addHit(); // not sure what a hit is... pretty sure it has something to do with finding average ascent rate maybe? Adds likely hits to average ascent calculation
+        hDOT.addHit(); // not sure what a hit is... pretty sure it has something to do with finding average ascent rate maybe? Adds likely hits to average ascent calculation. 
       }
       else
       {

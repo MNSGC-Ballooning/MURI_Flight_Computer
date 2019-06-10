@@ -64,8 +64,15 @@ void initRelays(){
   batHeatRelay.init(false);
   //sirenRelay.init(false);
   delay(100);
-  opcRelay.setState(true);
-  opcRelay_Status = "ON";
+  if (opcActive){
+    opcRelay.setState(true);
+    opcRelay_Status = "ON";
+  }
+  else{
+    opcRelay.setState(false);
+    opcRelay_Status = "OFF";
+  }
+  
   opcHeat_Status = "OFF";
   batHeat_Status = "OFF";
 }

@@ -1,20 +1,23 @@
 //Controller that looks at the derivative of altitude and the current altitude state
-#define STATE_MURI_INIT 0x00            //0000 0000
-#define STATE_MURI_ASCENT 0x01          //0000 0001
-#define STATE_MURI_FAST_DESCENT 0x02    //0000 0010
-#define STATE_MURI_SLOW_DESCENT 0x04    //0000 0100
-#define STATE_MURI_SLOW_ASCENT 0x08     //0000 1000
-#define STATE_MURI_CAST_AWAY 0x10       //0001 0000
-#define STATE_MURI_RECOVERY 0x20        //0010 0000
+#define STATE_MURI_INIT           0x00    //0000 0000
+#define STATE_MURI_ASCENT         0x01    //0000 0001
+#define STATE_MURI_FAST_DESCENT   0x02    //0000 0010
+#define STATE_MURI_SLOW_DESCENT   0x04    //0000 0100
+#define STATE_MURI_SLOW_ASCENT    0x08    //0000 1000
+#define STATE_MURI_CAST_AWAY      0x10    //0001 0000
+#define STATE_MURI_RECOVERY       0x20    //0010 0000
 
-#define Lock 0xAA;
-#define NoLock 0xBB;
+#define Lock    0xAA   //10101010
+#define NoLock  0xBB   //10111011
 
 uint8_t muriState;
 uint8_t GPSstatus = NoLock;
+float ascent_rate = 0;     // ascent rate of payload in feet per minute
+boolean hdotInit = false; 
+float alt_feet = 0;              // final altitude used between alt_GPS and alt_pressure depending on if we have a GPS lock
 
-void stateMachine()
-{
+
+void stateMachine(){
   static unsigned long castAway = 0;
   static byte initCounter = 0;
   static byte skyCheck = 0;
@@ -25,21 +28,15 @@ void stateMachine()
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-  static unsigned long prevTimes = 0;
-
 
   //keep these variables as static? 
-  static float alt_feet = 0;              // final altitude used between alt_GPS and alt_pressure depending on if we have a GPS lock
   static float alt_GPS = 0;               // altitude calculated by the GPS in feet
   static float alt_pressure = 0;          // altitude calculated by the pressure sensor in feet
   static float alt_pressure_library = 0;  // altitiude calculated by the pressure sensor library
   static float prev_alt_feet = 0;         // previous calculated altitude
   static float prev_time = 0;             // previous calculated time (in seconds)
   static float prev_time_millis = 0;      // previous calculated time (in milliseconds)
-  static float ascent_rate = 0;           // ascent rate of payload in feet per minute
   static int i; // counter for getting GPS Lock
-  static float alt_pressure;
-  static float alt_GPS;
 
   
   if(!init)
@@ -51,14 +48,11 @@ void stateMachine()
   }
   if(millis() >= masterTimer) // if mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
   {
-    smartOne.release();
-    smartTwo.release();
+    CutA=true;
+    CutB=true;
     muriState = STATE_MURI_RECOVERY;
     stateString = "RECOVERY";
   }
-  blinkMode();                          //Controls Data LED that shows payload state
-  Fixblink();                           //Controls LED that gives GPS fix information
-  //opcControl();                       //Turns on OPC at the start of the desired altitude range
   if(muriState!=STATE_MURI_FAST_DESCENT || !recovery)
   {
    actHeat(); 
@@ -76,21 +70,21 @@ void stateMachine()
   }
   if(FixStatus == NoFix)
   {
-    GPSstatus = Nolock;
+    GPSstatus = NoLock;
     i = 0;
   }
 
-  alt_GPS = Ublox.getAlt_feet();                                // altitude calulated by the Ublox GPS
-  alt_pressure_library = mybaro.getaltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
-  alt_pressure = Pressure_Alt_Calc(kpa*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
+  alt_GPS = GPS.getAlt_feet();                                // altitude calulated by the Ublox GPS
+  alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
+  alt_pressure = Pressure_Alt_Calc(pressure*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
 
 
   // determine the best altitude to use based on lock or no lock
   if(GPSstatus == Lock)
   {
     alt_feet = alt_GPS;                                                         // altitude equals the alitude recorded by the Ublox
-    ascent_rate = ((alt_feet - prev_alt_feet)/(getLastGPS() - prev_time)) * 60; // calculates ascent rate in ft/min if GPS has a lock
-    prev_time = getLastGPS();                                                   // prev_time will equal the current time for the next loop
+    ascent_rate = ((alt_feet - prev_alt_feet)/(getGPStime() - prev_time)) * 60; // calculates ascent rate in ft/min if GPS has a lock
+    prev_time = getGPStime();                                                   // prev_time will equal the current time for the next loop
     prev_time_millis = millis();                                                // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
     prev_alt_feet = alt_feet;                                                   // same idea for prev_time but applied to prev_alt_feet
   }                                 
@@ -113,20 +107,41 @@ void stateMachine()
   
   stateSwitch();                                //Controller that changes State based on derivative of altitude
   
-///////////Finite State Machine///////////////
-//Serial.println("GLGPS: " + String(getLastGPS()));
-//Serial.println("Prev time: " + String(prevTimes));
-  if(alt_feet!=0 && millis()-prevTimes > 1000 && alt_feet!=prev_alt_feet) 
-  {
-    if(GPS.Fix && float(GPS.location.lng()) > termination_longitude && GPS.location.lng() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix)
+////////////////////////Finite State Machine/////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+  if(alt_feet!=0 && alt_feet!=prev_alt_feet){
+    if(FixStatus && float(GPS.getLon()) > float_longitude && GPS.getLon() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix) * Add termination longitude check
+    {
+      float_longitude_check++; // and 1 to # of times outside mission area
+      Serial.println("Float Longitude check: " + String(termination_longitude_check));
+      if (float_longitude_check>5)
+      {
+        // stateSwtich function takes care of that since we falling fast.
+        CutA=true;
+        smartOneString = "RELEASED";
+        float_longitude_check = 0;
+      }
+    }
+    else
+    {
+      // if longitude is still in acceptable range, then reset check
+      float_longitude_check = 0;
+    }
+
+    Serial.println("Ascent Rate: " + String(ascent_rate));
+
+    
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+    if(FixStatus && float(GPS.getLon()) > termination_longitude && GPS.getLon() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix) * Add termination longitude check
     {
       termination_longitude_check++; // and 1 to # of times outside mission area
       Serial.println("Termination Longitude check: " + String(termination_longitude_check));
       if (termination_longitude_check>5)
       {
         // stateSwtich function takes care of that since we falling fast.
-        smartOne.release();
-        smartTwo.release();
+        CutA=true;
+        CutB=true;
         smartOneString = "RELEASED";
         smartTwoString = "RELEASED";
         termination_longitude_check = 0;
@@ -137,12 +152,8 @@ void stateMachine()
       // if longitude is still in acceptable range, then reset check
       termination_longitude_check = 0;
     }
-    
-    prevTimes=millis(); // set time
 
-    Serial.println("Ascent Rate: " + String(ascent_rate);
-
-
+    Serial.println("Ascent Rate: " + String(ascent_rate));
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////    
     if(muriState == STATE_MURI_INIT && !hdotInit) // its a boolean checking to see if we initialized
@@ -164,7 +175,7 @@ void stateMachine()
 
     switch(muriState)
     {
-      case 0x01 // Ascent
+      case 0x01: // Ascent
         Serial.println("STATE_MURI_ASCENT");
         if(alt_feet>maxAlt && alt_feet!=0)// checks to see if payload has hit the max mission alt
         {
@@ -173,28 +184,28 @@ void stateMachine()
           if(skyCheck>5)
           {
             // if the payload is consistenly above max mission alt. , the first balloon is released
-            smartOne.release();
+            CutA=true;
             smartOneString = "RELEASED";
             skyCheck = 0;
           }
         }
         break;
       ////////////////////////////////////////////////////////////////////////////////////////////////
-      case 0x02 // Fast Descent
+      case 0x02: // Fast Descent
         Serial.println("STATE_MURI_FAST_DESCENT");
         if(!fast)
         {
-          smartTwo.release();
+          CutB=true;
           smartTwoString = "RELEASED";
-          smartOne.release();
+          CutA=true;
           smartOneString = "RELEASED";
-          opcHeatRelay.closeRelay();
-          batHeatRelay.closeRelay();
+          opcHeatRelay.setState(false);
+          batHeatRelay.setState(false);
           fast=true;
         }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
-      case 0x04 // Slow Descent
+      case 0x04: // Slow Descent
         Serial.println("STATE_MURI_SLOW_DESCENT");
         if(alt_feet<minAlt && alt_feet!=0) // checks to see if it is below data collection range...
         {
@@ -203,9 +214,9 @@ void stateMachine()
           if(floorCheck>5)
           {
             // if consistently below data collection range then release all balloons again just in case
-            smartTwo.release();
+            CutB=true;
             smartTwoString = "RELEASED";
-            smartOne.release();
+            CutA=true;
             smartOneString = "RELEASED";
             floorCheck = 0;
           }
@@ -216,27 +227,27 @@ void stateMachine()
         }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
-      case 0x08 // Slow Ascent
+      case 0x08: // Slow Ascent
         Serial.println("STATE_MURI_SLOW_ASCENT");
         snail++;
         if(snail>10)
         {
           if(alt_feet<30000)
           {
-            smartTwo.release();
+            CutB=true;
           }
           else if(alt_feet>=30000)
           {
-            smartOne.release();
+            CutA=true;
             smartOneString = "RELEASED";
-            smartTwo.release();
+            CutB=true;
             smartTwoString = "RELEASED";
           }
           snail = 0;
          }
          break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
-      case 0x10 // Cast Away
+      case 0x10: // Cast Away
         Serial.println("STATE_MURI_CAST_AWAY");
         if(!cast)
         {
@@ -245,17 +256,16 @@ void stateMachine()
         }
         if(millis()-castAway >= 600000)
         {
-          smartOne.release();
-          smartTwo.release();
+          CutA=true;
+          CutB=true;
         }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
-      case 0x20 // Recovery
+      case 0x20: // Recovery
         Serial.println("STATE_MURI_RECOVERY");
         if(!recovery)
         {
-          sirenRelay.openRelay();
-          opcRelay.closeRelay();
+          opcRelay.setState(false);
           recovery = true;
         }
         break;
@@ -264,67 +274,40 @@ void stateMachine()
 }
 
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
-
-
-
-
-void stateSwitch()
-{
+void stateSwitch(){
   static byte wilson = 0; // counter for castaway
-  if(hdotInit && alt_feet!=0 && !recovery) // if it has been initialized, it is above sea level, and it is not in recovery
-  {
-    if(ascent_rate!=0)
-    {
-      tickTock.updateTimer(hDOT.geth_dot());
-    }
-    tickTock.hammerTime();
-    if(ascent_rate>=5000 || ascent_rate<=-5000)
-    {
+  if(hdotInit && alt_feet!=0 && !recovery){ // if it has been initialized, it is above sea level, and it is not in recovery
+    if(ascent_rate>=5000 || ascent_rate<=-5000){
       Serial.println("GPS Jump Detected");
     }
-    else if(ascent_rate > 250)
-    {
+    else if(ascent_rate > 250){
       muriState = STATE_MURI_ASCENT;
       stateString = "ASCENT";
     }
-    else if(ascent_rate>50 && ascent_rate<=250)
-    {
+    else if(ascent_rate>50 && ascent_rate<=250){
       muriState = STATE_MURI_SLOW_ASCENT;
       stateString = "SLOW ASCENT";
     }
-    else if(ascent_rate >= -1500 && ascent_rate < -50)
-    {
-      static bool first = false;
+    else if(ascent_rate >= -1500 && ascent_rate < -50){
       muriState = STATE_MURI_SLOW_DESCENT;
       stateString = "SLOW DESCENT";
-      if(!first)
-      {
-        smarty = &smartTwo; // what does this do? Sets a pointer pointing to a given SMART unit on an active timer to be releases
-        if(alt_feet<minAlt) // determine minimum altitude
-        {
-          minAlt=alt_feet-10000;
-        }
-        first = true;
+      if(alt_feet<minAlt){ // determine minimum altitude
+        minAlt=alt_feet-10000;
       }
     }
-
-    else if(ascent_rate<=-2000 && alt_feet>7000)
-    {
+    else if(ascent_rate<=-2000 && alt_feet>7000){
       muriState = STATE_MURI_FAST_DESCENT;
       stateString = "FAST DESCENT";
     }
-    else if(ascent_rate=-50 && ascent_rate<=50)
-    {
+    else if(ascent_rate>=-50 && ascent_rate<=50){
       wilson++;
-      if(wilson>100)
-      {
+      if(wilson>100){
         muriState = STATE_MURI_CAST_AWAY;
         stateString = "CAST AWAY";
         wilson=0;
       }
     }
-    else if(muriState == STATE_MURI_FAST_DESCENT && alt_feet<7000)
-    {
+    else if(muriState == STATE_MURI_FAST_DESCENT && alt_feet<7000){
       muriState = STATE_MURI_RECOVERY;
       stateString = "RECOVERY";
     } 

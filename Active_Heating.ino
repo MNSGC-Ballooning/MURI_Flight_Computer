@@ -1,6 +1,4 @@
 void actHeat(){
-//  const char ON[] = "OPEN";
-//  const char OFF[] = "CLOSED";
   // Compare digital temp. to critical temp.:  
   if(150 < t3 < t_low) {
     coldBattery = true; // if temperature is below low critical temperature

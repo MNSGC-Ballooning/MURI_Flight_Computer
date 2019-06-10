@@ -7,7 +7,6 @@
 #include <LatchRelay.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <Smart.h>
 #include <UbloxGPS.h>              //Needs TinyGPS++ in order to function
 #include <i2c_t3.h>                //Required for usage of MS5607 
 #include <Arduino.h>               //"Microcontroller stuff" - Garret Ailts 
@@ -22,7 +21,7 @@
 
 //Version Description: MURI Flight Computer for double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
 //Switches states based on ascent rate
-
+//
 // Use: There are three switches to activate the payload fully. Switches should be flipped in order from right to left. Switch one powers the motherboard, switch two
 //powers the microcontroller, and switch three initializes the recovery siren (does not turn it on, this is done by the microcontroller in the recovery state).
 //
@@ -40,7 +39,14 @@
 //=============================================================================================================================================
 //=============================================================================================================================================
 
-boolean opcActive = false;
+//In seconds
+long maxAlt = 120000; //Default max cutdown altitude in feet! Changeable via xBee
+long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
+long Release_Timer = 21000; //Starting value for active timer that terminates flight when the timer runs out!
+long Master_Timer =  36000; //Master cut timer 
+float termination_longitude = -92.0; //longitude at which all flight systems are terminated
+float float_longitude = -92.5; //longitude at which the balloon begins to float
+boolean opcActive = true;
 
 //=============================================================================================================================================
 //=============================================================================================================================================
@@ -64,29 +70,6 @@ boolean opcActive = false;
      
      ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
-
-////////////////////////////////////////////////////////
-/////////////////Class Definitions//////////////////////
-////////////////////////////////////////////////////////
-class action {
-  protected:
-    unsigned long Time;
-    String nam;
-  public:
-    String getName();
-};
-class Blink: public action {
-  protected:
-    int ondelay;
-    int offdelay;
-    int ontimes;
-  public:
-    friend void blinkMode();
-    void BLINK();
-    Blink();
-    Blink(int on, int off, int times, String NAM, unsigned long tim);
-    int getOnTimes();
-};
 
 /////////////////////////////////////////////
 ///////////////Pin Definitions///////////////
@@ -114,10 +97,11 @@ class Blink: public action {
 /////////////////Constants////////////////////
 //////////////////////////////////////////////
 #define MAIN_LOOP_TIME 1000          // Main loop runs at 1 Hz
-#define CONTROL_LOOP_TIME 100        // Control loop runs at 10 Hz
+#define CONTROL_LOOP_TIME 2000        // Control loop runs at 0.5 Hz
 #define TIMER_RATE (1000) 
 #define Baro_Rate (TIMER_RATE / 200)  // Process MS5607 data at 100Hz
 #define C2K 273.15 
+
 
 //////////////On Baord SD Chipselect/////////////
 const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
@@ -134,21 +118,9 @@ String opcRelay_Status = "";
 String opcHeat_Status = "";
 String batHeat_Status = "";
 
-//////////////////////////////////////////
-//////////////Communication///////////////
-//////////////////////////////////////////
-boolean LEDon = false;
-//variables for LED fix blinking time
-#define FixDelay 1000
-#define noFixDelay 15000
-Blink recoveryBlink = Blink(200, 2000, -1, "recoveryBlink", 0);
-Blink countdownBlink = Blink(200, 850, -1, "countdownBlink", 0);
-Blink* currentBlink = &countdownBlink;
-
 /////////////////////////////////////////////
 /////////////Sensor Variables////////////////
 /////////////////////////////////////////////
-
 //Dallas Digital Temp Sensors
 OneWire oneWire1(ONE_WIRE_BUS);
 OneWire oneWire2(TWO_WIRE_BUS);
@@ -186,6 +158,13 @@ static bool CutB=false; //Set to true to cut B SMART
 static bool ChangeData=true; //Just set true after every data log
 static bool tempA=false; //Just flip flops temp requests from A and B (Stupid make better later)
 SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0); //Smart controller
+String smartOneString = "Primed";
+String smartTwoString = "Primed";
+
+//Timers
+unsigned long releaseTimer = Release_Timer * 1000;
+unsigned long masterTimer = Master_Timer * 1000;
+boolean recovery = false;
 
 //Heating
 float t_low = 283;
@@ -202,6 +181,9 @@ String data;
 String Fname = "";
 boolean SDcard = true;
 
+//////////////////////////////////////////////
+/////////Initialize Flight Computer///////////
+//////////////////////////////////////////////
 void setup() {
 
   // initialize LEDs
@@ -255,6 +237,7 @@ void loop(){
     }
     SOCO.Cut(1,CutA);
     SOCO.Cut(2,CutB);
-    //stateMachine();
+    MeasurementCheck();
+    stateMachine();
   } 
 }

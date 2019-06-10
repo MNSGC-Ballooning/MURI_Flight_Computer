@@ -38,6 +38,9 @@ void stateMachine()
   static float prev_time_millis = 0;      // previous calculated time (in milliseconds)
   static float ascent_rate = 0;           // ascent rate of payload in feet per minute
   int i; // counter for getting GPS Lock
+  float alt_pressure;
+  float alt_GPS;
+
   
   if(!init)
   {
@@ -105,10 +108,8 @@ void stateMachine()
     prev_time_millis = millis();
 
     prev_alt_feet = alt_feet;     
+
   }
-
-
-
   
   stateSwitch();                                //Controller that changes State based on derivative of altitude
   
@@ -123,7 +124,7 @@ void stateMachine()
       Serial.println("Termination Longitude check: " + String(termination_longitude_check));
       if (termination_longitude_check>5)
       {
-        // if it is outside mission area for 5 consecutive checks, then balloons are released. Probably should enter recovery state here. stateSwtich funtion takes care of that since we falling fast.
+        // stateSwtich function takes care of that since we falling fast.
         smartOne.release();
         smartTwo.release();
         smartOneString = "RELEASED";
@@ -138,11 +139,13 @@ void stateMachine()
     }
     
     prevTimes=millis(); // set time
+
     Serial.println("Ascent Rate: " + String(ascent_rate);
 
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////    
-    if(muriState == STATE_MURI_INIT && !hdotInit) // checks to see if in initial state. not entirely sure what hdotInit is tho...its a boolean checking to see if we initialized
+    if(muriState == STATE_MURI_INIT && !hdotInit) // its a boolean checking to see if we initialized
     {
       Serial.println("STATE_MURI_INIT"); // records current state
       if(alt_feet>5000)
@@ -156,7 +159,6 @@ void stateMachine()
         }
       } 
     }
-    // overall not sure what the point of this state is. maybe the hits are important but i dont know. it just seems like it isnt doing anything of value
     // You need an initialization state cause the ascent rate during the very beginning of the flight is non-linear and you may not have a GPS fix.
 
 
@@ -302,6 +304,7 @@ void stateSwitch()
         first = true;
       }
     }
+
     else if(ascent_rate<=-2000 && alt_feet>7000)
     {
       muriState = STATE_MURI_FAST_DESCENT;

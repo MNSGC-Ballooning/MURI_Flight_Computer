@@ -4,7 +4,7 @@
 uint8_t FixStatus;
 
 void MeasurementCheck() {
-  if (GPS.fixage < 2000 && CheckEstimate()) {
+  if (Ublox.fixage < 2000 && CheckEstimate()) {
     FixStatus = Fix;
   }
   else {

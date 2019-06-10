@@ -157,7 +157,6 @@ MS5xxx MS5(&Wire);
 float ms_temp = 0;
 float ms_pressure = 0;
 
-//ASCENT_RATE hDOT;
 
 ///////////////////////////////////////////
 //////////////Control System///////////////

@@ -71,27 +71,27 @@ void stateMachine()
   // determine the best altitude to use based on lock or no lock)
   if(GPSstatus == Lock)
   {
-    alt_feet = GPS.altitude.feet();
-  }
+    alt_feet = GPS.altitude.feet(); // Fix this, we should be calculating both at every time step so we have past values to get ascent rate in case we loose fix on the next time step.
+  }                                 // We will also need both when we start doing sensor fusion
   else if(GPSstatus == NoLock)
   {
     alt_feet = Pressure_Alt_Calc(*******pres,******temp); // not sure what the pressure and temp variables are called
   }
   
-  PID();                                //Controller that changes State based on derivative of altitude
+  stateSwitch();                                //Controller that changes State based on derivative of altitude
   
 ///////////Finite State Machine///////////////
 //Serial.println("GLGPS: " + String(getLastGPS()));
 //Serial.println("Prev time: " + String(prevTimes));
   if(alt_feet!=0 && millis()-prevTimes>1000 && alt_feet!=hDOT.getPrevh()) 
   {
-    if(GPS.Fix && float(GPS.location.lng()) > termination_longitude && GPS.location.lng() != 0) // if paload drifts outide of longitude bounds and longitude is not 0 (gps has fix)
+    if(GPS.Fix && float(GPS.location.lng()) > termination_longitude && GPS.location.lng() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix)
     {
       termination_longitude_check++; // and 1 to # of times outside mission area
       Serial.println("Termination Longitude check: " + String(termination_longitude_check));
       if (termination_longitude_check>5)
       {
-        // if it is outside mission area for 5 consecutive checks, then balloons are released. Probably should enter recovery state here
+        // if it is outside mission area for 5 consecutive checks, then balloons are released. Probably should enter recovery state here. stateSwtich funtion takes care of that since we falling fast.
         smartOne.release();
         smartTwo.release();
         smartOneString = "RELEASED";
@@ -111,16 +111,16 @@ void stateMachine()
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////    
-    if(muriState == STATE_MURI_INIT && !hdotInit) // checks to see if in initial state. not entirely sure what hdotInit is tho...
+    if(muriState == STATE_MURI_INIT && !hdotInit) // checks to see if in initial state. not entirely sure what hdotInit is tho...its a boolean checking to see if we initialized
     {
       Serial.println("STATE_MURI_INIT"); // records current state
       if(hDOT.getRate()>250 && hDOT.getRate()<1500)
       {
-        hDOT.addHit(); // not sure what a hit is... pretty sure it has something to do with finding average ascent rate maybe?
+        hDOT.addHit(); // not sure what a hit is... pretty sure it has something to do with finding average ascent rate maybe? Adds likely hits to average ascent calculation
       }
       else
       {
-        hDOT.checkHit(); // not sure what this is either
+        hDOT.checkHit(); // not sure what this is either Checks unlikely hits to see if there true or not. Array is reset if a likely hit for the state appears.
       }
       if(alt_feet>5000)
       {
@@ -134,6 +134,7 @@ void stateMachine()
       } 
     }
     // overall not sure what the point of this state is. maybe the hits are important but i dont know. it just seems like it isnt doing anything of value
+    // You need an initialization state cause the ascent rate during the very beginning of the flight is non-linear and you may not have a GPS fix.
 
 
     switch(muriState)
@@ -401,7 +402,7 @@ void stateMachine()
     }*/ 
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
 
-void PID()
+void stateSwitch()
 {
   static byte wilson = 0; // counter for castaway
   if(hdotInit && alt_feet!=0 && !recovery) // if it has been initialized, it is above sea level, and it is not in recovery
@@ -432,7 +433,7 @@ void PID()
       stateString = "SLOW DESCENT";
       if(!first)
       {
-        smarty = &smartTwo; // what does this do?
+        smarty = &smartTwo; // what does this do? Sets a pointer pointing to a given SMART unit on an active timer to be releases
         if(alt_feet<minAlt) // determine minimum altitude
         {
           minAlt=alt_feet-10000;

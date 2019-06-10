@@ -15,7 +15,7 @@ uint8_t GPSstatus = NoLock;
 
 void stateMachine()
 {
-  unsigned long castAway = 0;
+  static unsigned long castAway = 0;
   static byte initCounter = 0;
   static byte skyCheck = 0;
   static byte float_longitude_check = 0;   //how many times we have exceed the given longitude
@@ -37,9 +37,9 @@ void stateMachine()
   static float prev_time = 0;             // previous calculated time (in seconds)
   static float prev_time_millis = 0;      // previous calculated time (in milliseconds)
   static float ascent_rate = 0;           // ascent rate of payload in feet per minute
-  int i; // counter for getting GPS Lock
-  float alt_pressure;
-  float alt_GPS;
+  static int i; // counter for getting GPS Lock
+  static float alt_pressure;
+  static float alt_GPS;
 
   
   if(!init)
@@ -88,23 +88,23 @@ void stateMachine()
   // determine the best altitude to use based on lock or no lock
   if(GPSstatus == Lock)
   {
-    alt_feet = alt_GPS;     //altitude equals the alitude recorded by the Ublox
-    ascent_rate = ((alt_feet - prev_alt_feet)/(getLastGPS() - prev_time)) * 60; //calculates ascent rate in ft/min if GPS has a lock
-    prev_time = getLastGPS();
-    prev_time_millis = millis();
-    prev_alt_feet = alt_feet;
+    alt_feet = alt_GPS;                                                         // altitude equals the alitude recorded by the Ublox
+    ascent_rate = ((alt_feet - prev_alt_feet)/(getLastGPS() - prev_time)) * 60; // calculates ascent rate in ft/min if GPS has a lock
+    prev_time = getLastGPS();                                                   // prev_time will equal the current time for the next loop
+    prev_time_millis = millis();                                                // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
+    prev_alt_feet = alt_feet;                                                   // same idea for prev_time but applied to prev_alt_feet
   }                                 
   else if(GPSstatus == NoLock)
   {
      if (alt_pressure_library != 0) {  
-       alt_feet = alt_pressure_library;
+       alt_feet = alt_pressure_library;                          // alt_feet calculated by pressure sensor library function if GPS has no lock
      }
      else {
-       alt_feet = alt_pressure;
+       alt_feet = alt_pressure;                                  // alt_feet calculated by Hypsometric forumla if pressure sensor library function doesn't work
      }
 
-    ascent_rate = ((alt_feet - prev_alt_feet)/(millis() - prev_time_millis)) * 60000;
-    prev_time = prev_time + (millis() - prev_time_millis)/1000; 
+    ascent_rate = ((alt_feet - prev_alt_feet)/(millis() - prev_time_millis)) * 60000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
+    prev_time = prev_time + (millis() - prev_time_millis)/1000;                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
     prev_time_millis = millis();
 
     prev_alt_feet = alt_feet;     
@@ -264,6 +264,9 @@ void stateMachine()
 }
 
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
+
+
+
 
 void stateSwitch()
 {

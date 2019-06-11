@@ -194,10 +194,13 @@ void setup() {
   pinMode(ledPin, OUTPUT);
   pinMode(ledSD, OUTPUT);
   pinMode(fix_led, OUTPUT);
-  
+
+  //Initialize SD
+  initSD();
+
   //Initialize Serial
   Serial.begin(9600); //USB Serial for debugging
-  
+
   //Initialize Radio
   XBEE_SERIAL.begin(9600); //For smart xBee
 
@@ -234,7 +237,6 @@ void loop(){
   
   // Control Thread
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){
-    controlCounter = millis();
     SmartData=SOCO.Response();
     if (ChangeData){
       SmartLog=SmartData;

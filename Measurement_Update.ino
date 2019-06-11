@@ -40,23 +40,26 @@ void updateSensors() {
       tempA=false;
     }
 
-    
-    //MS5607 temp and pressure
-    myBaro.baroTask();
-    Serial.println(myBaro.getReferencePressure());
-    pressure = myBaro.getPressure()/10;
-    altitude = myBaro.getAltitude(); //- start
-    temperature = myBaro.getTemperature()+C2K;
+    //Pressure, Temp, and Altitude
 
     t1 = sensor1.getTempCByIndex(0) + 273.15;
     t2 = sensor2.getTempCByIndex(0) + 273.15;
     t3 = sensor3.getTempCByIndex(0) + 273.15;
     t4 = sensor4.getTempCByIndex(0) + 273.15;
 
+    myBaro.baroTask();
+    Serial.println(myBaro.getReferencePressure());
+    pressure = myBaro.getPressure()/10;
+    temperature = myBaro.getTemperature()+C2K;
+
+    alt_GPS = GPS.getAlt_feet();                                // altitude calulated by the Ublox GPS
+    alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
+    alt_pressure = Pressure_Alt_Calc(pressure*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
+
     String data = "";
     openFlightlog();
     data = flightTimeStr()+ "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
-    + String(GPS.getAlt_feet(), 1) + ","
+    + String(alt_GPS, 1) + ","
     + String(GPS.getMonth()) + "/" + String(GPS.getDay()) + "/" + String(GPS.getYear()) + ","
     + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()) + ","
     + String(GPS.getSats()) + ",";
@@ -64,18 +67,19 @@ void updateSensors() {
     //GPS should update once per second, if data is more than 2 seconds old, fix was likely lost
     if(GPS.getFixAge() > 2000){
       data += "No Fix,";
-      fixU == false;
+      //fixU == false;
     }
   else{
       data += "Fix,";
-      fixU == true;
+      //fixU == true;
     }
     
     data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
     data += (batHeat_Status + "," + opcHeat_Status + ",");
     data += (String(temperature)+ ",");
     data += (String(pressure) + ",");
-    data += (String(altitude) + ",");
+    data += (String(alt_pressure_library) + ",");
+    data += (String(alt_pressure) + ",");
     data += (SmartLog + ",");
     ChangeData=true; //Telling SmartController that we have logged the data
 

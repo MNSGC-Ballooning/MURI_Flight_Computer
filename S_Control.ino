@@ -28,11 +28,6 @@ void stateMachine(){
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-
-  //keep these variables as static? 
-  static float alt_GPS = 0;               // altitude calculated by the GPS in feet
-  static float alt_pressure = 0;          // altitude calculated by the pressure sensor in feet
-  static float alt_pressure_library = 0;  // altitiude calculated by the pressure sensor library
   static float prev_alt_feet = 0;         // previous calculated altitude
   static float prev_time = 0;             // previous calculated time (in seconds)
   static float prev_time_millis = 0;      // previous calculated time (in milliseconds)

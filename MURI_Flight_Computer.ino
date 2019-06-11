@@ -137,12 +137,15 @@ float t4;
 
 //GPS
 UbloxGPS GPS(&UBLOX_SERIAL);
-boolean fixU = false;
+//boolean fixU = false;
+float alt_GPS = 0;               // altitude calculated by the GPS in feet
+
+
 
 //MS5607 pressure and temperature sensor
 Salus_Baro myBaro;
 float pressure = 0;
-float altitude = 0;
+float alt_pressure_library = 0;  // altitiude calculated by the pressure sensor library
 float temperature = 0;
 unsigned long prevTime = 0;
 float startAlt = 0;
@@ -160,6 +163,7 @@ static bool tempA=false; //Just flip flops temp requests from A and B (Stupid ma
 SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0); //Smart controller
 String smartOneString = "Primed";
 String smartTwoString = "Primed";
+float alt_pressure = 0;          // altitude calculated by the pressure sensor in feet
 
 //Timers
 unsigned long releaseTimer = Release_Timer * 1000;

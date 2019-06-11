@@ -234,6 +234,7 @@ void loop(){
   
   // Control Thread
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){
+    controlCounter = millis();
     SmartData=SOCO.Response();
     if (ChangeData){
       SmartLog=SmartData;

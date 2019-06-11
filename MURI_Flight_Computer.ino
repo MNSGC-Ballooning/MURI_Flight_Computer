@@ -8,7 +8,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <UbloxGPS.h>              //Needs TinyGPS++ in order to function
-#include <i2c_t3.h>                //Required for usage of MS5607 
+#include <i2c_t3.h>                //Required for usage of MS5607 with Teensy 3.6/3.6
 #include <Arduino.h>               //"Microcontroller stuff" - Garret Ailts 
 #include "Salus_Baro.h"            //Library for MS5607
 #include <SmartController.h>       //Library for smart units using xbees to send commands

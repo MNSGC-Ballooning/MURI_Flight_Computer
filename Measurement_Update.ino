@@ -1,7 +1,9 @@
 //function to handle both retrieval of data from GPS module and sensors, as well as recording it on the SD card
 void updateSensors() {
-  
-
+ static unsigned long prevTime = 0;
+ if(millis()-prevTime>=5000){
+  prevTime = millis();
+ 
   if(opcRelay.getState()==true){
     opcRelay_Status = "ON";
   }
@@ -45,7 +47,6 @@ void updateSensors() {
   t4 = sensor4.getTempCByIndex(0) + 273.15;
 
   myBaro.baroTask();
-  Serial.println(myBaro.getReferencePressure());
   pressure = myBaro.getPressure()/10;
   temperature = myBaro.getTemperature()+C2K;
 
@@ -62,7 +63,7 @@ void updateSensors() {
   + String(GPS.getSats()) + ",";
   
   //GPS should update once per second, if data is more than 2 seconds old, fix was likely lost
-  if(GPS.getFixAge() > 2000){
+  if(GPS.getFixAge() > 4000){
     data += "No Fix,";
     //fixU == false;
   }
@@ -77,12 +78,12 @@ else{
   data += (String(pressure) + ",");
   data += (String(alt_pressure_library) + ",");
   data += (String(alt_pressure) + ",");
-  data += (SmartLog + ",");
+  data += (SmartLog + "," + ascent_rate + ",");
   ChangeData=true; //Telling SmartController that we have logged the data
 
   Serial.println(data);
 
   Flog.println(data);
   closeFlightlog();
-
+ }
 }

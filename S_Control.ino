@@ -12,7 +12,6 @@
 
 uint8_t muriState;
 uint8_t GPSstatus = NoLock;
-float ascent_rate = 0;     // ascent rate of payload in feet per minute
 boolean hdotInit = false; 
 float alt_feet = 0;              // final altitude used between alt_GPS and alt_pressure depending on if we have a GPS lock
 
@@ -40,6 +39,9 @@ void stateMachine(){
     stateString = "INITIALIZATION";
     init=true; // initalize state machine
     Serial.println("Initializing...");
+  }
+  if(millis() >= releaseTimer){
+    CutA = true;
   }
   if(millis() >= masterTimer) // if mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
   {

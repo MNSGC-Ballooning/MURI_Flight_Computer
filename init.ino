@@ -36,7 +36,7 @@ void initSD(){
   
   Serial.println("Flight log created: " + Fname);
 
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Custom Pressure Altitude, Smart Unit,";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Custom Pressure Altitude, Smart Unit, Ascent Rate,";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 

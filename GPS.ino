@@ -8,8 +8,8 @@ uint8_t days = 0;                  //if we're flying overnight (Ryan Bowers thin
 void updateGPS() {
   static bool firstFix = false;
   //Ublox.update();
-  while (Serial1.available() > 0) {
-    GPS.encode(Serial1.read());
+  while (Serial2.available() > 0) {
+    GPS.encode(Serial2.read());
   }
   if (GPS.altitude.isUpdated() || GPS.location.isUpdated()) {
     if (!firstFix && GPS.Fix) {     //gps.fix

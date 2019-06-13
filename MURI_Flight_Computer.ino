@@ -12,6 +12,7 @@
 #include <SparkFun_ADXL345.h>      //accelerometer library
 #include <Smart.h>
 #include <MS5xxx.h> 
+#include <Math.h>
 //#include <UbloxGPS.h>
 
 //==============================================================
@@ -38,11 +39,11 @@
 
 
 //In seconds
-long Release_Timer = 21000; //Starting value for active timer that terminates flight when the timer runs out!
-long Master_Timer =  36000; //Master cut timer 
+long Float_Timer = 8571; //Timer until float start
+long Termination_Timer = 1714; //Timer until float end
+long Master_Timer = 36000; //Master cut timer 
 long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
 long maxAlt = 120000; //Default max cutdown altitude in feet! Changeable via xBee
-int OPC_srate=1400;     //OPC sample rate in milliseconds.
 float termination_longitude = -92.0; //longitude at which all flight systems are terminated
 float float_longitude = -92.5; //longitude at which the balloon begins to float
 
@@ -99,42 +100,6 @@ class Relay {
     void openRelay();
     void closeRelay();
 };
-class ACTIVE_TIMER{
-  protected:
-    Smart* smartUnit;
-    unsigned long duration;
-    unsigned long starT;
-  public:
-    ACTIVE_TIMER(Smart * smart,long d,long s);
-    String getDuration();
-    void hammerTime();
-    void updateTimer(float);
-};
-class ASCENT_RATE{
-  protected:
-    float rate;
-    float h_dot;
-    float prevh;
-    unsigned long prevt;
-    float h_dotArr[5];
-    float hQ[5];
-    unsigned long tQ[5];
-    float h_dotQ[5];
-    float sum;
-  public:
-    ASCENT_RATE();
-    void updateRate();
-    void addHit();
-    void checkHit();
-    float getRate();
-    float geth_dot();
-    float getPrevh();
-    float getPrevt();
-    float getPrevh_dot();
-    String getHDot();
-    
-};
-
 
 /////////////////////////////////////////////
 /////////////////Define Pins/////////////////
@@ -158,14 +123,15 @@ class ASCENT_RATE{
 #define SIREN_ON 32
 #define SIREN_OFF 33
 //#define test 33
+
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
 ///////////////////////////////////////////////
 Relay opcRelay(OPC_ON, OPC_OFF);
 Relay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
 Relay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
-Relay sirenRelay(SIREN_ON, SIREN_OFF);
 boolean  opcON = false;
+
 //////////////////////////////////////////
 //////////////Communication///////////////
 //////////////////////////////////////////
@@ -211,10 +177,6 @@ float pressureV = 0;
 float psi = 0;
 float kpa = 0;
 
-//MS5607 pressure and temperature sensor
-MS5xxx MS5(&Wire);
-float ms_temp = 0;
-float ms_pressure = 0;
 
 
 ///////////////////////////////////////////
@@ -224,16 +186,13 @@ float ms_pressure = 0;
 //2SMART
 Smart smartOne = Smart(smartPin1);
 Smart smartTwo = Smart(smartPin2);
-Smart * smarty = &smartOne;
-ASCENT_RATE hDOT = ASCENT_RATE();
 unsigned long beaconTimer= 0;
 boolean burnerON = false;
-long releaseTimer = Release_Timer * 1000;
+long floatTimer = Float_Timer * 1000;
+long terminationTimer = Termination_Timer * 1000;
 long masterTimer = Master_Timer * 1000;
-long starty = 0;
 boolean recovery = false;
-boolean hdotInit=false;
-ACTIVE_TIMER tickTock = ACTIVE_TIMER(smarty,releaseTimer,starty);
+
 
 //Heating
 float t_low = 283;
@@ -272,12 +231,12 @@ void setup() {
   opcRelay.init();
   opcHeatRelay.init();
   batHeatRelay.init();
-  sirenRelay.init();
+
   
   opcRelay.closeRelay();
   opcHeatRelay.closeRelay();
   batHeatRelay.closeRelay();
-  sirenRelay.closeRelay();
+
   delay(1000);
 
   opcRelay.openRelay();
@@ -296,7 +255,7 @@ void setup() {
   smartTwoString = "CLOSED";
   
   //initiate GPS
-  Serial1.begin(4800);
+  Serial2.begin(4800);
   //Ublox.initialize();
  
 
@@ -310,10 +269,6 @@ void setup() {
   adxl.powerOn();
   adxl.setRangeSetting(16);
   adxl.setSpiBit(0);
-
-  //Initiate MS5607 Pressure and Temperature Sensor
-  MS5.connect();
-  delay(500);
 
   //initialize SD card
   while (!SD.begin(chipSelect)) {//power LED will blink if no card is inserted
@@ -371,12 +326,12 @@ void setup() {
 //      bloxLog.println("Error: Air mode set unsuccessful. Reattempting...");
 //  }
   
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, External Pressure (PSI), MS5607 temperature (C), MS5607 pressure (PA)";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Fix, Accel x, Accel y, Accel z, Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), External Pressure (PSI)";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 
 
-  String eventLogHeader = "Flight Time, State, hdot, Active Timer, OPC Relay, OPC Heater Relay, Battery Heater Relay, Smart 1, Smart 2";
+  String eventLogHeader = "Flight Time, Ascent Rate (ft/min), OPC Relay, OPC Heater Relay, Battery Heater Relay, Smart 1, Smart 2";
   eventLog.println(eventLogHeader);
   Serial.println("Eventlog header added");
 
@@ -389,7 +344,11 @@ void setup() {
 }
 void loop(){
   updateGPS();       //Updates GPS
+  static unsigned long prevTime = 0;
+  if(millis()-prevTime>=1000){
   updateSensors();   //Updates and logs all sensor data
-  stateMachine();    //Finite state machine that makes in flight decsions based on GPS data
-  //writeEvents();     //Writes event to log
+  blinkMode();
+  Fixblink();
+  control();
+  }
 }

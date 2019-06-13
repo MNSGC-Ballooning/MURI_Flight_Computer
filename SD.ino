@@ -57,8 +57,7 @@ void writeEvents() {
   //if(millis()-prevTime>3000){
     prevTime=millis();
     String eventString = "";
-    eventString += flightTimeStr() + "," + stateString + ",";
-    eventString += hDOT.getHDot() + "," + tickTock.getDuration() + ",";
+    eventString += flightTimeStr() + ",";
     eventString += String(opcRelay.getRelayStatus()) + "," + String(opcHeatRelay.getRelayStatus()) + "," + String(batHeatRelay.getRelayStatus()) + ",";
     eventString += smartOneString + "," + smartTwoString;
     
@@ -87,4 +86,3 @@ void GPSaction(String action){
       logAction(action + ", " + flightTimeStr() + "," + String(GPS.location.lat(), 4) + "," + String(GPS.location.lng(), 4) + ", Altitude: " + String(GPS.altitude.feet()) + "ft. NO FIX");
     }
   }
-

@@ -62,9 +62,7 @@ void stateMachine(){
     {
       GPSstatus = Lock;
     }  
-  }
-  if(FixStatus == NoFix)
-  {
+  } else(FixStatus == NoFix){
     GPSstatus = NoLock;
     i = 0;
   }
@@ -106,7 +104,7 @@ void stateMachine(){
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
   if(alt_feet!=0 && alt_feet!=prev_alt_feet){
-    if(FixStatus && float(GPS.getLon()) > float_longitude && GPS.getLon() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix) * Add termination longitude check
+    if(FixStatus==Fix && float(GPS.getLon()) > float_longitude && GPS.getLon() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix) * Add termination longitude check
     {
       float_longitude_check++; // and 1 to # of times outside mission area
       Serial.println("Float Longitude check: " + String(termination_longitude_check));
@@ -128,7 +126,7 @@ void stateMachine(){
 
     
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-    if(FixStatus && float(GPS.getLon()) > termination_longitude && GPS.getLon() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix) * Add termination longitude check
+    if(FixStatus==Fix && float(GPS.getLon()) > termination_longitude && GPS.getLon() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix) * Add termination longitude check
     {
       termination_longitude_check++; // and 1 to # of times outside mission area
       Serial.println("Termination Longitude check: " + String(termination_longitude_check));

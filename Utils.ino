@@ -7,18 +7,20 @@ void actionBlink(){
 
 void fixBlink(){
   static unsigned long prevTime = 0;
-  if (GPS.getFixAge()<2000){
+  if (GPS.getFixAge()<4000){
     if(millis()-prevTime>=15000){
+      prevTime = millis();
       digitalWrite(fix_led,HIGH);
       delay(10);
       digitalWrite(fix_led,LOW);
     }
-    else{
+  }
+  else{
       digitalWrite(fix_led,HIGH);
       delay(10);
       digitalWrite(fix_led,LOW);
-    }
-  } 
+  }
+   
 }
 
 void logBlink(){

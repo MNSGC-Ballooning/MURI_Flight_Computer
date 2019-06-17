@@ -14,7 +14,7 @@ long Pressure_Alt; // altitude in feet based on pressure and temp
 
 // check if gps fix is good
 void MeasurementCheck() {
-  if (GPS.getFixAge() < 2000 && CheckEstimate()) {
+  if (GPS.getFixAge() < 4000 && CheckEstimate()) {
     FixStatus = Fix;
   }
   else {

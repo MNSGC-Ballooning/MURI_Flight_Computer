@@ -8,7 +8,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <UbloxGPS.h>              //Needs TinyGPS++ in order to function
-#include <i2c_t3.h>                //Required for usage of MS5607 
+#include <i2c_t3.h>                //Required for usage of MS5607 with Teensy 3.6/3.6
 #include <Arduino.h>               //"Microcontroller stuff" - Garret Ailts 
 #include "Salus_Baro.h"            //Library for MS5607
 #include <SmartController.h>       //Library for smart units using xbees to send commands
@@ -40,10 +40,10 @@
 //=============================================================================================================================================
 
 //In seconds
-long maxAlt = 120000; //Default max cutdown altitude in feet! Changeable via xBee
+long maxAlt = 100000; //Default max cutdown altitude in feet! Changeable via xBee
 long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
-long Release_Timer = 21000; //Starting value for active timer that terminates flight when the timer runs out!
-long Master_Timer =  36000; //Master cut timer 
+long Release_Timer = 15000; //Starting value for active timer that terminates flight when the timer runs out!
+long Master_Timer =  20000; //Master cut timer 
 float termination_longitude = -92.0; //longitude at which all flight systems are terminated
 float float_longitude = -92.5; //longitude at which the balloon begins to float
 boolean opcActive = true;
@@ -164,6 +164,7 @@ SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0); //Smart controller
 String smartOneString = "Primed";
 String smartTwoString = "Primed";
 float alt_pressure = 0;          // altitude calculated by the pressure sensor in feet
+float ascent_rate = 0;     // ascent rate of payload in feet per minute
 
 //Timers
 unsigned long releaseTimer = Release_Timer * 1000;
@@ -224,13 +225,12 @@ void setup() {
 void loop(){
   static unsigned long controlCounter = 0;
   static unsigned long mainCounter = 0;
-
+   GPS.update();
   // Main Thread
   if (millis()-mainCounter>=MAIN_LOOP_TIME){
     mainCounter = millis();
     actionBlink();
     fixBlink();
-    GPS.update();
     updateSensors();   //Updates and logs all sensor data
     actHeat();
   }

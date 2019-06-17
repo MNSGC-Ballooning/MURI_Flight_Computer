@@ -63,16 +63,7 @@ else{
     //fixU == true;
   }
 
- //Smart Unit temp requests (Moved closer to end to be closer to SOCO response, maybe in future could move request temp right before SOCO response)
 
-  if (!tempA){
-    SOCO.RequestTemp(1);
-    tempA=true;
-  }
-  else {
-    SOCO.RequestTemp(2);
-    tempA=false;
-  }
   
   data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
   data += (batHeat_Status + "," + opcHeat_Status + ",");
@@ -87,5 +78,16 @@ else{
 
   Flog.println(data);
   closeFlightlog();
+  
+//Smart Unit temp requests (Moved closer to end to be closer to SOCO response, maybe in future could move request temp right before SOCO response)
+
+  if (!tempA){
+    SOCO.RequestTemp(1);
+    tempA=true;
+  }
+  else {
+    SOCO.RequestTemp(2);
+    tempA=false;
+  }
  }
 }

@@ -9,10 +9,10 @@
 
 #define Lock    0xAA   //10101010
 #define NoLock  0xBB   //10111011
-
+boolean usingGPS = false;
 uint8_t muriState;
 uint8_t GPSstatus = NoLock;
-float ascent_rate = 0;     // ascent rate of payload in feet per minute
+//float ascent_rate = 0;     // ascent rate of payload in feet per minute
 boolean hdotInit = false; 
 float alt_feet = 0;              // final altitude used between alt_GPS and alt_pressure depending on if we have a GPS lock
 
@@ -62,7 +62,7 @@ void stateMachine(){
     {
       GPSstatus = Lock;
     }  
-  } else(FixStatus == NoFix){
+  } else{
     GPSstatus = NoLock;
     i = 0;
   }
@@ -80,6 +80,7 @@ void stateMachine(){
     prev_time = getGPStime();                                                   // prev_time will equal the current time for the next loop
     prev_time_millis = millis();                                                // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
     prev_alt_feet = alt_feet;                                                   // same idea for prev_time but applied to prev_alt_feet
+    
   }                                 
   else if(GPSstatus == NoLock)
   {

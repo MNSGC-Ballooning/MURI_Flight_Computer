@@ -71,7 +71,7 @@ else{
   data += (String(pressure) + ",");
   data += (String(alt_pressure_library) + ",");
   data += (String(alt_pressure) + ",");
-  data += (SmartLog + "," + ascent_rate + ",");
+  data += (SmartLog + "," + String(ascent_rate) + "," + stateString + ",");
   ChangeData=true; //Telling SmartController that we have logged the data
 
   Serial.println(data);

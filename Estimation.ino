@@ -7,21 +7,28 @@
 #define NoFix      0x01  //0000 0001
 
 //Variables
-uint8_t FixStatus;
+uint8_t FixStatus= NoFix;
 long Pressure_Alt; // altitude in feet based on pressure and temp
 
 ///// Function Declarations /////
 
+
 // check if gps fix is good
 void MeasurementCheck() {
-  if (GPS.getFixAge() < 4000 && CheckEstimate()) {
+  if (GPS.getFixAge() < 4000 && (GPS.getAlt_feet > ((myBaro.getAltitude()*METERS_TO_FEET)-3000)) && (GPS.getAlt_feet < ((myBaro.getAltitude()*METERS_TO_FEET)+3000)) && ((myBaro.getAltitude()*METERS_TO_FEET)>0) ) 
+  {
     FixStatus = Fix;
   }
-  else {
-    FixStatus = NoFix;
+  else if(GPS.getFixAge() < 4000 && (myBaro.getAltitude()*METERS_TO_FEET)<=0)
+  {
+    FixStatus = Fix;
+  }
+  else
+  {
+    FixStatus = NoFix
   }
 }
-
+/*
 bool CheckEstimate(){
 
   Pressure_Alt = Pressure_Alt_Calc(pressure*1000,t2); // not sure where these come from but pressure should be in 'Pa' and temp should be in 'K'
@@ -43,3 +50,4 @@ float Pressure_Alt_Calc(float Pressure, float Temperature){
 
   return Pressure_Alt;
 }
+*/

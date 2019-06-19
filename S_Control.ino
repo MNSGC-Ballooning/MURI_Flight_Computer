@@ -62,40 +62,47 @@ void stateMachine(){
     {
       GPSstatus = Lock;
     }  
-  } else{
+  } 
+  else if(FixStatus == NoFix)
+  {
     GPSstatus = NoLock;
     i = 0;
   }
 
   alt_GPS = GPS.getAlt_feet();                                // altitude calulated by the Ublox GPS
   alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
-  alt_pressure = Pressure_Alt_Calc(pressure*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
+  //alt_pressure = Pressure_Alt_Calc(pressure*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
+  Serial.println("GPS alt = " + String(alt_GPS));
+  Serial.println("Sensor alt = " + String(alt_pressure_library));
 
 
   // determine the best altitude to use based on lock or no lock
   if(GPSstatus == Lock)
   {
     alt_feet = alt_GPS;                                                         // altitude equals the alitude recorded by the Ublox
-    ascent_rate = ((alt_feet - prev_alt_feet)/(getGPStime() - prev_time)) * 60; // calculates ascent rate in ft/min if GPS has a lock
+    ascent_rate = (((alt_feet - prev_alt_feet)/(getGPStime() - prev_time))) * 60; // calculates ascent rate in ft/min if GPS has a lock
+    Serial.println(ascent_rate);
     prev_time = getGPStime();                                                   // prev_time will equal the current time for the next loop
-    prev_time_millis = millis();                                                // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
+    prev_time_millis = prev_time*1000;  // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
     prev_alt_feet = alt_feet;                                                   // same idea for prev_time but applied to prev_alt_feet
+
     
   }                                 
   else if(GPSstatus == NoLock)
   {
-     if (alt_pressure_library != 0) {  
-       alt_feet = alt_pressure_library;                          // alt_feet calculated by pressure sensor library function if GPS has no lock
-     }
-     else {
-       alt_feet = alt_pressure;                                  // alt_feet calculated by Hypsometric forumla if pressure sensor library function doesn't work
-     }
+     //if (alt_pressure_library != 0) {  
+     //  alt_feet = alt_pressure_library;                          // alt_feet calculated by pressure sensor library function if GPS has no lock
+     //}
+     //else {
+     //  alt_feet = alt_pressure;                                  // alt_feet calculated by Hypsometric forumla if pressure sensor library function doesn't work
+     //}
+     alt_feet = alt_pressure_library;
 
-    ascent_rate = ((alt_feet - prev_alt_feet)/(millis() - prev_time_millis)) * 60000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
-    prev_time = prev_time + (millis() - prev_time_millis)/1000;                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
-    prev_time_millis = millis();
-
-    prev_alt_feet = alt_feet;     
+     ascent_rate = (((alt_feet - prev_alt_feet)/(millis() - prev_time_millis))) * 60000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
+     Serial.println(ascent_rate);
+     prev_alt_feet = alt_feet;
+     prev_time = prev_time + (millis() - prev_time_millis)/1000;                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
+     prev_time_millis = prev_time*1000;     
 
   }
   

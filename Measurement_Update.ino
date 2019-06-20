@@ -74,7 +74,7 @@ else{
   data += (SmartLog + "," + String(ascent_rate) + "," + stateString + ",");
   ChangeData=true; //Telling SmartController that we have logged the data
 
-  Serial.println(data);
+  Serial.println(data + ",");
 
   Flog.println(data);
   closeFlightlog();

@@ -237,10 +237,12 @@ void loop(){
   
   // Control Thread
 
-    SmartData=SOCO.Response();
+   // SmartData=SOCO.Response();
     if (ChangeData){
-      SmartLog=SmartData;
+      SmartLog=SOCO.Response();
+      if (SmartLog != ""){
       ChangeData=false;
+      }
     }
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){
     SOCO.Cut(1,CutA);
@@ -248,4 +250,10 @@ void loop(){
     MeasurementCheck();
     stateMachine();
   } 
+  if (millis()>60000){
+    CutA=true;
+  }
+  if (millis()>120000){
+    CutB=true;
+  }
 }

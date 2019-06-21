@@ -76,10 +76,10 @@ void stateMachine(){
 
   // determine the best altitude to use based on lock or no lock
   delay(500);
-  Serial.print("alt feet" + String(alt_feet));
-  Serial.print("current time" + String(millis()));
-  Serial.print("prev alt" + String(prev_alt_feet));
-  Serial.println("prev time" + String(prev_time));
+//  Serial.print("alt feet" + String(alt_feet));
+//  Serial.print("current time" + String(millis()));
+//  Serial.print("prev alt" + String(prev_alt_feet));
+//  Serial.println("prev time" + String(prev_time));
   if(GPSstatus == Lock)
   {
     alt_feet = alt_GPS;                                                         // altitude equals the alitude recorded by the Ublox

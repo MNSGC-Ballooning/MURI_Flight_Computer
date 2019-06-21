@@ -13,6 +13,7 @@
 #include <MS5xxx.h>                //library for MS5607 altimeter, temp, pressure sensor
 #include <Wire.h>                  //I2C required for the temp sensor
 #include <UbloxGPS.h>
+#include <Servo.h>
 
 //==============================================================
 //               MURI Flight Computer
@@ -117,6 +118,9 @@ class Relay {
 #define SIREN_ON 32
 #define SIREN_OFF 33
 //#define test 33
+
+#define SERVO_PIN ?????
+
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
 ///////////////////////////////////////////////
@@ -165,6 +169,11 @@ float ms_temp = 0;
 float ms_pressure = 0;
 
 ///////////////////////////////////////////
+//////////////Smart Control////////////////
+///////////////////////////////////////////
+Servo servo;
+
+///////////////////////////////////////////
 //////////////Control System///////////////
 ///////////////////////////////////////////
 
@@ -185,6 +194,10 @@ boolean SDcard = true;
   
 
 void setup() {
+
+  // Initiate SMART
+  initialize(); // declaration in S_Control
+  
   //Initiate Serial
   Serial.begin(9600);
   
@@ -270,8 +283,9 @@ void setup() {
   Serial.println("Setup Complete");
 }
 void loop(){
+  GPS_Fence();
   blinkMode();
   Fixblink();
   Ublox.update();
   updateSensors();   //Updates and logs all sensor data
-}
+}}

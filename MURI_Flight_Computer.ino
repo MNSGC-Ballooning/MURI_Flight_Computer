@@ -40,8 +40,10 @@
 //=============================================================================================================================================
 
 boolean opcActive = true;
-
-
+float termination_longitude_E = -92.0; //longitude at which all flight systems are terminated
+float termination_longitude_W = -98.0; //longitude at which all flight systems are terminated
+float termination_latitude_S = 43.0; //longitude at which all flight systems are terminated
+float termination_latitude_N = 47.0; //longitude at which all flight systems are terminated
 
 /*  Mega ADK pin connections:
      -------------------------------------------------------------------------------------------------------------------------

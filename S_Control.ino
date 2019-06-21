@@ -16,7 +16,6 @@ uint8_t GPSstatus = NoLock;
 boolean hdotInit = false; 
 float alt_feet = 0;              // final altitude used between alt_GPS and alt_pressure depending on if we have a GPS lock
 
-
 void stateMachine(){
   static unsigned long castAway = 0;
   static byte initCounter = 0;
@@ -28,7 +27,7 @@ void stateMachine(){
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-  static float prev_alt_feet = 0;         // previous calculated altitude
+  //static float prev_alt_feet = 0;         // previous calculated altitude
   static float prev_time = 0;             // previous calculated time (in seconds)
   static float prev_time_millis = 0;      // previous calculated time (in milliseconds)
   static int i; // counter for getting GPS Lock

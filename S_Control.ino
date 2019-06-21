@@ -74,6 +74,15 @@ void GPS_Fence()
     // if longitude is still in acceptable range, then reset check
     terminationW = 0;
   }
+}
 
-
+///// SMART Controller Commands /////
+void release()
+{
+  servo.write(0);
+}
+void initialize()
+{
+  servo.attach(SERVO_PIN);
+  servo.write(170);
 }

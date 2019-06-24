@@ -19,10 +19,10 @@ void MeasurementCheck() {
   {
     FixStatus = Fix;
   }
-  else if(GPS.getFixAge() > 4000 && (myBaro.getAltitude()*METERS_TO_FEET)>0 && (myBaro.getAltitude()*METERS_TO_FEET) > (prev_alt_feet - 6000) && (myBaro.getAltitude()*METERS_TO_FEET) < (prev_alt_feet + 6000))
+  /*else if(GPS.getFixAge() > 4000 && (myBaro.getAltitude()*METERS_TO_FEET)>0 && (myBaro.getAltitude()*METERS_TO_FEET) > (prev_alt_feet - 6000) && (myBaro.getAltitude()*METERS_TO_FEET) < (prev_alt_feet + 6000))
   {
     FixStatus = NoFix;
-  }
+  }*/                     // As we're only determining the fix status and nothing else, the else if statement can be removed (unless we want to determine a "definitive" altitude within these statements also)
   else
   {
     FixStatus = NoFix;
@@ -43,7 +43,7 @@ bool CheckEstimate(){
   }
 }
 */
- //determine the altitude from Pressure and Temperature using Hypsometric formula
+//determine the altitude from Pressure and Temperature using Hypsometric formula
 float Pressure_Alt_Calc(float Pressure, float Temperature){
   float Pressure_Alt_SI = (SPECIFIC_GAS_CONSTANT*Temperature/GRAVITY_ACCEL)*log(SEA_LEVEL_PRESSURE/Pressure); // returns altitude based on P and T in meters.
   float Pressure_Alt = Pressure_Alt_SI*METERS_TO_FEET; // converts m to ft 

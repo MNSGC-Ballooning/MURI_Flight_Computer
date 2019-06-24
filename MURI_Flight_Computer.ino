@@ -150,7 +150,7 @@ float temperature = 0;
 unsigned long prevTime = 0;
 float startAlt = 0;
 
-float prev_alt_feet = 0;         // previous calculated altitude
+float prev_alt_feet = 0;         // previous calculated altitude  **Possibly turn this into an array?*
 
 ///////////////////////////////////////////
 /////////////////Control///////////////////
@@ -222,7 +222,13 @@ void setup() {
   //Initialize Relays
   initRelays();
   
+  for (int i=0; i<5; i++) {   //initialize arrays that are used to get an average ascent/descent rate
+    prev_alt_array[i] = 0;
+    prev_time_array[i] = 0;
+  }
+
   Serial.println("Setup Complete");
+
 }
 void loop(){
   static unsigned long controlCounter = 0;

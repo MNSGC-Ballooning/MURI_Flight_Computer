@@ -13,6 +13,7 @@ boolean usingGPS = false;
 uint8_t muriState;
 uint8_t GPSstatus = NoLock;
 //float ascent_rate = 0;     // ascent rate of payload in feet per minute
+float average_ascent_rate = 0;   // ascent rate averaged over last 5 altitude hits
 boolean hdotInit = false; 
 float alt_feet = 0;              // final altitude used between alt_GPS and alt_pressure depending on if we have a GPS lock
 
@@ -27,10 +28,13 @@ void stateMachine(){
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-  //static float prev_alt_feet = 0;         // previous calculated altitude
+  //static float prev_alt_feet = 0;       // previous calculated altitude
   static float prev_time = 0;             // previous calculated time (in seconds)
   static float prev_time_millis = 0;      // previous calculated time (in milliseconds)
-  static int i; // counter for getting GPS Lock
+  static int i;                           // counter for getting GPS Lock
+  static float prev_GPS_alt_feet = 0;     // records the most recent altitude given by GPS when it had lock
+  static float avg_alt_rate = 0;          // recent average ascent/descent rate in ****FEET/SECOND****
+  
 
   
   if(!init)
@@ -81,12 +85,12 @@ void stateMachine(){
 //  Serial.println("prev time" + String(prev_time));
   if(GPSstatus == Lock)
   {
-    alt_feet = alt_GPS;                                                         // altitude equals the alitude recorded by the Ublox
+    alt_feet = alt_GPS;   // altitude equals the alitude recorded by the Ublox
     ascent_rate = (((alt_feet - prev_alt_feet)/(getGPStime() - prev_time))) * 60; // calculates ascent rate in ft/min if GPS has a lock
     prev_time = getGPStime();                                                   // prev_time will equal the current time for the next loop
     prev_time_millis = prev_time*1000;  // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
-    prev_alt_feet = alt_feet;                                                   // same idea for prev_time but applied to prev_alt_feet
-    
+    // prev_alt_feet = alt_feet;                                                // Is this being used anywhere?
+    prev_GPS_alt_feet = alt_feet;      //Only used when determining appropiate range to use data from barometer library for altitude
     
   }                                 
   else if(GPSstatus == NoLock)
@@ -97,7 +101,13 @@ void stateMachine(){
      //else {
      //  alt_feet = alt_pressure;                                  // alt_feet calculated by Hypsometric forumla if pressure sensor library function doesn't work
      //}
-     alt_feet = alt_pressure_library;
+
+     if ((alt_pressure_library < prev_GPS_alt_feet + 1000) && (alt_pressure_library > prev_GPS_alt_feet - 1000)) {    
+        alt_feet = alt_pressure_library;                           // alt_feet only updated by barometer library if given altitude is within 1000ft of last GPS altitude with a lock
+     }
+     else {
+        alt_feet = prev_alt_array[0] + (millis()-prev_time_array[0])*avg_alt_array; // worst case scenario where we calculate new alt_feet with a linear fit using calculated average recent ascent/descent rate
+     }
 
      ascent_rate = (((alt_feet - prev_alt_feet)/(millis() - prev_time_millis))) * 60000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
      prev_alt_feet = alt_feet;
@@ -105,6 +115,10 @@ void stateMachine(){
      prev_time_millis = prev_time*1000;     
 
   }
+
+  AscentRate_Array_Update();   // updates arrays used to find recent average ascent/descent rate, maybe put this somewhere else?
+  avg_alt_rate = get_altrate_avg(); //sets avg_alt_rate every loop in case GPS looses a lock and barometer library altitude is no good ****THIS VALUE IS IN FEET/SECOND****
+  
   //Serial.println("prev time" + String(prev_time));
   
   stateSwitch();                                //Controller that changes State based on derivative of altitude

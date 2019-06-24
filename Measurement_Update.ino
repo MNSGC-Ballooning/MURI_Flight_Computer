@@ -1,4 +1,5 @@
 //function to handle both retrieval of data from GPS module and sensors, as well as recording it on the SD card
+
 void updateSensors() {
  static unsigned long prevTime = 0;
  if(millis()-prevTime>=5000){
@@ -42,8 +43,9 @@ void updateSensors() {
   temperature = myBaro.getTemperature()+C2K;
 
   alt_GPS = GPS.getAlt_feet();                                // altitude calulated by the Ublox GPS
-  alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
-  alt_pressure = Pressure_Alt_Calc(pressure*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
+  alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET; // altitude calcuated by the pressure sensor library
+  
+  //alt_pressure = Pressure_Alt_Calc(pressure*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
 
   String data = "";
   openFlightlog();

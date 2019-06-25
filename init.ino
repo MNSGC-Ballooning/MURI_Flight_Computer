@@ -41,6 +41,20 @@ void initSD(){
   Serial.println("Flight log header added");
 
   closeFlightlog();
+  
+  //Plan Tower Log
+  for (int i = 0; i < 100; i++) {
+    FnamePMS = String("FLogPMS" + String(i / 10) + String(i % 10) + ".csv");
+    if (!SD.exists(FnamePMS.c_str())) {
+      openFlightlogPMS();
+      break;
+    }
+  }
+  Serial.println("PMS log created: " + FnamePMS);
+  String PMSHeader = "nhits, Flight Time, 03um, 05um, 10um, 25um, 50um, 100um, Altitude(ft)";
+  PMSLog.println(PMSHeader);
+  closeFlightlogPMS();
+  
 }
 
 void initGPS(){

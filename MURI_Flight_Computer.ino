@@ -89,7 +89,7 @@ boolean opcActive = true;
 #define BAT_HEATER_OFF 8
 #define XBEE_SERIAL Serial5
 #define UBLOX_SERIAL Serial2
-#define PMS5003_SERIAL Serial
+#define PMS5003_SERIAL Serial1
 //#define SIREN_ON 32
 //#define SIREN_OFF 33
 
@@ -184,8 +184,23 @@ String stateString = "";
 File Flog;
 String data;
 String Fname = "";
+String FnamePMS = "";
 boolean SDcard = true;
 
+//Plantower Definitions
+  int nhits=1;            //used to count successful data transmissions
+  int ntot=1;             //used to count total attempted transmitions
+  String filename = "ptLog.csv";                         //File name that data wil be written to
+  File PMSLog;                                            //File that data is written to 
+                  
+  struct PMS5003data {
+    uint16_t framelen;
+    uint16_t pm10_standard, pm25_standard, pm100_standard;
+    uint16_t pm10_env, pm25_env, pm100_env;
+    uint16_t particles_03um, particles_05um, particles_10um, particles_25um, particles_50um, particles_100um;
+    uint16_t unused;
+    uint16_t checksum;
+  } PMSdata; 
 //////////////////////////////////////////////
 /////////Initialize Flight Computer///////////
 //////////////////////////////////////////////
@@ -201,6 +216,8 @@ void setup() {
 
   //Initialize Serial
   Serial.begin(9600); //USB Serial for debugging
+  PMS5003_SERIAL.begin(9600);
+  
 
   //Initialize Radio
   XBEE_SERIAL.begin(9600); //For smart xBee
@@ -244,6 +261,7 @@ void loop(){
       ChangeData=false;
       }
     }
+    
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){
     SOCO.Cut(1,CutA);
     SOCO.Cut(2,CutB);

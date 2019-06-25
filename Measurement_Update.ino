@@ -78,6 +78,7 @@ else{
 
   Flog.println(data);
   closeFlightlog();
+ 
   
 //Smart Unit temp requests (Moved closer to end to be closer to SOCO response, maybe in future could move request temp right before SOCO response)
 
@@ -88,6 +89,26 @@ else{
   else {
     SOCO.RequestTemp(2);
     tempA=false;
+  }
+  if(readPMSdata(&PMS5003_SERIAL)){
+    openFlightlogPMS();
+    String dataPMS ="";
+  // log sample number, in flight time
+    dataPMS += ntot;
+    dataPMS += ",";
+    dataPMS += flightTimeStr(); //in flight time from Flight_Timer 
+    dataPMS += "," + PMSdata.particles_03um;
+    dataPMS += "," + PMSdata.particles_05um;
+    dataPMS += "," + PMSdata.particles_10um;
+    dataPMS += "," + PMSdata.particles_25um;
+    dataPMS += "," + PMSdata.particles_50um;
+    dataPMS += "," + PMSdata.particles_100um;
+    dataPMS += "," + String(GPS.getSats());
+    Serial.println(dataPMS);
+    PMSLog.println(dataPMS);
+    nhits+=1;
+    ntot+=1;
+    closeFlightlogPMS();
   }
  }
 }

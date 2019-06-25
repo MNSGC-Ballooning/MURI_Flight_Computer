@@ -13,7 +13,6 @@ boolean usingGPS = false;
 uint8_t muriState;
 uint8_t GPSstatus = NoLock;
 //float ascent_rate = 0;     // ascent rate of payload in feet per minute
-float average_ascent_rate = 0;   // ascent rate averaged over last 5 altitude hits
 boolean hdotInit = false; 
 float alt_feet = 0;              // final altitude used between alt_GPS and alt_pressure depending on if we have a GPS lock
 
@@ -31,9 +30,9 @@ void stateMachine(){
   //static float prev_alt_feet = 0;       // previous calculated altitude
   static float prev_time = 0;             // previous calculated time (in seconds)
   static float prev_time_millis = 0;      // previous calculated time (in milliseconds)
-  static int i;                           // counter for getting GPS Lock
+  static int lockcounter;                 // counter for getting GPS Lock
   static float prev_GPS_alt_feet = 0;     // records the most recent altitude given by GPS when it had lock
-  static float avg_alt_rate = 0;          // recent average ascent/descent rate in ****FEET/SECOND****
+  static float avg_alt_rate = 0;          // recent average ascent/descent rate in ****FEET/SECOND**** averaged over last 5 hits
   
 
   
@@ -60,8 +59,8 @@ void stateMachine(){
   // determine GPSstatus (lock or no lock)
   if(FixStatus == Fix)
   {
-    i++;
-    if(i>=5)
+    lockcounter++;
+    if(lockcounter>=5)
     {
       GPSstatus = Lock;
     }  
@@ -69,7 +68,7 @@ void stateMachine(){
   else if(FixStatus == NoFix)
   {
     GPSstatus = NoLock;
-    i = 0;
+    lockcounter = 0;
   }
 
   alt_GPS = GPS.getAlt_feet();                                // altitude calulated by the Ublox GPS
@@ -117,7 +116,7 @@ void stateMachine(){
   }
 
   AscentRate_Array_Update();   // updates arrays used to find recent average ascent/descent rate, maybe put this somewhere else?
-  avg_alt_rate = get_altrate_avg(); //sets avg_alt_rate every loop in case GPS looses a lock and barometer library altitude is no good ****THIS VALUE IS IN FEET/SECOND****
+  avg_alt_rate = getavg_alt_rate(); //sets avg_alt_rate every loop in case GPS looses a lock and barometer library altitude is no good ****THIS VALUE IS IN FEET/SECOND****
   
   //Serial.println("prev time" + String(prev_time));
   
@@ -293,29 +292,29 @@ void stateMachine(){
 void stateSwitch(){
   static byte wilson = 0; // counter for castaway
   if(hdotInit && alt_feet!=0 && !recovery){ // if it has been initialized, it is above sea level, and it is not in recovery
-    if(ascent_rate>=5000 || ascent_rate<=-5000){
+    if(avg_alt_rate>=5000 || avg_alt_rate<=-5000){
       Serial.println("GPS Jump Detected");
     }
-    else if(ascent_rate > 250){
+    else if(avg_alt_rate > 250){
       muriState = STATE_MURI_ASCENT;
       stateString = "ASCENT";
     }
-    else if(ascent_rate>50 && ascent_rate<=250){
+    else if(avg_alt_rate>50 && avg_alt_rate<=250){
       muriState = STATE_MURI_SLOW_ASCENT;
       stateString = "SLOW ASCENT";
     }
-    else if(ascent_rate >= -1500 && ascent_rate < -50){
+    else if(avg_alt_rate >= -1500 && avg_alt_rate < -50){
       muriState = STATE_MURI_SLOW_DESCENT;
       stateString = "SLOW DESCENT";
       if(alt_feet<minAlt){ // determine minimum altitude
         minAlt=alt_feet-10000;
       }
     }
-    else if(ascent_rate<=-2000 && alt_feet>7000){
+    else if(avg_alt_rate<=-2000 && alt_feet>7000){
       muriState = STATE_MURI_FAST_DESCENT;
       stateString = "FAST DESCENT";
     }
-    else if(ascent_rate>=-50 && ascent_rate<=50){
+    else if(avg_alt_rate>=-50 && avg_alt_rate<=50){
       wilson++;
       if(wilson>100){
         muriState = STATE_MURI_CAST_AWAY;

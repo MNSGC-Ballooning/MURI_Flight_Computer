@@ -14,7 +14,7 @@ void AscentRate_Array_Update() {        //Updates the values in the array with m
   prev_time_array[0] = millis();  // most recent time array value set to millis()
 }
 
-float get_altrate_avg() {         // returns the recent average ascent/descent rate in feet/sec
+float getavg_alt_rate() {         // returns the recent average ascent/descent rate in feet/sec
   ratetotal = 0;
   
   for (int i=0; i<4; i++) {

@@ -8,10 +8,11 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <UbloxGPS.h>              //Needs TinyGPS++ in order to function
-#include <i2c_t3.h>                //Required for usage of MS5607 with Teensy 3.6/3.6
+#include <i2c_t3.h>                //Required for usage of MS5607 with Teensy 3.5/3.6
 #include <Arduino.h>               //"Microcontroller stuff" - Garret Ailts 
 #include "Salus_Baro.h"            //Library for MS5607
 #include <SmartController.h>       //Library for smart units using xbees to send commands
+//#include <SoftwareSerial.h>        //Software Serial library for Plan Tower
 
 //==============================================================
 //               MURI Flight Computer
@@ -89,9 +90,10 @@ boolean opcActive = true;
 #define BAT_HEATER_OFF 8
 #define XBEE_SERIAL Serial5
 #define UBLOX_SERIAL Serial2
-#define PMS5003_SERIAL Serial1
+//#define PMS5003_SERIAL Serial1
 //#define SIREN_ON 32
 //#define SIREN_OFF 33
+#define PMSserial Serial1
 
 //////////////////////////////////////////////
 /////////////////Constants////////////////////
@@ -190,19 +192,21 @@ String FnamePMS = "";
 boolean SDcard = true;
 
 //Plantower Definitions
-  int nhits=1;            //used to count successful data transmissions
-  int ntot=1;             //used to count total attempted transmitions
-  String filename = "ptLog.csv";                         //File name that data wil be written to
-  File PMSLog;                                            //File that data is written to 
-                  
-  struct PMS5003data {
-    uint16_t framelen;
-    uint16_t pm10_standard, pm25_standard, pm100_standard;
-    uint16_t pm10_env, pm25_env, pm100_env;
-    uint16_t particles_03um, particles_05um, particles_10um, particles_25um, particles_50um, particles_100um;
-    uint16_t unused;
-    uint16_t checksum;
-  } PMSdata; 
+//SoftwareSerial PMSserial(0,1);
+int nhits=1;            //used to count successful data transmissions
+int ntot=1;             //used to count total attempted transmitions
+String filename = "ptLog.csv";                         //File name that data wil be written to
+File PMSLog;                                            //File that data is written to 
+String dataPMS="";                
+struct PMS5003data {
+  uint16_t framelen;
+  uint16_t pm10_standard, pm25_standard, pm100_standard;
+  uint16_t pm10_env, pm25_env, pm100_env;
+  uint16_t particles_03um, particles_05um, particles_10um, particles_25um, particles_50um, particles_100um;
+  uint16_t unused;
+  uint16_t checksum;
+};
+struct PMS5003data PMSdata;
 //////////////////////////////////////////////
 /////////Initialize Flight Computer///////////
 //////////////////////////////////////////////
@@ -218,11 +222,13 @@ void setup() {
 
   //Initialize Serial
   Serial.begin(9600); //USB Serial for debugging
-  PMS5003_SERIAL.begin(9600);
+  delay(1000);
+  PMSserial.begin(9600);
   
-
+  delay(1000);
   //Initialize Radio
   XBEE_SERIAL.begin(9600); //For smart xBee
+
 
   //Initialize GPS
   initGPS();
@@ -246,7 +252,26 @@ void loop(){
   static unsigned long mainCounter = 0;
    GPS.update();
   // Main Thread
+  
   if (millis()-mainCounter>=MAIN_LOOP_TIME){
+    ///////////////test//////////////
+    if(readPMSdata(&PMSserial)){
+    Serial.println("Reading data was successful!");
+    openFlightlogPMS();
+//    String dataPMS ="";
+  // log sample number, in flight time
+    dataPMS += ntot;
+    dataPMS += ",";
+    dataPMS += flightTimeStr(); //in flight time from Flight_Timer 
+    dataPMS += "," + PMSdata.particles_03um;
+    dataPMS += "," + PMSdata.particles_05um;
+    dataPMS += "," + PMSdata.particles_10um;
+    dataPMS += "," + PMSdata.particles_25um;
+    dataPMS += "," + PMSdata.particles_50um;
+    dataPMS += "," + PMSdata.particles_100um;
+    dataPMS += "," + String(GPS.getSats());
+  }
+  /////////////////////////////////////
     mainCounter = millis();
     actionBlink();
     fixBlink();
@@ -270,10 +295,10 @@ void loop(){
     MeasurementCheck();
     stateMachine();
   } 
-  if (millis()>60000){
+  if (millis()>6000){
     CutA=true;
   }
-  if (millis()>120000){
+  if (millis()>12000){
     CutB=true;
   }
 }

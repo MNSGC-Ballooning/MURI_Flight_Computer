@@ -90,25 +90,27 @@ else{
     SOCO.RequestTemp(2);
     tempA=false;
   }
-  if(readPMSdata(&PMS5003_SERIAL)){
-    openFlightlogPMS();
-    String dataPMS ="";
-  // log sample number, in flight time
-    dataPMS += ntot;
-    dataPMS += ",";
-    dataPMS += flightTimeStr(); //in flight time from Flight_Timer 
-    dataPMS += "," + PMSdata.particles_03um;
-    dataPMS += "," + PMSdata.particles_05um;
-    dataPMS += "," + PMSdata.particles_10um;
-    dataPMS += "," + PMSdata.particles_25um;
-    dataPMS += "," + PMSdata.particles_50um;
-    dataPMS += "," + PMSdata.particles_100um;
-    dataPMS += "," + String(GPS.getSats());
+ 
+//  if(readPMSdata(&PMSserial)){
+//    Serial.println("Reading data was successful!");
+//    openFlightlogPMS();
+//    String dataPMS ="";
+//  // log sample number, in flight time
+//    dataPMS += ntot;
+//    dataPMS += ",";
+//    dataPMS += flightTimeStr(); //in flight time from Flight_Timer 
+//    dataPMS += "," + PMSdata.particles_03um;
+//    dataPMS += "," + PMSdata.particles_05um;
+//    dataPMS += "," + PMSdata.particles_10um;
+//    dataPMS += "," + PMSdata.particles_25um;
+//    dataPMS += "," + PMSdata.particles_50um;
+//    dataPMS += "," + PMSdata.particles_100um;
+//    dataPMS += "," + String(GPS.getSats());
+//  }
     Serial.println(dataPMS);
     PMSLog.println(dataPMS);
     nhits+=1;
     ntot+=1;
     closeFlightlogPMS();
   }
- }
 }

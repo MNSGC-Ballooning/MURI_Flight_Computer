@@ -96,6 +96,7 @@ void closeFlightlogPMS() {
 
 boolean readPMSdata(Stream *s) {
   if (! s->available()) {
+    Serial.println("Serial not available");
     return false;
   }
   
@@ -117,8 +118,8 @@ boolean readPMSdata(Stream *s) {
   // get checksum ready
   for (uint8_t i=0; i<30; i++) {
     sum += buffer[i];
-  } 
-  // The data comes in endian'd, this solves it so it works on all platforms
+  }
+
   uint16_t buffer_u16[15];
   for (uint8_t i=0; i<15; i++) {
     buffer_u16[i] = buffer[2 + i*2 + 1];

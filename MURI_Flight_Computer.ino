@@ -103,6 +103,7 @@ boolean opcActive = true;
 #define TIMER_RATE (1000) 
 #define Baro_Rate (TIMER_RATE / 200)  // Process MS5607 data at 100Hz
 #define C2K 273.15 
+#define PMS_TIME 10 //PMS Timer
 
 
 //////////////On Baord SD Chipselect/////////////
@@ -250,28 +251,34 @@ void setup() {
 void loop(){
   static unsigned long controlCounter = 0;
   static unsigned long mainCounter = 0;
+  static unsigned long pmsCounter = 0;
    GPS.update();
   // Main Thread
   
-  if (millis()-mainCounter>=MAIN_LOOP_TIME){
-    ///////////////test//////////////
+  if (millis() - pmsCounter>=PMS_TIME){
+    pmsCounter=millis();
     if(readPMSdata(&PMSserial)){
-    Serial.println("Reading data was successful!");
-    openFlightlogPMS();
-//    String dataPMS ="";
-  // log sample number, in flight time
-    dataPMS += ntot;
-    dataPMS += ",";
-    dataPMS += flightTimeStr(); //in flight time from Flight_Timer 
-    dataPMS += "," + PMSdata.particles_03um;
-    dataPMS += "," + PMSdata.particles_05um;
-    dataPMS += "," + PMSdata.particles_10um;
-    dataPMS += "," + PMSdata.particles_25um;
-    dataPMS += "," + PMSdata.particles_50um;
-    dataPMS += "," + PMSdata.particles_100um;
-    dataPMS += "," + String(GPS.getSats());
-  }
-  /////////////////////////////////////
+      Serial.println("Reading data was successful!");
+      openFlightlogPMS();
+      dataPMS += ntot;
+      dataPMS += ",";
+      dataPMS += flightTimeStr(); //in flight time from Flight_Timer 
+      dataPMS += "," + PMSdata.particles_03um;
+      dataPMS += "," + PMSdata.particles_05um;
+      dataPMS += "," + PMSdata.particles_10um;
+      dataPMS += "," + PMSdata.particles_25um;
+      dataPMS += "," + PMSdata.particles_50um;
+      dataPMS += "," + PMSdata.particles_100um;
+      dataPMS += "," + String(GPS.getSats());
+      Serial.println(dataPMS);
+      PMSLog.println(dataPMS);
+      nhits+=1;
+      ntot+=1;
+      closeFlightlogPMS();
+    }
+  } 
+  if (millis()-mainCounter>=MAIN_LOOP_TIME){
+    
     mainCounter = millis();
     actionBlink();
     fixBlink();

@@ -107,6 +107,30 @@ else{
 //    dataPMS += "," + PMSdata.particles_100um;
 //    dataPMS += "," + String(GPS.getSats());
 //  }
+//    Serial.println(dataPMS);
+//    PMSLog.println(dataPMS);
+//    nhits+=1;
+//    ntot+=1;
+//    closeFlightlogPMS();
+  }
+}
+void updatePMS(){
+  static unsigned long prevTime2 = 0;
+  if(millis()-prevTime2>=5000){
+    prevTime2=millis();
+    openFlightlogPMS();
+    //    String dataPMS ="";
+      // log sample number, in flight time
+    dataPMS += ntot;
+    dataPMS += ",";
+    dataPMS += flightTimeStr(); //in flight time from Flight_Timer 
+    dataPMS += "," + PMSdata.particles_03um;
+    dataPMS += "," + PMSdata.particles_05um;
+    dataPMS += "," + PMSdata.particles_10um;
+    dataPMS += "," + PMSdata.particles_25um;
+    dataPMS += "," + PMSdata.particles_50um;
+    dataPMS += "," + PMSdata.particles_100um;
+    dataPMS += "," + String(GPS.getSats());
     Serial.println(dataPMS);
     PMSLog.println(dataPMS);
     nhits+=1;

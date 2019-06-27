@@ -96,7 +96,6 @@ void closeFlightlogPMS() {
 
 boolean readPMSdata(Stream *s) {
   if (! s->available()) {
-    Serial.println("Serial not available");
     return false;
   }
   

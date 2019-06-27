@@ -14,7 +14,7 @@ uint8_t muriState;
 uint8_t GPSstatus = NoLock;
 //float ascent_rate = 0;     // ascent rate of payload in feet per minute
 boolean hdotInit = false; 
-float alt_feet = 0;              // final altitude used between alt_GPS and alt_pressure depending on if we have a GPS lock
+float Control_Altitude = 0;              // final altitude used between alt_GPS and alt_pressure depending on if we have a GPS lock
 
 void stateMachine(){
   static unsigned long castAway = 0;
@@ -27,10 +27,12 @@ void stateMachine(){
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-  //static float prev_alt_feet = 0;         // previous calculated altitude
-  static float prev_time = 0;             // previous calculated time (in seconds)
-  static float prev_time_millis = 0;      // previous calculated time (in milliseconds)
-  static int i; // counter for getting GPS Lock
+  //static float prev_Control_Altitude = 0;       // previous calculated altitude
+  static float prev_time = 0;             // previous calculated time (in milliseconds)
+  static int lockcounter;                 // counter for getting GPS Lock
+  static float prev_Control_Altitude = 0;     // records the most recent altitude given by GPS when it had lock
+  
+  
 
   
   if(!init)
@@ -51,13 +53,13 @@ void stateMachine(){
   {
    actHeat(); 
   }
-
+  
 
   // determine GPSstatus (lock or no lock)
   if(FixStatus == Fix)
   {
-    i++;
-    if(i>=5)
+    lockcounter++;
+    if(lockcounter>=2)
     {
       GPSstatus = Lock;
     }  
@@ -65,46 +67,56 @@ void stateMachine(){
   else if(FixStatus == NoFix)
   {
     GPSstatus = NoLock;
-    i = 0;
+    lockcounter = 0;
   }
 
-  alt_GPS = GPS.getAlt_feet();                                // altitude calulated by the Ublox GPS
+//  alt_GPS = GPS.getControl_Altitude();                                // altitude calulated by the Ublox GPS
   alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
   //alt_pressure = Pressure_Alt_Calc(pressure*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
 
 
   // determine the best altitude to use based on lock or no lock
-  delay(500);
-//  Serial.print("alt feet" + String(alt_feet));
+
+//  Serial.print("alt feet" + String(Control_Altitude));
 //  Serial.print("current time" + String(millis()));
-//  Serial.print("prev alt" + String(prev_alt_feet));
+//  Serial.print("prev alt" + String(prev_Control_Altitude));
 //  Serial.println("prev time" + String(prev_time));
   if(GPSstatus == Lock)
   {
-    alt_feet = alt_GPS;                                                         // altitude equals the alitude recorded by the Ublox
-    ascent_rate = (((alt_feet - prev_alt_feet)/(getGPStime() - prev_time))) * 60; // calculates ascent rate in ft/min if GPS has a lock
-    prev_time = getGPStime();                                                   // prev_time will equal the current time for the next loop
-    prev_time_millis = prev_time*1000;  // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
-    prev_alt_feet = alt_feet;                                                   // same idea for prev_time but applied to prev_alt_feet
-    
+    Control_Altitude = alt_GPS;       // altitude equals the alitude recorded by the Ublox
+    ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 60000; // calculates ascent rate in ft/min if GPS has a lock
+    prev_time = millis(); 
+    prev_Control_Altitude=Control_Altitude;// prev_time will equal the current time for the next loop
+     // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
+    // prev_Control_Altitude = Control_Altitude;                                                // Is this being used anywhere?
+    prev_Control_Altitude = Control_Altitude;      //Only used when determining appropiate range to use data from barometer library for altitude
     
   }                                 
   else if(GPSstatus == NoLock)
   {
      //if (alt_pressure_library != 0) {  
-     //  alt_feet = alt_pressure_library;                          // alt_feet calculated by pressure sensor library function if GPS has no lock
+     //  Control_Altitude = alt_pressure_library;                          // Control_Altitude calculated by pressure sensor library function if GPS has no lock
      //}
      //else {
-     //  alt_feet = alt_pressure;                                  // alt_feet calculated by Hypsometric forumla if pressure sensor library function doesn't work
+     //  Control_Altitude = alt_pressure;                                  // Control_Altitude calculated by Hypsometric forumla if pressure sensor library function doesn't work
      //}
-     alt_feet = alt_pressure_library;
 
-     ascent_rate = (((alt_feet - prev_alt_feet)/(millis() - prev_time_millis))) * 60000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
-     prev_alt_feet = alt_feet;
-     prev_time = prev_time + (millis() - prev_time_millis)/1000;                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
-     prev_time_millis = prev_time*1000;     
+     if ((alt_pressure_library < prev_Control_Altitude + 1000) && (alt_pressure_library > prev_Control_Altitude - 1000)) {    
+        Control_Altitude = alt_pressure_library;                           // Control_Altitude only updated by barometer library if given altitude is within 1000ft of last GPS altitude with a lock
+     }
+     else {
+        Control_Altitude = (ascent_rate*((millis()-prev_time)/1000))+Control_Altitude;
+     }
+
+     ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 60000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
+     prev_Control_Altitude = Control_Altitude;
+     prev_time = millis();                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
+         
 
   }
+
+//  ascent_rate = getascent_rate(); //sets ascent_rate every loop in case GPS looses a lock and barometer library altitude is no good ****THIS VALUE IS IN FEET/SECOND****
+  
   //Serial.println("prev time" + String(prev_time));
   
   stateSwitch();                                //Controller that changes State based on derivative of altitude
@@ -112,7 +124,7 @@ void stateMachine(){
 ////////////////////////Finite State Machine/////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-  if(alt_feet!=0 && alt_feet!=prev_alt_feet){
+  if(Control_Altitude!=0 && Control_Altitude!=prev_Control_Altitude){
     if(FixStatus==Fix && float(GPS.getLon()) > float_longitude && GPS.getLon() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix) * Add termination longitude check
     {
       float_longitude_check++; // and 1 to # of times outside mission area
@@ -161,7 +173,7 @@ void stateMachine(){
     if(muriState == STATE_MURI_INIT && !hdotInit) // its a boolean checking to see if we initialized
     {
       Serial.println("STATE_MURI_INIT"); // records current state
-      if(alt_feet>5000)
+      if(Control_Altitude>5000)
       {
         // this looks like it keeps counting while above 5000 ft to initialize hdot, whatever that means
         initCounter++;
@@ -179,7 +191,7 @@ void stateMachine(){
     {
       case 0x01: // Ascent
         Serial.println("STATE_MURI_ASCENT");
-        if(alt_feet>maxAlt && alt_feet!=0)// checks to see if payload has hit the max mission alt
+        if(Control_Altitude>maxAlt && Control_Altitude!=0)// checks to see if payload has hit the max mission alt
         {
           skyCheck++;
           Serial.println("Max alt hits: " + String(skyCheck));
@@ -209,7 +221,7 @@ void stateMachine(){
       /////////////////////////////////////////////////////////////////////////////////////////////////////
       case 0x04: // Slow Descent
         Serial.println("STATE_MURI_SLOW_DESCENT");
-        if(alt_feet<minAlt && alt_feet!=0) // checks to see if it is below data collection range...
+        if(Control_Altitude<minAlt && Control_Altitude!=0) // checks to see if it is below data collection range...
         {
           floorCheck++;
           Serial.println("Min alt hits: " + String(floorCheck));
@@ -234,11 +246,11 @@ void stateMachine(){
         snail++;
         if(snail>10)
         {
-          if(alt_feet<30000)
+          if(Control_Altitude<30000)
           {
             CutB=true;
           }
-          else if(alt_feet>=30000)
+          else if(Control_Altitude>=30000)
           {
             CutA=true;
             smartOneString = "RELEASED";
@@ -278,7 +290,7 @@ void stateMachine(){
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
 void stateSwitch(){
   static byte wilson = 0; // counter for castaway
-  if(hdotInit && alt_feet!=0 && !recovery){ // if it has been initialized, it is above sea level, and it is not in recovery
+  if(hdotInit && Control_Altitude!=0 && !recovery){ // if it has been initialized, it is above sea level, and it is not in recovery
     if(ascent_rate>=5000 || ascent_rate<=-5000){
       Serial.println("GPS Jump Detected");
     }
@@ -293,11 +305,11 @@ void stateSwitch(){
     else if(ascent_rate >= -1500 && ascent_rate < -50){
       muriState = STATE_MURI_SLOW_DESCENT;
       stateString = "SLOW DESCENT";
-      if(alt_feet<minAlt){ // determine minimum altitude
-        minAlt=alt_feet-10000;
+      if(Control_Altitude<minAlt){ // determine minimum altitude
+        minAlt=Control_Altitude-10000;
       }
     }
-    else if(ascent_rate<=-2000 && alt_feet>7000){
+    else if(ascent_rate<=-2000 && Control_Altitude>7000){
       muriState = STATE_MURI_FAST_DESCENT;
       stateString = "FAST DESCENT";
     }
@@ -309,7 +321,7 @@ void stateSwitch(){
         wilson=0;
       }
     }
-    else if(muriState == STATE_MURI_FAST_DESCENT && alt_feet<7000){
+    else if(muriState == STATE_MURI_FAST_DESCENT && Control_Altitude<7000){
       muriState = STATE_MURI_RECOVERY;
       stateString = "RECOVERY";
     } 

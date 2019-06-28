@@ -105,7 +105,7 @@ void stateMachine(){
         Control_Altitude = alt_pressure_library;                           // Control_Altitude only updated by barometer library if given altitude is within 1000ft of last GPS altitude with a lock
      }
      else {
-        Control_Altitude = (ascent_rate*((millis()-prev_time)/1000))+Control_Altitude;
+        Control_Altitude = (ascent_rate*((millis()-prev_time)/60000))+Control_Altitude;   // Ascent rate is in ft/min, so dividing milliseconds by 60000 gives the correct multiplying factor of "per minute"
      }
 
      ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 60000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
@@ -313,9 +313,9 @@ void stateSwitch(){
       muriState = STATE_MURI_FAST_DESCENT;
       stateString = "FAST DESCENT";
     }
-    else if(ascent_rate>=-50 && ascent_rate<=50){
-      wilson++;
-      if(wilson>100){
+    else if(ascent_rate>=-50 && ascent_rate<=50){     // It doesn't seem feasible to get 100 hits in a row that are within +/-10 inches of the previous hit 
+      wilson++;                                       // This fuction will probably never be initialized due to minute GPS error, so it should be rewritten
+      if(wilson>100){                              
         muriState = STATE_MURI_CAST_AWAY;
         stateString = "CAST AWAY";
         wilson=0;

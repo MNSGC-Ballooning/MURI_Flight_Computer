@@ -70,17 +70,9 @@ void stateMachine(){
     lockcounter = 0;
   }
 
-//  alt_GPS = GPS.getControl_Altitude();                                // altitude calulated by the Ublox GPS
+                              
   alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
-  //alt_pressure = Pressure_Alt_Calc(pressure*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
 
-
-  // determine the best altitude to use based on lock or no lock
-
-//  Serial.print("alt feet" + String(Control_Altitude));
-//  Serial.print("current time" + String(millis()));
-//  Serial.print("prev alt" + String(prev_Control_Altitude));
-//  Serial.println("prev time" + String(prev_time));
   if(GPSstatus == Lock)
   {
     Control_Altitude = alt_GPS;       // altitude equals the alitude recorded by the Ublox
@@ -94,13 +86,6 @@ void stateMachine(){
   }                                 
   else if(GPSstatus == NoLock)
   {
-     //if (alt_pressure_library != 0) {  
-     //  Control_Altitude = alt_pressure_library;                          // Control_Altitude calculated by pressure sensor library function if GPS has no lock
-     //}
-     //else {
-     //  Control_Altitude = alt_pressure;                                  // Control_Altitude calculated by Hypsometric forumla if pressure sensor library function doesn't work
-     //}
-
      if ((alt_pressure_library < prev_Control_Altitude + 1000) && (alt_pressure_library > prev_Control_Altitude - 1000)) {    
         Control_Altitude = alt_pressure_library;                           // Control_Altitude only updated by barometer library if given altitude is within 1000ft of last GPS altitude with a lock
      }
@@ -115,10 +100,7 @@ void stateMachine(){
 
   }
 
-//  ascent_rate = getascent_rate(); //sets ascent_rate every loop in case GPS looses a lock and barometer library altitude is no good ****THIS VALUE IS IN FEET/SECOND****
-  
-  //Serial.println("prev time" + String(prev_time));
-  
+ 
   stateSwitch();                                //Controller that changes State based on derivative of altitude
   
 ////////////////////////Finite State Machine/////////////////////////

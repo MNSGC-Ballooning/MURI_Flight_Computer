@@ -36,24 +36,24 @@ void initSD(){
   
   Serial.println("Flight log created: " + Fname);
 
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Custom Pressure Altitude, Smart Unit, Ascent Rate, System State";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Custom Pressure Altitude, Smart Unit, Ascent Rate, System State, nhits, 03um, 05um, 10um, 25um, 50um, 100um,";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 
   closeFlightlog();
-  
-  //Plan Tower Log
-  for (int i = 0; i < 100; i++) {
-    FnamePMS = String("FLogPMS" + String(i / 10) + String(i % 10) + ".csv");
-    if (!SD.exists(FnamePMS.c_str())) {
-      openFlightlogPMS();
-      break;
-    }
-  }
-  Serial.println("PMS log created: " + FnamePMS);
-  String PMSHeader = "nhits, Flight Time, 03um, 05um, 10um, 25um, 50um, 100um, Altitude(ft)";
-  PMSLog.println(PMSHeader);
-  closeFlightlogPMS();
+
+//  //Plan Tower Log
+//  for (int i = 0; i < 100; i++) {
+//    FnamePMS = String("FLogPMS" + String(i / 10) + String(i % 10) + ".csv");
+//    if (!SD.exists(FnamePMS.c_str())) {
+//      openFlightlogPMS();
+//      break;
+//    }
+//  }
+//  Serial.println("PMS log created: " + FnamePMS);
+//  String PMSHeader = "nhits, Flight Time, 03um, 05um, 10um, 25um, 50um, 100um, Altitude(ft)";
+//  PMSLog.println(PMSHeader);
+//  closeFlightlogPMS();
   
 }
 

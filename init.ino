@@ -3,7 +3,7 @@ void initMS5607(){
   delay(500);
   Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_400);
   //initialize the baraometer
-  Serial.println("Initilizing Barometer...");
+  Serial.println("Initializing Barometer...");
   myBaro.begin();
   startAlt=myBaro.getAltitude();
   //Serial.print("Start Alt: " + startAlt);
@@ -36,24 +36,12 @@ void initSD(){
   
   Serial.println("Flight log created: " + Fname);
 
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), OPC Heater Status, Battery Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Custom Pressure Altitude, Smart Unit, Ascent Rate, System State, nhits, 03um, 05um, 10um, 25um, 50um, 100um,";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), Battery Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Custom Pressure Altitude, Smart A, Smart B, Ascent Rate, System State, PTA, nhits, 03um, 05um, 10um, 25um, 50um, 100um,";
+  FHeader+= "PTB, nhits, 03um, 05um, 10um, 25um, 50um, 100um,";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 
   closeFlightlog();
-
-//  //Plan Tower Log
-//  for (int i = 0; i < 100; i++) {
-//    FnamePMS = String("FLogPMS" + String(i / 10) + String(i % 10) + ".csv");
-//    if (!SD.exists(FnamePMS.c_str())) {
-//      openFlightlogPMS();
-//      break;
-//    }
-//  }
-//  Serial.println("PMS log created: " + FnamePMS);
-//  String PMSHeader = "nhits, Flight Time, 03um, 05um, 10um, 25um, 50um, 100um, Altitude(ft)";
-//  PMSLog.println(PMSHeader);
-//  closeFlightlogPMS();
   
 }
 
@@ -73,20 +61,20 @@ void initGPS(){
 }
 
 void initRelays(){
-  opcRelay.init(false);
-  opcHeatRelay.init(false);
+//  opcRelay.init(false);
+//  opcHeatRelay.init(false);
   batHeatRelay.init(false);
   //sirenRelay.init(false);
-  delay(100);
-  if (opcActive){
-    opcRelay.setState(true);
-    opcRelay_Status = "ON";
-  }
-  else{
-    opcRelay.setState(false);
-    opcRelay_Status = "OFF";
-  }
+//  delay(100);
+//  if (opcActive){
+//    opcRelay.setState(true);
+//    opcRelay_Status = "ON";
+//  }
+//  else{
+//    opcRelay.setState(false);
+//    opcRelay_Status = "OFF";
+//  }
   
-  opcHeat_Status = "OFF";
+//  opcHeat_Status = "OFF";
   batHeat_Status = "OFF";
 }

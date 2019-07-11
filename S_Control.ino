@@ -14,7 +14,7 @@ uint8_t muriState;
 uint8_t GPSstatus = NoLock;
 //float ascent_rate = 0;     // ascent rate of payload in feet per minute
 boolean hdotInit = false; 
-float Control_Altitude = 0;              // final altitude used between alt_GPS and alt_pressure depending on if we have a GPS lock
+
 
 void stateMachine(){
   static unsigned long castAway = 0;
@@ -27,7 +27,6 @@ void stateMachine(){
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-  //static float prev_Control_Altitude = 0;       // previous calculated altitude
   static float prev_time = 0;             // previous calculated time (in milliseconds)
   static int lockcounter;                 // counter for getting GPS Lock
   static float prev_Control_Altitude = 0;     // records the most recent altitude given by GPS when it had lock
@@ -195,7 +194,7 @@ void stateMachine(){
           smartTwoString = "RELEASED";
           CutA=true;
           smartOneString = "RELEASED";
-          opcHeatRelay.setState(false);
+//          opcHeatRelay.setState(false);
           batHeatRelay.setState(false);
           fast=true;
         }
@@ -261,7 +260,7 @@ void stateMachine(){
         Serial.println("STATE_MURI_RECOVERY");
         if(!recovery)
         {
-          opcRelay.setState(false);
+//          opcRelay.setState(false);
           recovery = true;
         }
         break;

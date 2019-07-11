@@ -47,7 +47,7 @@ long Release_Timer = 15000; //Starting value for active timer that terminates fl
 long Master_Timer =  20000; //Master cut timer 
 float termination_longitude = -92.0; //longitude at which all flight systems are terminated
 float float_longitude = -92.5; //longitude at which the balloon begins to float
-boolean opcActive = true;
+//boolean opcActive = true;
 
 //=============================================================================================================================================
 //=============================================================================================================================================
@@ -82,18 +82,19 @@ boolean opcActive = true;
 #define TWO_WIRE_BUS 30     //External Temp
 #define THREE_WIRE_BUS 31   //Battery Temp
 #define FOUR_WIRE_BUS 32    //OPC Temp
-#define OPC_ON 5            //Relay switches
-#define OPC_OFF 6
-#define OPC_HEATER_ON 24
-#define OPC_HEATER_OFF 25
-#define BAT_HEATER_ON 7
-#define BAT_HEATER_OFF 8
+//#define OPC_ON 5            //Relay switches
+//#define OPC_OFF 6
+//#define OPC_HEATER_ON 24
+//#define OPC_HEATER_OFF 25
+#define BAT_HEATER_ON 5
+#define BAT_HEATER_OFF 6
 #define XBEE_SERIAL Serial5
 #define UBLOX_SERIAL Serial2
 //#define PMS5003_SERIAL Serial1
 //#define SIREN_ON 32
 //#define SIREN_OFF 33
-#define PMSserial Serial1
+#define PMSAserial Serial1
+#define PMSBserial Serial3
 
 //////////////////////////////////////////////
 /////////////////Constants////////////////////
@@ -105,20 +106,22 @@ boolean opcActive = true;
 #define C2K 273.15 
 #define PMS_TIME 1 //PMS Timer
 
-
+//////////////Control System Definitions/////////////
+float Control_Altitude = 0;              // final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
+int test =0;
 //////////////On Baord SD Chipselect/////////////
 const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
 
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
 ///////////////////////////////////////////////
-LatchRelay opcRelay(OPC_ON, OPC_OFF);
-LatchRelay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
+//LatchRelay opcRelay(OPC_ON, OPC_OFF);
+//LatchRelay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
 LatchRelay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
 //LatchRelay sirenRelay(SIREN_ON, SIREN_OFF);
-boolean  opcON = false;
-String opcRelay_Status = "";
-String opcHeat_Status = "";
+//boolean  opcON = false;
+//String opcRelay_Status = "";
+//String opcHeat_Status = "";
 String batHeat_Status = "";
 
 /////////////////////////////////////////////
@@ -160,11 +163,11 @@ float prev_alt_feet = 0;         // previous calculated altitude
 ///////////////////////////////////////////
 // SMART
 String SmartData; //Just holds temporary copy of Smart data
-static String SmartLog; //Log everytime, is just data from smart
+static String SmartLogA; //Log everytime, is just data from smart
+static String SmartLogB;
 static bool CutA=false; //Set to true to cut A SMART
 static bool CutB=false; //Set to true to cut B SMART
 static bool ChangeData=true; //Just set true after every data log
-static bool tempA=false; //Just flip flops temp requests from A and B (Stupid make better later)
 SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0); //Smart controller
 String smartOneString = "Primed";
 String smartTwoString = "Primed";
@@ -175,6 +178,7 @@ float ascent_rate = 0;     // ascent rate of payload in feet per minute
 unsigned long releaseTimer = Release_Timer * 1000;
 unsigned long masterTimer = Master_Timer * 1000;
 boolean recovery = false;
+unsigned long smartTimer = 0;
 
 //Heating
 float t_low = 283;
@@ -194,11 +198,16 @@ boolean SDcard = true;
 
 //Plantower Definitions
 
-int nhits=1;            //used to count successful data transmissions
-int ntot=1;             //used to count total attempted transmitions
-int badLog =1;
-boolean goodLog = false;
-static String dataPMS="";                
+int nhitsA=1;            //used to count successful data transmissions
+int ntotA=1;             //used to count total attempted transmitions
+int nhitsB=1;
+int ntotB=1;
+int badLogA =1;
+boolean goodLogA = false;
+int badLogB =1;
+boolean goodLogB = false;
+static String dataPMSA="";                
+static String dataPMSB="";                
 struct PMS5003data {
   uint16_t framelen;
   uint16_t pm10_standard, pm25_standard, pm100_standard;
@@ -207,7 +216,8 @@ struct PMS5003data {
   uint16_t unused;
   uint16_t checksum;
 };
-struct PMS5003data PMSdata;
+struct PMS5003data PMSAdata;
+struct PMS5003data PMSBdata;
 //////////////////////////////////////////////
 /////////Initialize Flight Computer///////////
 //////////////////////////////////////////////
@@ -223,8 +233,10 @@ void setup() {
 
   //Initialize Serial
   Serial.begin(9600); //USB Serial for debugging
-  delay(1000);
-  PMSserial.begin(9600);
+ 
+  PMSAserial.begin(9600);
+  
+  PMSBserial.begin(9600);
   
   //Initialize Radio
   XBEE_SERIAL.begin(9600); //For smart xBee
@@ -241,6 +253,7 @@ void setup() {
 
   //Initialize Pressure Altimeter
   initMS5607();
+  Serial.println("Finished init baro");
 
   //Initialize Relays
   initRelays();
@@ -251,10 +264,11 @@ void setup() {
 void loop(){
   static unsigned long controlCounter = 0;
   static unsigned long mainCounter = 0;
-  static unsigned long pmsCounter = 0;
+//  static unsigned long pmsCounter = 0;
    GPS.update();
   // Main Thread
-   readPMSdata(&PMSserial);
+   readPMSdataA(&PMSAserial);
+   readPMSdataB(&PMSBserial);
   if (millis()-mainCounter>=MAIN_LOOP_TIME){
     mainCounter = millis();
     actionBlink();
@@ -264,14 +278,30 @@ void loop(){
     
   }
   
+  
   // Control Thread
 
     if (ChangeData){
-      SmartLog=SOCO.Response();
-      if (SmartLog != ""){
+      SmartLogA="";
+      SOCO.RequestTemp(1);
+      smartTimer=millis();
+      while(millis()-smartTimer<150 && SmartLogA == "")
+      {
+        SmartLogA=SOCO.Response();
+      }
+
+      
+      SmartLogB="";
+      SOCO.RequestTemp(2);
+      smartTimer=millis();
+      while(millis()-smartTimer<150 && SmartLogB == "")
+      {
+        SmartLogB=SOCO.Response();
+      }
+
       ChangeData=false;
       }
-    }
+    
     
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){
     SOCO.Cut(1,CutA);
@@ -279,10 +309,10 @@ void loop(){
     MeasurementCheck();
     stateMachine();
   } 
-  if (millis()>600000){
-    CutA=true;
-  }
-  if (millis()>1200000){
-    CutB=true;
+//  if (millis()>7200000){ //cuts A at 2 hours for thermal vac
+//    CutA=true;
+//  }
+//  if (millis()>14400000){ //cuts B at 4 hours for thermal vac
+//    CutB=true;
   }
 }

@@ -8,7 +8,7 @@
 
 //Variables
 uint8_t FixStatus= NoFix;
-long Pressure_Alt; // altitude in feet based on pressure and temp
+//long Pressure_Alt; // altitude in feet based on pressure and temp
 
 ///// Function Declarations /////
 
@@ -44,9 +44,9 @@ bool CheckEstimate(){
 }
 */
  //determine the altitude from Pressure and Temperature using Hypsometric formula
-float Pressure_Alt_Calc(float Pressure, float Temperature){
-  float Pressure_Alt_SI = (SPECIFIC_GAS_CONSTANT*Temperature/GRAVITY_ACCEL)*log(SEA_LEVEL_PRESSURE/Pressure); // returns altitude based on P and T in meters.
-  float Pressure_Alt = Pressure_Alt_SI*METERS_TO_FEET; // converts m to ft 
-
-  return Pressure_Alt;
-}
+//float Pressure_Alt_Calc(float Pressure, float Temperature){
+//  float Pressure_Alt_SI = (SPECIFIC_GAS_CONSTANT*Temperature/GRAVITY_ACCEL)*log(SEA_LEVEL_PRESSURE/Pressure); // returns altitude based on P and T in meters.
+//  float Pressure_Alt = Pressure_Alt_SI*METERS_TO_FEET; // converts m to ft 
+//
+//  return Pressure_Alt;
+//}

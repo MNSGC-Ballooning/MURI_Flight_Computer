@@ -18,12 +18,12 @@ void updateSensors() {
   else if(batHeatRelay.getState()==false){
     batHeat_Status = "OFF";
   }
-//  if(opcHeatRelay.getState()==true){
-//    opcHeat_Status = "ON";
-//  }
-//  else if(opcHeatRelay.getState()==false){
-//    opcHeat_Status = "OFF";
-//  }
+  if(opcHeatRelay.getState()==true){
+    opcHeat_Status = "ON";
+  }
+  else if(opcHeatRelay.getState()==false){
+    opcHeat_Status = "OFF";
+  }
 
   sensor1.requestTemperatures();
   sensor2.requestTemperatures();
@@ -67,7 +67,7 @@ void updateSensors() {
 
 
   data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
-  data += (batHeat_Status + ",");
+  data += (batHeat_Status + "," + opcHeat_Status + ",");
   data += (String(temperature)+ ",");
   data += (String(pressure) + ",");
   data += (String(alt_pressure_library) + ",");

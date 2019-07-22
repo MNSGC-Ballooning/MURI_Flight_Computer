@@ -30,6 +30,7 @@ void stateMachine(){
   static float prev_time = 0;             // previous calculated time (in milliseconds)
   static int lockcounter;                 // counter for getting GPS Lock
   static float prev_Control_Altitude = 0;     // records the most recent altitude given by GPS when it had lock
+
   
   
 
@@ -75,6 +76,7 @@ void stateMachine(){
   if(GPSstatus == Lock)
   {
     Control_Altitude = alt_GPS;       // altitude equals the alitude recorded by the Ublox
+    
     ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 60000; // calculates ascent rate in ft/min if GPS has a lock
     prev_time = millis(); 
     prev_Control_Altitude=Control_Altitude;// prev_time will equal the current time for the next loop
@@ -123,8 +125,8 @@ void stateMachine(){
       // if longitude is still in acceptable range, then reset check
       float_longitude_check = 0;
     }
-
-    Serial.println("Ascent Rate: " + String(ascent_rate));
+//
+//    Serial.println("Ascent Rate: " + String(ascent_rate));
 
     
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,12 +150,12 @@ void stateMachine(){
       termination_longitude_check = 0;
     }
 
-    Serial.println("Ascent Rate: " + String(ascent_rate));
+//    Serial.println("Ascent Rate: " + String(ascent_rate));
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////    
     if(muriState == STATE_MURI_INIT && !hdotInit) // its a boolean checking to see if we initialized
     {
-      Serial.println("STATE_MURI_INIT"); // records current state
+//      Serial.println("STATE_MURI_INIT"); // records current state
       if(Control_Altitude>5000)
       {
         // this looks like it keeps counting while above 5000 ft to initialize hdot, whatever that means
@@ -194,7 +196,7 @@ void stateMachine(){
           smartTwoString = "RELEASED";
           CutA=true;
           smartOneString = "RELEASED";
-//          opcHeatRelay.setState(false);
+          opcHeatRelay.setState(false);
           batHeatRelay.setState(false);
           fast=true;
         }

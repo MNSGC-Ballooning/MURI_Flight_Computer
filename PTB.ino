@@ -24,7 +24,7 @@ void pmsUpdateB() {
 
   } else {
     badLogB++;                                                                      //If there are five consecutive bad logs, not the state;
-    if (badLogB = 5){
+    if (badLogB == 5){
       goodLogB = false;
       dataPMSB += '%' + ',' + 'Q' + ',' + '=' + ',' + '!' + ',' + '@' + ',' + '$';
     }

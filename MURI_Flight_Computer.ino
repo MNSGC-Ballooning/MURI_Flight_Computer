@@ -84,8 +84,8 @@ float float_longitude = -92.5; //longitude at which the balloon begins to float
 #define FOUR_WIRE_BUS 32    //OPC Temp
 //#define OPC_ON 5            //Relay switches
 //#define OPC_OFF 6
-//#define OPC_HEATER_ON 24
-//#define OPC_HEATER_OFF 25
+#define OPC_HEATER_ON 24
+#define OPC_HEATER_OFF 25
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
 #define XBEE_SERIAL Serial5
@@ -116,12 +116,12 @@ const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
 ////////////////Power Relays///////////////////
 ///////////////////////////////////////////////
 //LatchRelay opcRelay(OPC_ON, OPC_OFF);
-//LatchRelay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
+LatchRelay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
 LatchRelay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
 //LatchRelay sirenRelay(SIREN_ON, SIREN_OFF);
 //boolean  opcON = false;
 //String opcRelay_Status = "";
-//String opcHeat_Status = "";
+String opcHeat_Status = "";
 String batHeat_Status = "";
 
 /////////////////////////////////////////////
@@ -309,10 +309,10 @@ void loop(){
     MeasurementCheck();
     stateMachine();
   } 
-//  if (millis()>7200000){ //cuts A at 2 hours for thermal vac
-//    CutA=true;
-//  }
-//  if (millis()>14400000){ //cuts B at 4 hours for thermal vac
-//    CutB=true;
+  if (millis()>300000){ //cuts A at 2 hours for thermal vac 7200000
+    CutA=true;
+  }
+  if (millis()>600000){ //cuts B at 4 hours for thermal vac 14400000
+    CutB=true;
   }
 }

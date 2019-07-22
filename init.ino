@@ -36,7 +36,7 @@ void initSD(){
   
   Serial.println("Flight log created: " + Fname);
 
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix,Internal Ambient (K), External Ambient (K), Battery (K), OPC (K), Battery Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Custom Pressure Altitude, Smart A, Smart B, Ascent Rate, System State, PTA, nhits, 03um, 05um, 10um, 25um, 50um, 100um,";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, PMSA (K), External Ambient (K), Battery (K), PMSB (K), Battery Heater Status, PMSB Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Custom Pressure Altitude, Smart A, Smart B, Ascent Rate, System State, PTA, nhits, 03um, 05um, 10um, 25um, 50um, 100um,";
   FHeader+= "PTB, nhits, 03um, 05um, 10um, 25um, 50um, 100um,";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
@@ -62,7 +62,7 @@ void initGPS(){
 
 void initRelays(){
 //  opcRelay.init(false);
-//  opcHeatRelay.init(false);
+  opcHeatRelay.init(false);
   batHeatRelay.init(false);
   //sirenRelay.init(false);
 //  delay(100);
@@ -75,6 +75,6 @@ void initRelays(){
 //    opcRelay_Status = "OFF";
 //  }
   
-//  opcHeat_Status = "OFF";
+  opcHeat_Status = "OFF";
   batHeat_Status = "OFF";
 }

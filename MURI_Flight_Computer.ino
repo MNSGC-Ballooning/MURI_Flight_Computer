@@ -304,6 +304,7 @@ void loop(){
     
     
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){
+    controlCounter=millis();
     SOCO.Cut(1,CutA);
     SOCO.Cut(2,CutB);
     MeasurementCheck();

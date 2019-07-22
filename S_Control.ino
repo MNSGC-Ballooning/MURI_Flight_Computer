@@ -75,9 +75,9 @@ void stateMachine(){
 
   if(GPSstatus == Lock)
   {
-    Control_Altitude = alt_GPS;       // altitude equals the alitude recorded by the Ublox
+    Control_Altitude = GPS.getAlt_feet();       // altitude equals the alitude recorded by the Ublox
     
-    ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 60000; // calculates ascent rate in ft/min if GPS has a lock
+    ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // calculates ascent rate in ft/min if GPS has a lock
     prev_time = millis(); 
     prev_Control_Altitude=Control_Altitude;// prev_time will equal the current time for the next loop
      // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
@@ -94,7 +94,7 @@ void stateMachine(){
         Control_Altitude = (ascent_rate*((millis()-prev_time)/1000))+Control_Altitude;
      }
 
-     ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 60000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
+     ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
      prev_Control_Altitude = Control_Altitude;
      prev_time = millis();                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
          
@@ -277,26 +277,26 @@ void stateSwitch(){
     if(ascent_rate>=5000 || ascent_rate<=-5000){
       Serial.println("GPS Jump Detected");
     }
-    else if(ascent_rate > 250){
+    else if(ascent_rate > (250/60)){
       muriState = STATE_MURI_ASCENT;
       stateString = "ASCENT";
     }
-    else if(ascent_rate>50 && ascent_rate<=250){
+    else if(ascent_rate>(50/60) && ascent_rate<=(250/60)){
       muriState = STATE_MURI_SLOW_ASCENT;
       stateString = "SLOW ASCENT";
     }
-    else if(ascent_rate >= -1500 && ascent_rate < -50){
+    else if(ascent_rate >= (-1500/60) && ascent_rate < (-50/60)){
       muriState = STATE_MURI_SLOW_DESCENT;
       stateString = "SLOW DESCENT";
       if(Control_Altitude<minAlt){ // determine minimum altitude
         minAlt=Control_Altitude-10000;
       }
     }
-    else if(ascent_rate<=-2000 && Control_Altitude>7000){
+    else if(ascent_rate<=(-2000/60) && Control_Altitude>7000){
       muriState = STATE_MURI_FAST_DESCENT;
       stateString = "FAST DESCENT";
     }
-    else if(ascent_rate>=-50 && ascent_rate<=50){
+    else if(ascent_rate>=(-50/60) && ascent_rate<=(50/60)){
       wilson++;
       if(wilson>100){
         muriState = STATE_MURI_CAST_AWAY;

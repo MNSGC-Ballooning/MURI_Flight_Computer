@@ -106,15 +106,12 @@ float float_longitude = -92.5; //longitude at which the balloon begins to float
 #define C2K 273.15 
 #define PMS_TIME 1 //PMS Timer
 
-//////////////Control System Definitions/////////////
-float Control_Altitude = 0;              // final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
-int test =0;
 //////////////On Baord SD Chipselect/////////////
 const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
 
 ///////////////////////////////////////////////
 ////////////////Power Relays///////////////////
-///////////////////////////////////////////////
+//////////////////////////////////////////////
 //LatchRelay opcRelay(OPC_ON, OPC_OFF);
 LatchRelay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
 LatchRelay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
@@ -173,6 +170,10 @@ String smartOneString = "Primed";
 String smartTwoString = "Primed";
 float alt_pressure = 0;          // altitude calculated by the pressure sensor in feet
 float ascent_rate = 0;     // ascent rate of payload in feet per minute
+float Control_Altitude = 0;                 // final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
+static float prev_time = 0;                 // prev time for S_Control
+static float prev_Control_Altitude = 0;     // records the most recent altitude given by GPS when it had lock
+int test =0;
 
 //Timers
 unsigned long releaseTimer = Release_Timer * 1000;
@@ -304,16 +305,16 @@ void loop(){
     
     
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){
-    controlCounter=millis();
+    controlCounter = millis();
     SOCO.Cut(1,CutA);
     SOCO.Cut(2,CutB);
     MeasurementCheck();
     stateMachine();
   } 
-  if (millis()>300000){ //cuts A at 2 hours for thermal vac 7200000
+  if (millis()>7200000){ //cuts A at 2 hours for thermal vac 7200000
     CutA=true;
   }
-  if (millis()>600000){ //cuts B at 4 hours for thermal vac 14400000
+  if (millis()>14400000){ //cuts B at 4 hours for thermal vac 14400000
     CutB=true;
   }
 }

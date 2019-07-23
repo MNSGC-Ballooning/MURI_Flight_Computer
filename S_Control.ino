@@ -16,6 +16,7 @@ uint8_t GPSstatus = NoLock;
 boolean hdotInit = false; 
 
 
+
 void stateMachine(){
   static unsigned long castAway = 0;
   static byte initCounter = 0;
@@ -27,9 +28,9 @@ void stateMachine(){
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-  static float prev_time = 0;             // previous calculated time (in milliseconds)
+//  static float prev_time = 0;             // previous calculated time (in milliseconds)
   static int lockcounter;                 // counter for getting GPS Lock
-  static float prev_Control_Altitude = 0;     // records the most recent altitude given by GPS when it had lock
+//  static float prev_Control_Altitude = 0;     // records the most recent altitude given by GPS when it had lock
 
   
   
@@ -77,22 +78,21 @@ void stateMachine(){
   {
     Control_Altitude = GPS.getAlt_feet();       // altitude equals the alitude recorded by the Ublox
     
-    ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // calculates ascent rate in ft/min if GPS has a lock
+    ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // calculates ascent rate in ft/sec if GPS has a lock
     prev_time = millis(); 
     prev_Control_Altitude=Control_Altitude;// prev_time will equal the current time for the next loop
      // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
     // prev_Control_Altitude = Control_Altitude;                                                // Is this being used anywhere?
     prev_Control_Altitude = Control_Altitude;      //Only used when determining appropiate range to use data from barometer library for altitude
-    
   }                                 
   else if(GPSstatus == NoLock)
   {
-     if ((alt_pressure_library < prev_Control_Altitude + 1000) && (alt_pressure_library > prev_Control_Altitude - 1000)) {    
-        Control_Altitude = alt_pressure_library;                           // Control_Altitude only updated by barometer library if given altitude is within 1000ft of last GPS altitude with a lock
-     }
-     else {
+//     if ((alt_pressure_library < prev_Control_Altitude + 1000) && (alt_pressure_library > prev_Control_Altitude - 1000)) {    
+//        Control_Altitude = alt_pressure_library;                           // Control_Altitude only updated by barometer library if given altitude is within 1000ft of last GPS altitude with a lock
+//     }
+//     if {
         Control_Altitude = (ascent_rate*((millis()-prev_time)/1000))+Control_Altitude;
-     }
+//     }
 
      ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
      prev_Control_Altitude = Control_Altitude;
@@ -274,7 +274,7 @@ void stateMachine(){
 void stateSwitch(){
   static byte wilson = 0; // counter for castaway
   if(hdotInit && Control_Altitude!=0 && !recovery){ // if it has been initialized, it is above sea level, and it is not in recovery
-    if(ascent_rate>=5000 || ascent_rate<=-5000){
+    if(ascent_rate>=(5000/60) || ascent_rate<=(-5000/60)){
       Serial.println("GPS Jump Detected");
     }
     else if(ascent_rate > (250/60)){

@@ -100,7 +100,7 @@ float float_longitude = -92.5; //longitude at which the balloon begins to float
 /////////////////Constants////////////////////
 //////////////////////////////////////////////
 #define MAIN_LOOP_TIME 1000          // Main loop runs at 1 Hz
-#define CONTROL_LOOP_TIME 2000        // Control loop runs at 0.5 Hz
+#define CONTROL_LOOP_TIME 1000        // Control loop runs at 0.5 Hz
 #define TIMER_RATE (1000) 
 #define Baro_Rate (TIMER_RATE / 200)  // Process MS5607 data at 100Hz
 #define C2K 273.15 

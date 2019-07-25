@@ -10,7 +10,6 @@
 #include <UbloxGPS.h>              //Needs TinyGPS++ in order to function
 #include <i2c_t3.h>                //Required for usage of MS5607 with Teensy 3.5/3.6
 #include <Arduino.h>               //"Microcontroller stuff" - Garret Ailts 
-#include "Salus_Baro.h"            //Library for MS5607
 #include <SmartController.h>       //Library for smart units using xbees to send commands
 //#include <SoftwareSerial.h>        //Software Serial library for Plan Tower
 
@@ -94,7 +93,6 @@ float float_longitude = -92.5; //longitude at which the balloon begins to float
 //#define SIREN_ON 32
 //#define SIREN_OFF 33
 #define PMSAserial Serial1
-#define PMSBserial Serial3
 
 //////////////////////////////////////////////
 /////////////////Constants////////////////////
@@ -102,7 +100,6 @@ float float_longitude = -92.5; //longitude at which the balloon begins to float
 #define MAIN_LOOP_TIME 1000          // Main loop runs at 1 Hz
 #define CONTROL_LOOP_TIME 1000        // Control loop runs at 0.5 Hz
 #define TIMER_RATE (1000) 
-#define Baro_Rate (TIMER_RATE / 200)  // Process MS5607 data at 100Hz
 #define C2K 273.15 
 #define PMS_TIME 1 //PMS Timer
 
@@ -140,20 +137,9 @@ float t4;
 
 //GPS
 UbloxGPS GPS(&UBLOX_SERIAL);
-//boolean fixU = false;
 float alt_GPS = 0;               // altitude calculated by the GPS in feet
-
-
-
-//MS5607 pressure and temperature sensor
-Salus_Baro myBaro;
-float pressure = 0;
-float alt_pressure_library = 0;  // altitiude calculated by the pressure sensor library
-float temperature = 0;
-unsigned long prevTime = 0;
-float startAlt = 0;
-
 float prev_alt_feet = 0;         // previous calculated altitude
+
 
 ///////////////////////////////////////////
 /////////////////Control///////////////////
@@ -161,19 +147,16 @@ float prev_alt_feet = 0;         // previous calculated altitude
 // SMART
 String SmartData; //Just holds temporary copy of Smart data
 static String SmartLogA; //Log everytime, is just data from smart
-static String SmartLogB;
 static bool CutA=false; //Set to true to cut A SMART
-static bool CutB=false; //Set to true to cut B SMART
 static bool ChangeData=true; //Just set true after every data log
 SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0); //Smart controller
 String smartOneString = "Primed";
-String smartTwoString = "Primed";
-float alt_pressure = 0;          // altitude calculated by the pressure sensor in feet
+
+
 float ascent_rate = 0;     // ascent rate of payload in feet per minute
 float Control_Altitude = 0;                 // final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
 static float prev_time = 0;                 // prev time for S_Control
 static float prev_Control_Altitude = 0;     // records the most recent altitude given by GPS when it had lock
-int test =0;
 
 //Timers
 unsigned long releaseTimer = Release_Timer * 1000;
@@ -201,14 +184,9 @@ boolean SDcard = true;
 
 int nhitsA=1;            //used to count successful data transmissions
 int ntotA=1;             //used to count total attempted transmitions
-int nhitsB=1;
-int ntotB=1;
 int badLogA =1;
 boolean goodLogA = false;
-int badLogB =1;
-boolean goodLogB = false;
-static String dataPMSA="";                
-static String dataPMSB="";                
+static String dataPMSA="";                              
 struct PMS5003data {
   uint16_t framelen;
   uint16_t pm10_standard, pm25_standard, pm100_standard;
@@ -218,7 +196,6 @@ struct PMS5003data {
   uint16_t checksum;
 };
 struct PMS5003data PMSAdata;
-struct PMS5003data PMSBdata;
 //////////////////////////////////////////////
 /////////Initialize Flight Computer///////////
 //////////////////////////////////////////////
@@ -237,8 +214,6 @@ void setup() {
  
   PMSAserial.begin(9600);
   
-  PMSBserial.begin(9600);
-  
   //Initialize Radio
   XBEE_SERIAL.begin(9600); //For smart xBee
 
@@ -252,24 +227,21 @@ void setup() {
   sensor3.begin();
   sensor4.begin();
 
-  //Initialize Pressure Altimeter
-  initMS5607();
-  Serial.println("Finished init baro");
-
   //Initialize Relays
   initRelays();
   
   Serial.println("Setup Complete");
 
 }
+
+
 void loop(){
   static unsigned long controlCounter = 0;
   static unsigned long mainCounter = 0;
 //  static unsigned long pmsCounter = 0;
    GPS.update();
   // Main Thread
-   readPMSdataA(&PMSAserial);
-   readPMSdataB(&PMSBserial);
+    readPMSdataA(&PMSAserial);
   if (millis()-mainCounter>=MAIN_LOOP_TIME){
     mainCounter = millis();
     actionBlink();
@@ -291,15 +263,6 @@ void loop(){
         SmartLogA=SOCO.Response();
       }
 
-      
-      SmartLogB="";
-      SOCO.RequestTemp(2);
-      smartTimer=millis();
-      while(millis()-smartTimer<150 && SmartLogB == "")
-      {
-        SmartLogB=SOCO.Response();
-      }
-
       ChangeData=false;
       }
     
@@ -307,14 +270,11 @@ void loop(){
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){
     controlCounter = millis();
     SOCO.Cut(1,CutA);
-    SOCO.Cut(2,CutB);
     MeasurementCheck();
     stateMachine();
   } 
   if (millis()>7200000){ //cuts A at 2 hours for thermal vac 7200000
     CutA=true;
   }
-  if (millis()>14400000){ //cuts B at 4 hours for thermal vac 14400000
-    CutB=true;
-  }
+
 }

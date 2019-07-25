@@ -15,38 +15,12 @@ uint8_t FixStatus= NoFix;
 
 // check if gps fix is good
 void MeasurementCheck() {
-  if (GPS.getFixAge() < 4000)// && (GPS.getAlt_feet() > ((myBaro.getAltitude()*METERS_TO_FEET)-3000)) && (GPS.getAlt_feet() < ((myBaro.getAltitude()*METERS_TO_FEET)+3000)) && ((myBaro.getAltitude()*METERS_TO_FEET)>0)) 
+  if (GPS.getFixAge() < 4000) 
   {
     FixStatus = Fix;
   }
-  else if(GPS.getFixAge() > 4000 && (myBaro.getAltitude()*METERS_TO_FEET)>0 && (myBaro.getAltitude()*METERS_TO_FEET) > (prev_alt_feet - 6000) && (myBaro.getAltitude()*METERS_TO_FEET) < (prev_alt_feet + 6000))
-  {
-    FixStatus = NoFix;
-  }
   else
   {
     FixStatus = NoFix;
   }
 }
-/*
-bool CheckEstimate(){
-
-  Pressure_Alt = Pressure_Alt_Calc(pressure*1000,t2); // not sure where these come from but pressure should be in 'Pa' and temp should be in 'K'
-
-  if(GPS.getAlt_feet() > (Pressure_Alt - 3000) && GPS.getAlt_feet() < (Pressure_Alt + 3000))
-  {
-    return true; 
-  }
-  else
-  {
-    return false;
-  }
-}
-*/
- //determine the altitude from Pressure and Temperature using Hypsometric formula
-//float Pressure_Alt_Calc(float Pressure, float Temperature){
-//  float Pressure_Alt_SI = (SPECIFIC_GAS_CONSTANT*Temperature/GRAVITY_ACCEL)*log(SEA_LEVEL_PRESSURE/Pressure); // returns altitude based on P and T in meters.
-//  float Pressure_Alt = Pressure_Alt_SI*METERS_TO_FEET; // converts m to ft 
-//
-//  return Pressure_Alt;
-//}

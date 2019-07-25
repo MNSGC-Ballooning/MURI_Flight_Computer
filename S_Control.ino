@@ -46,7 +46,7 @@ void stateMachine(){
   if(millis() >= masterTimer) // if mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
   {
     CutA=true;
-    CutB=true;
+    //CutB=true;
     muriState = STATE_MURI_RECOVERY;
     stateString = "RECOVERY";
   }
@@ -72,7 +72,7 @@ void stateMachine(){
   }
 
                               
-  alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
+
 
   if(GPSstatus == Lock)
   {
@@ -138,9 +138,8 @@ void stateMachine(){
       {
         // stateSwtich function takes care of that since we falling fast.
         CutA=true;
-        CutB=true;
+        //CutB=true;
         smartOneString = "RELEASED";
-        smartTwoString = "RELEASED";
         termination_longitude_check = 0;
       }
     }
@@ -192,8 +191,7 @@ void stateMachine(){
         Serial.println("STATE_MURI_FAST_DESCENT");
         if(!fast)
         {
-          CutB=true;
-          smartTwoString = "RELEASED";
+          //CutB=true;
           CutA=true;
           smartOneString = "RELEASED";
           opcHeatRelay.setState(false);
@@ -211,8 +209,7 @@ void stateMachine(){
           if(floorCheck>5)
           {
             // if consistently below data collection range then release all balloons again just in case
-            CutB=true;
-            smartTwoString = "RELEASED";
+            //CutB=true;
             CutA=true;
             smartOneString = "RELEASED";
             floorCheck = 0;
@@ -231,14 +228,13 @@ void stateMachine(){
         {
           if(Control_Altitude<30000)
           {
-            CutB=true;
+            //CutB=true;
           }
           else if(Control_Altitude>=30000)
           {
             CutA=true;
             smartOneString = "RELEASED";
-            CutB=true;
-            smartTwoString = "RELEASED";
+            //CutB=true;
           }
           snail = 0;
          }
@@ -254,7 +250,7 @@ void stateMachine(){
         if(millis()-castAway >= 600000)
         {
           CutA=true;
-          CutB=true;
+          //CutB=true;
         }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////

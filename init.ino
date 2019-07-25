@@ -1,15 +1,3 @@
-void initMS5607(){
-  //initialize MS5607
-  delay(500);
-  Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_400);
-  //initialize the baraometer
-  Serial.println("Initializing Barometer...");
-  myBaro.begin();
-  startAlt=myBaro.getAltitude();
-  //Serial.print("Start Alt: " + startAlt);
-  Serial.println("Barometer Initialized. \n");
-  Wire.setRate(I2C_RATE_400);
-}
 
 void initSD(){
   //initialize SD card

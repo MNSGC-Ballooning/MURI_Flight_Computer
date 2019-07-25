@@ -40,12 +40,9 @@
 //=============================================================================================================================================
 
 //In seconds
-long maxAlt = 100000; //Default max cutdown altitude in feet! Changeable via xBee
-long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
-long Release_Timer = 15000; //Starting value for active timer that terminates flight when the timer runs out!
-long Master_Timer =  20000; //Master cut timer 
-float termination_longitude = -92.0; //longitude at which all flight systems are terminated
-float float_longitude = -92.5; //longitude at which the balloon begins to float
+long RELEASER_TIMER = 15000; //Starting value for active timer that terminates flight when the timer runs out!
+long MASTER_TIMER =  20000; //Master cut timer 
+
 //boolean opcActive = true;
 
 //=============================================================================================================================================
@@ -87,11 +84,8 @@ float float_longitude = -92.5; //longitude at which the balloon begins to float
 #define OPC_HEATER_OFF 25
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
-#define XBEE_SERIAL Serial5
+#define XBEE_SERIAL Serial3
 #define UBLOX_SERIAL Serial2
-//#define PMS5003_SERIAL Serial1
-//#define SIREN_ON 32
-//#define SIREN_OFF 33
 #define PMSAserial Serial1
 
 //////////////////////////////////////////////
@@ -102,6 +96,20 @@ float float_longitude = -92.5; //longitude at which the balloon begins to float
 #define TIMER_RATE (1000) 
 #define C2K 273.15 
 #define PMS_TIME 1 //PMS Timer
+
+
+/////////////Geographic Boundaries/////////////
+#define EASTERN_BOUNDARY 0
+#define WESTERN_BOUNDARY 0
+#define NORTHERN_BOUNDARY 0
+#define SOUTHERN_BOUNDARY 0
+#define MAX_ALTITUDE 0
+
+
+/////////////////Release Timers/////////////////
+#define RELEASER_TIMER 15000
+#define MASTER_TIMER 20000
+
 
 //////////////On Baord SD Chipselect/////////////
 const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
@@ -157,10 +165,11 @@ float ascent_rate = 0;     // ascent rate of payload in feet per minute
 float Control_Altitude = 0;                 // final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
 static float prev_time = 0;                 // prev time for S_Control
 static float prev_Control_Altitude = 0;     // records the most recent altitude given by GPS when it had lock
+static bool GPSfix = false;                 // determines if the GPS has a fix or not
 
 //Timers
-unsigned long releaseTimer = Release_Timer * 1000;
-unsigned long masterTimer = Master_Timer * 1000;
+unsigned long releaseTimer = RELEASER_TIMER * 1000;
+unsigned long masterTimer = MASTER_TIMER * 1000;
 boolean recovery = false;
 unsigned long smartTimer = 0;
 

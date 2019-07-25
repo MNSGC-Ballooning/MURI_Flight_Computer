@@ -39,14 +39,8 @@ void updateSensors() {
   t3 = sensor3.getTempCByIndex(0) + 273.15;
   t4 = sensor4.getTempCByIndex(0) + 273.15;
 
-  //myBaro.baroTask();
-  //pressure = myBaro.getPressure()/10;
-  //temperature = myBaro.getTemperature()+C2K;
-
-
   alt_GPS = GPS.getAlt_feet();                                // altitude calulated by the Ublox GPS
-  //alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
-//  alt_pressure = Pressure_Alt_Calc(pressure*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
+
   //openFlightlog();
   data = "";
   data = flightTimeStr()+ "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
@@ -55,14 +49,14 @@ void updateSensors() {
   + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()) + ","
   + String(GPS.getSats()) + ",";
   
-  //GPS should update once per second, if data is more than 2 seconds old, fix was likely lost
+  //GPS should update once per second, if data is more than 4 seconds old, fix was likely lost
   if(GPS.getFixAge() > 4000){
     data += "No Fix,";
-    //fixU == false;
+    GPSfix = false;
   }
   else{
     data += "Fix,";
-    //fixU == true;
+    GPSfix = true;
   }
 
 

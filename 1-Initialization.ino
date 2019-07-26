@@ -1,3 +1,8 @@
+void initLEDs() {
+  pinMode(ledPin, OUTPUT);
+  pinMode(ledSD, OUTPUT);
+  pinMode(fix_led, OUTPUT);
+}
 
 void initSD(){
   //initialize SD card
@@ -30,8 +35,19 @@ void initSD(){
   Serial.println("Flight log header added");
 
   closeFlightlog();
+}
+
+void initSerial() {
+  Serial.begin(9600); //USB Serial for debugging
+ 
+  PMSAserial.begin(9600); 
+}
+
+void initRadio() {
+  XBEE_SERIAL.begin(9600); //For smart xBee
   
 }
+
 
 void initGPS(){
     //initiate GPS
@@ -48,21 +64,19 @@ void initGPS(){
   Serial.println("GPS configured");
 }
 
+
 void initRelays(){
-//  opcRelay.init(false);
   opcHeatRelay.init(false);
   batHeatRelay.init(false);
-  //sirenRelay.init(false);
-//  delay(100);
-//  if (opcActive){
-//    opcRelay.setState(true);
-//    opcRelay_Status = "ON";
-//  }
-//  else{
-//    opcRelay.setState(false);
-//    opcRelay_Status = "OFF";
-//  }
   
   opcHeat_Status = "OFF";
   batHeat_Status = "OFF";
+}
+
+
+void initTempSensors() {
+  sensor1.begin();
+  sensor2.begin();
+  sensor3.begin();
+  sensor4.begin();
 }

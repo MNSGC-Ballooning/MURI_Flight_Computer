@@ -39,7 +39,14 @@ void updateSensors() {
   t3 = sensor3.getTempCByIndex(0) + 273.15;
   t4 = sensor4.getTempCByIndex(0) + 273.15;
 
+
   alt_GPS = GPS.getAlt_feet();                                // altitude calulated by the Ublox GPS
+
+
+  pressureSensor = analogRead(HONEYWELL_PRESSURE);              //Read the analog pin
+  pressureSensorVoltage = pressureSensor * (5.0/1024);          //Convert the analog number to voltage
+  PressurePSI = (pressureSensorVoltage - (0.1*5.0))/(4.0/15.0); //Convert the voltage to PSI
+  PressureATM = PressurePSI*PSI_TO_ATM;
 
   //openFlightlog();
   data = "";

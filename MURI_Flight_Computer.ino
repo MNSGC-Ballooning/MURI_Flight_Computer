@@ -84,6 +84,7 @@ long MASTER_TIMER =  20000; //Master cut timer
 #define OPC_HEATER_OFF 25
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
+#define HONEYWELL_PRESSURE A16
 #define XBEE_SERIAL Serial3
 #define UBLOX_SERIAL Serial2
 #define PMSAserial Serial1
@@ -92,10 +93,15 @@ long MASTER_TIMER =  20000; //Master cut timer
 /////////////////Constants////////////////////
 //////////////////////////////////////////////
 #define MAIN_LOOP_TIME 1000          // Main loop runs at 1 Hz
-#define CONTROL_LOOP_TIME 1000        // Control loop runs at 0.5 Hz
+#define CONTROL_LOOP_TIME 1000       // Control loop runs at 0.5 Hz
 #define TIMER_RATE (1000) 
 #define C2K 273.15 
 #define PMS_TIME 1 //PMS Timer
+#define SPECIFIC_GAS_CONSTANT  287   //(J/kg*K)
+#define SEA_LEVEL_PRESSURE  101325   //(Pa)
+#define GRAVITY_ACCEL  9.81
+#define METERS_TO_FEET  3.28084
+#define PSI_TO_ATM  0.068046                         
 
 
 /////////////Geographic Boundaries/////////////
@@ -143,10 +149,18 @@ float t2;
 float t3;
 float t4;
 
-//GPS
+
+////////////////////GPS////////////////////
 UbloxGPS GPS(&UBLOX_SERIAL);
 float alt_GPS = 0;               // altitude calculated by the GPS in feet
 float prev_alt_feet = 0;         // previous calculated altitude
+
+
+/////////Honeywell Pressure Sensor/////////
+int pressureSensor;
+float pressureSensorVoltage;
+float PressurePSI;
+float PressureATM;
 
 
 ///////////////////////////////////////////
@@ -210,31 +224,23 @@ struct PMS5003data PMSAdata;
 //////////////////////////////////////////////
 void setup() {
 
-  // initialize LEDs
-  pinMode(ledPin, OUTPUT);
-  pinMode(ledSD, OUTPUT);
-  pinMode(fix_led, OUTPUT);
+  //Initialize LEDs
+  initLEDs();
 
   //Initialize SD
   initSD();
 
   //Initialize Serial
-  Serial.begin(9600); //USB Serial for debugging
- 
-  PMSAserial.begin(9600);
+  initSerial();
   
   //Initialize Radio
-  XBEE_SERIAL.begin(9600); //For smart xBee
-
+  initRadio();
 
   //Initialize GPS
   initGPS();
   
   //Initialize Temp Sensors
-  sensor1.begin();
-  sensor2.begin();
-  sensor3.begin();
-  sensor4.begin();
+  initTempSensors();
 
   //Initialize Relays
   initRelays();
@@ -279,7 +285,6 @@ void loop(){
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){
     controlCounter = millis();
     SOCO.Cut(1,CutA);
-    MeasurementCheck();
     stateMachine();
   } 
   

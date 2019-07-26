@@ -7,7 +7,7 @@
 
 #define Lock    0xAA   //10101010
 #define NoLock  0xBB   //10111011
-boolean usingGPS = false;
+
 uint8_t AlbertState;
 uint8_t GPSstatus = NoLock;
 bool BalloonBurst = false;                           // Indicates if the balloon burst instead of being released
@@ -82,8 +82,10 @@ void stateMachine(){
     switch(AlbertState)
     {
       case 0x01: //Initialization
-      Serial.println("STATE_ALBERT_INITIALIZATION");
-      StateSwitch();
+        Serial.println("STATE_ALBERT_INITIALIZATION");
+        StateSwitch();
+
+        break;
 
 
      /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,7 +187,7 @@ void StateSwitch(){
   }
   
   else if(AlbertState == STATE_ALBERT_ASCENT && GPSfix) {            //Detects if the payload started to descend because of a balloon burst
-    if(ascent_rate < -500) {
+    if(ascent_rate < -2000) {
       balloon_burst_check++;
     }
     else {

@@ -282,8 +282,5 @@ void loop(){
     MeasurementCheck();
     stateMachine();
   } 
-  if (millis()>7200000){ //cuts A at 2 hours for thermal vac 7200000
-    CutA=true;
-  }
-
+  
 }

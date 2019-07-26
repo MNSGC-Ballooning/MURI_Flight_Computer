@@ -28,13 +28,16 @@
 //=============================================================================================================================================
 //=============================================================================================================================================
 
+//
+//                         ___      _        ______    _____   ______   _____  
+//                        / _ \    | |       | ___ \  |  ___|  | ___ \ |_   _| 
+//                       / /_\ \   | |       | |_/ /  | |__    | |_/ /   | |   
+//                       |  _  |   | |       | ___ \  |  __|   |    /    | |   
+//                       | | | | _ | |____ _ | |_/ /_ | |___ _ | |\ \  _ | | _ 
+//                       \_| |_/(_)\_____/(_)\____/(_)\____/(_)\_| \_|(_)\_/(_)
+                                                       
+                                                       
 
-//       _________       __    __     ____                                  __                
-//      / ____/ (_)___ _/ /_  / /_   / __ \____ __________ _____ ___  ___  / /____  __________
-//     / /_  / / / __ `/ __ \/ __/  / /_/ / __ `/ ___/ __ `/ __ `__ \/ _ \/ __/ _ \/ ___/ ___/
-//    / __/ / / / /_/ / / / / /_   / ____/ /_/ / /  / /_/ / / / / / /  __/ /_/  __/ /  (__  ) 
-//   /_/   /_/_/\__, /_/ /_/\__/  /_/    \__,_/_/   \__,_/_/ /_/ /_/\___/\__/\___/_/  /____/  
-//             /____/                                                                         
 
 //=============================================================================================================================================
 //=============================================================================================================================================
@@ -71,9 +74,9 @@ long MASTER_TIMER =  20000; //Master cut timer
 /////////////////////////////////////////////
 ///////////////Pin Definitions///////////////
 /////////////////////////////////////////////
-#define ledPin 21           //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
-#define ledSD 23            //Pin which controls the SD LED
-#define fix_led 22          //led  which blinks for fix
+#define Pin_LED 21          //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
+#define Fix_LED 22          //led  which blinks for fix
+#define SD_LED 23           //Pin which controls the SD LED
 #define ONE_WIRE_BUS 29     //Internal Temp
 #define TWO_WIRE_BUS 30     //External Temp
 #define THREE_WIRE_BUS 31   //Battery Temp
@@ -87,7 +90,7 @@ long MASTER_TIMER =  20000; //Master cut timer
 #define HONEYWELL_PRESSURE A16
 #define XBEE_SERIAL Serial3
 #define UBLOX_SERIAL Serial2
-#define PMSAserial Serial1
+#define PMSserial Serial1
 
 //////////////////////////////////////////////
 /////////////////Constants////////////////////
@@ -157,10 +160,10 @@ float prev_alt_feet = 0;         // previous calculated altitude
 
 
 /////////Honeywell Pressure Sensor/////////
-int pressureSensor;
-float pressureSensorVoltage;
-float PressurePSI;
-float PressureATM;
+int pressureSensor;              // Analog number given by sensor
+float pressureSensorVoltage;     // Voltage calculated from analog number
+float PressurePSI;               // PSI calculated from voltage
+float PressureATM;               // ATM calculated from PSI
 
 
 ///////////////////////////////////////////
@@ -168,8 +171,8 @@ float PressureATM;
 ///////////////////////////////////////////
 // SMART
 String SmartData; //Just holds temporary copy of Smart data
-static String SmartLogA; //Log everytime, is just data from smart
-static bool CutA=false; //Set to true to cut A SMART
+static String SmartLog; //Log everytime, is just data from smart
+static bool Cut=false; //Set to true to cut A SMART
 static bool ChangeData=true; //Just set true after every data log
 SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0); //Smart controller
 String smartOneString = "Primed";
@@ -209,7 +212,7 @@ int nhitsA=1;            //used to count successful data transmissions
 int ntotA=1;             //used to count total attempted transmitions
 int badLogA =1;
 boolean goodLogA = false;
-static String dataPMSA="";                              
+static String dataPMS="";                              
 struct PMS5003data {
   uint16_t framelen;
   uint16_t pm10_standard, pm25_standard, pm100_standard;
@@ -218,7 +221,7 @@ struct PMS5003data {
   uint16_t unused;
   uint16_t checksum;
 };
-struct PMS5003data PMSAdata;
+struct PMS5003data PMSdata;
 //////////////////////////////////////////////
 /////////Initialize Flight Computer///////////
 //////////////////////////////////////////////
@@ -253,38 +256,26 @@ void setup() {
 void loop(){
   static unsigned long controlCounter = 0;
   static unsigned long mainCounter = 0;
-//  static unsigned long pmsCounter = 0;
-   GPS.update();
-  // Main Thread
-    readPMSdataA(&PMSAserial);
+
+  UpdateGPS();                                       // Update the GPS with new values
+  readPMSdata(&PMSserial);
+  
   if (millis()-mainCounter>=MAIN_LOOP_TIME){
     mainCounter = millis();
     actionBlink();
     fixBlink();
     updateSensors();   //Updates and logs all sensor data
-    actHeat();
-    
+    actHeat();  
   }
   
   
   // Control Thread
 
-    if (ChangeData){
-      SmartLogA="";
-      SOCO.RequestTemp(1);
-      smartTimer=millis();
-      while(millis()-smartTimer<150 && SmartLogA == "")
-      {
-        SmartLogA=SOCO.Response();
-      }
-
-      ChangeData=false;
-      }
-    
+  SMARTControl();     //Control function for SMART unit
     
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){
     controlCounter = millis();
-    SOCO.Cut(1,CutA);
+    SOCO.Cut(1,Cut);
     stateMachine();
   } 
   

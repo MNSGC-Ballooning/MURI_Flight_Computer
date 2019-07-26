@@ -208,3 +208,11 @@ void StateSwitch(){
   }
 
 } 
+
+
+void releaseSMART() {
+  Cut=true;
+  smartOneString = "RELEASED";
+  AlbertState = STATE_ALBERT_DESCENT;
+  stateString = "DESCENT";
+}

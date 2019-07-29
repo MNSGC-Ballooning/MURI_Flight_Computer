@@ -2,10 +2,6 @@
 
 //function to handle both retrieval of data from GPS module and sensors, as well as recording it on the SD card
 void updateSensors() {
- static unsigned long prevTime = 0;
- if(millis()-prevTime>=3000){
-
-  prevTime = millis();
   
   UpdateRelays();                                           // Update the relay states
 
@@ -15,14 +11,14 @@ void updateSensors() {
 
   GetGPSAltitude();                                         // Update the GPS altitude in alt_GPS
 
+  OPCdata = Plan.logUpdate();                               // Update the plantower
+
+  OPCdata += ',' + ' ' + ',' + Sps.logUpdate();             // Update the sensirion
+
   SDLog();                                                  // Log everything to the SD card
-  
-  }  
+   
   
 }
-
-
-
 
 //////////////// LED ////////////////
 

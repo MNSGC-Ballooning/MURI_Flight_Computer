@@ -88,7 +88,7 @@ long MASTER_TIMER =  20000; //Master cut timer
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
 #define HONEYWELL_PRESSURE A16
-#define SPS_SERIAL Serial4
+#define SPS_SERIAL Serial5
 #define XBEE_SERIAL Serial3
 #define UBLOX_SERIAL Serial2
 #define PMSserial Serial1

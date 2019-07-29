@@ -18,7 +18,7 @@ void SDLog() {
   openFlightlog();
   Serial.println(data);
   delay(100);
-  pmsUpdateA();
+  pmsUpdate();
 
   Serial.println(dataPMS);
   Flog.println(data + " " + "," + dataPMS);

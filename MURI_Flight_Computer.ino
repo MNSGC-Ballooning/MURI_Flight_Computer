@@ -88,6 +88,7 @@ long MASTER_TIMER =  20000; //Master cut timer
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
 #define HONEYWELL_PRESSURE A16
+#define SPS_SERIAL Serial4
 #define XBEE_SERIAL Serial3
 #define UBLOX_SERIAL Serial2
 #define PMSserial Serial1
@@ -97,6 +98,7 @@ long MASTER_TIMER =  20000; //Master cut timer
 //////////////////////////////////////////////
 #define MAIN_LOOP_TIME 1000          // Main loop runs at 1 Hz
 #define CONTROL_LOOP_TIME 1000       // Control loop runs at 0.5 Hz
+#define SPS_30_TIME 1500
 #define TIMER_RATE (1000) 
 #define C2K 273.15 
 #define PMS_TIME 1 //PMS Timer
@@ -208,10 +210,10 @@ boolean SDcard = true;
 
 //Plantower Definitions
 
-int nhitsA=1;            //used to count successful data transmissions
-int ntotA=1;             //used to count total attempted transmitions
-int badLogA =1;
-boolean goodLogA = false;
+int nhits=1;            //used to count successful data transmissions
+int ntot=1;             //used to count total attempted transmitions
+int badLog =1;
+boolean goodLog = false;
 static String dataPMS="";                              
 struct PMS5003data {
   uint16_t framelen;
@@ -222,6 +224,32 @@ struct PMS5003data {
   uint16_t checksum;
 };
 struct PMS5003data PMSdata;
+
+//SPS30 Definitions
+
+byte buffers[40] = {0}, systemInfo [5] = {0}, MassC[16] = {0};                  //Byte variables for collection and organization of data from the SPS30.
+byte NumC[20] = {0}, AvgS[4] = {0}, dataEmpty = 0, checksum = 0, SPSChecksum = 0;
+bool goodLogS = false;
+int badLogS = 0;
+
+union mass                                                                      //Defines the union for mass concentration
+{
+  byte MCA[16];
+  float MCF[4];
+}m;
+
+union num                                                                       //Defines the union for number concentration
+{
+  byte NCA[20];
+  float NCF[5];
+}n;
+
+union avg                                                                       //Defines the union for average sizes
+{
+  byte ASA[4];
+  float ASF;
+}a;
+
 //////////////////////////////////////////////
 /////////Initialize Flight Computer///////////
 //////////////////////////////////////////////
@@ -247,6 +275,9 @@ void setup() {
 
   //Initialize Relays
   initRelays();
+
+  //Initialize SPS
+  SPS_init(&SPS_SERIAL);                                                        //The SPS30 Initialization command will boot and clean the sensor.
   
   Serial.println("Setup Complete");
 
@@ -278,5 +309,8 @@ void loop(){
     SOCO.Cut(1,Cut);
     stateMachine();
   } 
+
+//RETURNS DATA STRING, RUNS AT 1500 MS
+  SPS_Update(&SPS_SERIAL);
   
 }

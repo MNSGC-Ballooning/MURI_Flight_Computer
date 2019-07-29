@@ -38,19 +38,17 @@ void initSD(){
   closeFlightlog();
 }
 
-
 void initSerial() {
   Serial.begin(9600); //USB Serial for debugging
  
-  PMSserial.begin(9600); 
+  PMSserial.begin(9600);   delay(100);
+  SPS_SERIAL.begin(115200);                                                     //Serial initializations for SPS and computer.
 }
-
 
 void initRadio() {
   XBEE_SERIAL.begin(9600); //For smart xBee
   
 }
-
 
 void initGPS(){
     //initiate GPS

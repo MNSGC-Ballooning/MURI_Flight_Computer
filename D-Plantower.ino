@@ -1,6 +1,6 @@
-void pmsUpdateA() {
+void pmsUpdate() {
     dataPMS = "";                                                                  //Log sample number, in flight time
-    dataPMS += ntotA;
+    dataPMS += ntot;
     dataPMS += ",";  
   if (readPMSdata(&PMSserial)) {
     dataPMS += PMSdata.particles_03um;                                            //If data is in the buffer, log it
@@ -15,17 +15,17 @@ void pmsUpdateA() {
     dataPMS += ",";
     dataPMS += PMSdata.particles_100um;
     
-    nhitsA=nhitsA+1;                                                                 //Log sample number, in flight time
+    nhits=nhits+1;                                                                 //Log sample number, in flight time
     
-    ntotA = ntotA+1;                                                                 //Total samples
+    ntot = ntot+1;                                                                 //Total samples
 
-    goodLogA = true;                                                                //If data is successfully collected, note the state;
-    badLogA = 0;
+    goodLog = true;                                                                //If data is successfully collected, note the state;
+    badLog = 0;
 
   } else {
-    badLogA++;                                                                      //If there are five consecutive bad logs, not the state;
-    if (badLogA == 5){
-      goodLogA = false;
+    badLog++;                                                                      //If there are five consecutive bad logs, not the state;
+    if (badLog >= 5){
+      goodLog = false;
       dataPMS += '%' + ',' + 'Q' + ',' + '=' + ',' + '!' + ',' + '@' + ',' + '$';
     }
   }

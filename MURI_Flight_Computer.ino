@@ -8,18 +8,17 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <UbloxGPS.h>              //Needs TinyGPS++ in order to function
-#include <i2c_t3.h>                //Required for usage of MS5607 with Teensy 3.5/3.6
 #include <Arduino.h>               //"Microcontroller stuff" - Garret Ailts 
 #include <SmartController.h>       //Library for smart units using xbees to send commands
 //#include <SoftwareSerial.h>        //Software Serial library for Plan Tower
 
 //==============================================================
 //               MURI Flight Computer
-//               Written by Garrett Ailts - ailts008 Summer 2018 
+//               Written by Patrick James Collins (PJ) - coll0792 Summer 2019
 //               Edited by Asif Ally  - allyx004 Summer 2019                  
 //==============================================================
 
-//Version Description: MURI Flight Computer for double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
+//Version Description: MURI ALBERT Flight Computer for double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
 //Switches states based on ascent rate
 //
 // Use: There are three switches to activate the payload fully. Switches should be flipped in order from right to left. Switch one powers the motherboard, switch two

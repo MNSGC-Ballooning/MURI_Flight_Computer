@@ -29,8 +29,8 @@ void initSD(){
   
   Serial.println("Flight log created: " + Fname);
 
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, PMS (K), External Ambient (K), Battery (K), PMSB (K), Battery Heater Status, PMSB Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Control Altitude, Smart A, Smart B, Ascent Rate, System State";
-  FHeader+= "PT, nhits, 03um, 05um, 10um, 25um, 50um, 100um,SPS,nhits,MC PM1,MC PM2.5,MC PM4,MC PM10,NC PM0.5,NC PM1,NC PM2.5,NC PM4,NC PM10,APS";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, External Ambient (K), Internal Ambient (K), Battery (K), Pressure(PSI), Pressure(ATM), Battery Heater Status, PMSB Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Control Altitude, Smart A, Smart B, Ascent Rate, System State";
+  FHeader+= "PT, nhits, 0.3um, 0.5um, 1.0um, 2.5um, 5.0um, 10.0um,SPS,nhits,MC 1um,MC 2.5um,MC 4um,MC 10um,NC 0.5um,NC 1.0um,NC 2.5um,NC 4.0um,NC 10.0um,APS";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 
@@ -76,7 +76,6 @@ void initTempSensors() {
   sensor1.begin();
   sensor2.begin();
   sensor3.begin();
-  sensor4.begin();
 }
 
 void initOPCs() {

@@ -11,7 +11,7 @@ void SDLog() {
   
   CheckFix();
 
-  data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
+  data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(PressurePSI) + "," + String(PressureATM) + ",");
   data += (batHeat_Status + "," + opcHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
   data += (SmartLog + "," + String(ascent_rate) + "," + stateString + ",");

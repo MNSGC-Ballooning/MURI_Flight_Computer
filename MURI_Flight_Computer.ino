@@ -76,10 +76,9 @@ long MASTER_TIMER =  20000; //Master cut timer
 #define Pin_LED 21          //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
 #define Fix_LED 22          //led  which blinks for fix
 #define SD_LED 23           //Pin which controls the SD LED
-#define ONE_WIRE_BUS 29     //Internal Temp
-#define TWO_WIRE_BUS 30     //External Temp
+#define ONE_WIRE_BUS 29     //External Temp
+#define TWO_WIRE_BUS 30     //Internal Temp
 #define THREE_WIRE_BUS 31   //Battery Temp
-#define FOUR_WIRE_BUS 32    //OPC Temp
 //#define OPC_ON 5            //Relay switches
 //#define OPC_OFF 6
 #define OPC_HEATER_ON 24
@@ -138,11 +137,10 @@ String batHeat_Status = "";
 OneWire oneWire1(ONE_WIRE_BUS);
 OneWire oneWire2(TWO_WIRE_BUS);
 OneWire oneWire3(THREE_WIRE_BUS);
-OneWire oneWire4(FOUR_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-DallasTemperature sensor4(&oneWire4);
+
 float t1;
 float t2;
 float t3;

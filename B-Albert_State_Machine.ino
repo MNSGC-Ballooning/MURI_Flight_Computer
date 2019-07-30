@@ -1,4 +1,5 @@
 //Controller that looks at the derivative of altitude and the current altitude state
+//Use this dude for merge conflict
 #define STATE_ALBERT_INITIALIZATION  0x01    //0000 0001
 #define STATE_ALBERT_ASCENT          0x02    //0000 0010
 #define STATE_ALBERT_DESCENT         0x04    //0000 0100
@@ -104,9 +105,13 @@ void stateMachine(){
               skyCheck = 0;  
             }
           }
+          else 
+          {
+            skyCheck = 0;
+          }
 
           if(Control_Altitude!=prev_Control_Altitude && GPSfix) {
-            if((GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) ) //Checks to see if payload is within longitudinal boundaries
+            if((GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) ) //Checks to see if payload is outside of longitudinal boundaries
             {
               termination_longitude_check++;
               Serial.println("Termination Longitude check: " + String(termination_longitude_check));
@@ -122,7 +127,7 @@ void stateMachine(){
             }
 
 
-            if((GPS.getLat() != 0) && ((float(GPS.getLat()) < NORTHERN_BOUNDARY) || (float(GPS.getLat()) > SOUTHERN_BOUNDARY)) ) //Checks to see if payload is within latitudinal boundaries
+            if((GPS.getLat() != 0) && ((float(GPS.getLat()) > NORTHERN_BOUNDARY) || (float(GPS.getLat()) < SOUTHERN_BOUNDARY)) ) //Checks to see if payload is outside of latitudinal boundaries
             {
               termination_latitude_check++;
               Serial.println("Termination Latitude check: " + String(termination_latitude_check));
@@ -175,29 +180,27 @@ void StateSwitch(){
   if(AlbertState == STATE_ALBERT_INITIALIZATION && GPSfix) {
     if(Control_Altitude != 0 && Control_Altitude > 5000) {
       state_init_check++;
+      if (state_init_check >= 5) {
+        AlbertState = STATE_ALBERT_ASCENT;
+        stateString = "ASCENT";
+      }
     }
     else {
       state_init_check = 0;
-    }
-
-    if (state_init_check >= 5) {
-      AlbertState = STATE_ALBERT_ASCENT;
-      stateString = "ASCENT";
     }
   }
   
   else if(AlbertState == STATE_ALBERT_ASCENT && GPSfix) {            //Detects if the payload started to descend because of a balloon burst
     if(ascent_rate < -2000) {
       balloon_burst_check++;
+      if(balloon_burst_check >= 5) {
+        AlbertState = STATE_ALBERT_DESCENT;
+        stateString = "DESCENT";
+        BalloonBurst = true;
+      }
     }
     else {
       balloon_burst_check = 0;
-    }
-
-    if(balloon_burst_check >= 5) {
-      AlbertState = STATE_ALBERT_DESCENT;
-      stateString = "DESCENT";
-      BalloonBurst = true;
     }
   }
 

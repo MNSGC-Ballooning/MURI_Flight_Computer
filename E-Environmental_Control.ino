@@ -54,12 +54,10 @@ void GetTemperature() {
   sensor1.requestTemperatures();
   sensor2.requestTemperatures();
   sensor3.requestTemperatures();
-  sensor4.requestTemperatures();
 
 
-  t1 = sensor1.getTempCByIndex(0) + 273.15;
-  t2 = sensor2.getTempCByIndex(0) + 273.15;
-  t3 = sensor3.getTempCByIndex(0) + 273.15;
-  t4 = sensor4.getTempCByIndex(0) + 273.15;
+  t1 = sensor1.getTempCByIndex(0) + C2K;
+  t2 = sensor2.getTempCByIndex(0) + C2K;
+  t3 = sensor3.getTempCByIndex(0) + C2K;
 
 }

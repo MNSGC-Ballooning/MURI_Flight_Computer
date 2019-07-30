@@ -69,7 +69,6 @@ void stateMachine(){
   
   else if(GPSstatus == NoLock)
   {
-
      Control_Altitude += (ascent_rate*((millis()-prev_time)/1000));
      prev_Control_Altitude = Control_Altitude;
      prev_time = millis();                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
@@ -83,7 +82,6 @@ void stateMachine(){
     switch(AlbertState)
     {
       case 0x01: //Initialization
-        Serial.println("STATE_ALBERT_INITIALIZATION");
         StateSwitch();
 
         break;
@@ -92,7 +90,6 @@ void stateMachine(){
      /////////////////////////////////////////////////////////////////////////////////////////////////////
       
       case 0x02: // Ascent
-        Serial.println("STATE_ALBERT_ASCENT");
         StateSwitch();            
 
         if(Control_Altitude != 0) {
@@ -150,7 +147,6 @@ void stateMachine(){
       /////////////////////////////////////////////////////////////////////////////////////////////////////
 
       case 0x04: // Descent
-        Serial.println("STATE_ALBERT_DESCENT");
         StateSwitch();        //Necessary to check if we can enter the recovery state
         
         break;
@@ -158,7 +154,6 @@ void stateMachine(){
       /////////////////////////////////////////////////////////////////////////////////////////////////////
       
       case 0x08: // Recovery
-        Serial.println("STATE_ALBERT_RECOVERY");
         StateSwitch();        //Not necessary to call it here, but done so to be consistent with other states
         if(!recovery)
         {

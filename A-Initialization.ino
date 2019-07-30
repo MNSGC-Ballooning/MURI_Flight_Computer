@@ -29,7 +29,7 @@ void initSD(){
   
   Serial.println("Flight log created: " + Fname);
 
-  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, External Ambient (K), Internal Ambient (K), Battery (K), Pressure(PSI), Pressure(ATM), Battery Heater Status, PMSB Heater Status, MS5607 temperature (K), MS5607 pressure (kPa), MS5607 altitude (ft), Control Altitude, Smart A, Smart B, Ascent Rate, System State";
+  String FHeader = "Flight Time, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, External Ambient (K), Internal Ambient (K), Battery (K), Pressure(PSI), Pressure(ATM), Battery Heater Status, PMS Heater Status, Control Altitude, Smart, Ascent Rate, System State";
   FHeader+= "PT, nhits, 0.3um, 0.5um, 1.0um, 2.5um, 5.0um, 10.0um,SPS,nhits,MC 1um,MC 2.5um,MC 4um,MC 10um,NC 0.5um,NC 1.0um,NC 2.5um,NC 4.0um,NC 10.0um,APS";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
@@ -54,14 +54,12 @@ void initGPS(){
   UBLOX_SERIAL.begin(UBLOX_BAUD);
   GPS.init();
   //Initiate GPS Data lines
-  Serial.println("GPS begin");
   delay(50);
   if(GPS.setAirborne()){
     Serial.println("Airbrone mode set!");
   }
 
   //GPS setup and config
-  Serial.println("GPS configured");
 }
 
 void initRelays(){

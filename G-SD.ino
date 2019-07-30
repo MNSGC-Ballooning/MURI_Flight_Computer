@@ -16,10 +16,10 @@ void SDLog() {
   data += (String(Control_Altitude) + ",");
   data += (SmartLog + "," + String(ascent_rate) + "," + stateString + ",");
   openFlightlog();
-  Serial.println(data);
+  Serial.println(data + "," + "=");
 
   Serial.println(OPCdata);
-  Flog.println(data + ' ' + ',' + OPCdata);
+  Flog.println(data + "," + "=" + "," + OPCdata);
   closeFlightlog();
 
   

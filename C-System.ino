@@ -79,8 +79,8 @@ void UpdateRelays() {
 
 /////////////Flight Time/////////////
 
-//returns the above flight time as a usable string for print statements
-String flightTimeStr() {
+//returns the above flight time as usable strings for print statements
+String FlightTimeStr() {
   unsigned long t = millis() / 1000;
   String fTime = "";
   fTime += (String(t / 3600) + ":");
@@ -91,8 +91,15 @@ String flightTimeStr() {
   t %= 60;
   fTime += (String(t / 10) + String(t % 10));
   return fTime;
+
 }
 
+
+String FlightTimeMinutes(){
+  unsigned long minutes = millis() / 1000;
+  minutes = minutes / 60;
+  return minutes;
+}
 
 
 /////////////// SMART ///////////////

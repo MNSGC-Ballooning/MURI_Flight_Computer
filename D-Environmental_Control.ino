@@ -10,10 +10,10 @@ void actHeat(){
   if(t3 > t_high) {
     coldBattery = false; // if temperature is above high critical temperature
   }
-  if(150 < t4 && t4 < t_low){
+  if(150 < t2 && t2 < t_low){
     coldOPC = true;    
   }
-  if(t4 > t_high){
+  if(t2 > t_high){
     coldOPC = false;
   }
 

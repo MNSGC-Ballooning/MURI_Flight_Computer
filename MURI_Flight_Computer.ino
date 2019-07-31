@@ -1,13 +1,15 @@
 //Autonomous LDS Based Extrapolation and Recording Tool (ALBERT)
 
-//===================================================
-//               MURI Flight Computer
-//       University of Minnesota - MURI Candler 
-//                   July 2019                  
-//===================================================
+
+//==========================================================================
+//           MURI Flight Computer
+//           Written by Patrick (PJ) Collins - coll0792 July 2019
+//           Edited by Asif Ally  - allyx004 Summer 2019                  
+//=========================================================================
+
 
 //Version Description: MURI Flight Computer for single balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
-//Switches states based on ascent rate. The system carries an external SMART to artifically end flight based on GPS fencing, altitude, or a timer.
+//The system carries an external SMART to artificially switch states and end flight based on GPS fencing, altitude, or a timer.
 
 //Use: There are three switches to activate the payload fully. Switches should be flipped in order from right to left. Switch one powers the motherboard, switch two
 //powers the microcontroller, and switch three initializes the recovery siren (technically not a switch, but a plug).
@@ -74,7 +76,7 @@
 #define BAT_HEATER_ON 5                                                    //Latching relay pins for the battery heater
 #define BAT_HEATER_OFF 6
 #define HONEYWELL_PRESSURE A16                                             //Pressure sensor, on an analog pin
-#define SPS_SERIAL Serial5                                                 //SPS30 IO
+#define SPS_SERIAL Serial5                                                 //SPS30 
 #define XBEE_SERIAL Serial3                                                //XBEE IO
 #define UBLOX_SERIAL Serial2                                               //UBLOX IO
 #define PMS_SERIAL Serial1                                                 //PLANTOWER IO
@@ -93,11 +95,11 @@
 #define PSI_TO_ATM  0.068046                                               //Live love conversions                
 
 /////////////Geographic Boundaries///////////
-#define EASTERN_BOUNDARY 0                                                 //Degrees longitude (MN is about -93)
-#define WESTERN_BOUNDARY 0                                                 //Degrees longitude 
-#define NORTHERN_BOUNDARY 0                                                //Degrees latitude (MN is about 44)
-#define SOUTHERN_BOUNDARY 0                                                //Degrees latitude
-#define MAX_ALTITUDE 0                                                     //Altitude (feet) (MN is about 800ft)
+#define EASTERN_BOUNDARY -92.3                                             //Longitude of Waterloo, IA
+#define WESTERN_BOUNDARY -97.4                                             //Longitude of Yankton, SD
+#define NORTHERN_BOUNDARY 45.6                                             //Latitude of St. Cloud, MN
+#define SOUTHERN_BOUNDARY 41.6                                             //Latitude of Des Moines, IA
+#define MAX_ALTITUDE 120000                                                //Altitude (feet) (MN is about 800ft)
 
 //////////////Release Timers/////////////////
 #define RELEASER_TIMER 15000                                               //Starting value for active timer that terminates flight when the timer runs out!

@@ -34,7 +34,7 @@ void stateMachine(){
   
   if(millis() >= masterTimer) // if mission time is exceeded without recovery, it cuts the balloons and just enters the descent state
   {
-    releaseSMART();           // Function is in Utils
+    releaseSMART();           // Function is in System
   }
 
   
@@ -61,7 +61,7 @@ void stateMachine(){
   {
     Control_Altitude = GPS.getAlt_feet();       // altitude equals the alitude recorded by the Ublox
     
-    ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // calculates ascent rate in ft/sec if GPS has a lock
+    ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000*60; // calculates ascent rate in ft/min if GPS has a lock
     prev_time = millis(); 
     prev_Control_Altitude=Control_Altitude;           // prev_time will equal the current time for the next loop
                                                       // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
@@ -69,13 +69,10 @@ void stateMachine(){
   
   else if(GPSstatus == NoLock)
   {
-     Control_Altitude += (ascent_rate*((millis()-prev_time)/1000));
+     Control_Altitude += (ascent_rate*((millis()-prev_time)/(1000*60)));
      prev_Control_Altitude = Control_Altitude;
      prev_time = millis();                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
   }
-
- 
-  StateSwitch();                                //Controller that changes State based on derivative of altitude
   
 ////////////////////////Finite State Machine/////////////////////////  
 
@@ -200,7 +197,7 @@ void StateSwitch(){
   }
 
   
-  else if(AlbertState == STATE_ALBERT_DESCENT && Control_Altitude != 0 && Control_Altitude < 7000){      //Detects if the payload is nearing the ground 
+  else if(AlbertState == STATE_ALBERT_DESCENT && Control_Altitude != 0 && Control_Altitude < 7000 && GPSfix) {      //Detects if the payload is nearing the ground 
       AlbertState = STATE_ALBERT_RECOVERY;
       stateString = "RECOVERY";
   }

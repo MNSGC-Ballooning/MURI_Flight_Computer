@@ -3,7 +3,7 @@ boolean FlightlogOpen = false;
 
 void SDLog() {
   data = "";
-  data = flightTimeStr()+ "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
+  data = FlightTimeStr()+ "," + FlightTimeMinutes() + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
   + String(alt_GPS, 1) + ","
   + String(GPS.getMonth()) + "/" + String(GPS.getDay()) + "/" + String(GPS.getYear()) + ","
   + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()) + ","
@@ -14,7 +14,7 @@ void SDLog() {
   data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(PressurePSI) + "," + String(PressureATM) + ",");
   data += (batHeat_Status + "," + opcHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
-  data += (SmartLog + "," + String(ascent_rate) + "," + stateString + ",");
+  data += (SmartLog + "," + String(ascent_rate) + "," + stateString + "," + String(BalloonBurst)+ ",");
   openFlightlog();
   Serial.println(data + "," + "=");
 

@@ -27,6 +27,7 @@ void stateMachine(){
     AlbertState = STATE_ALBERT_INITIALIZATION;
     stateString = "Initialization";
     state_init = true;
+    StateInitTimer = millis();
     Serial.println("Initializing state machine...");
   }
 
@@ -73,22 +74,28 @@ void stateMachine(){
      prev_Control_Altitude = Control_Altitude;
      prev_time = millis();                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
   }
+
+
+  StateSwitch();
   
 ////////////////////////Finite State Machine/////////////////////////  
 
     switch(AlbertState)
     {
       case 0x01: //Initialization
-        StateSwitch();
 
+        if (millis() - StateInitTimer >= STATE_INIT_TIME) {
+          AlbertState = STATE_ALBERT_ASCENT;
+          stateString = "ASCENT";
+        }
+      
         break;
 
 
      /////////////////////////////////////////////////////////////////////////////////////////////////////
       
       case 0x02: // Ascent
-        StateSwitch();            
-
+      
         if(Control_Altitude != 0) {
           if(Control_Altitude > MAX_ALTITUDE){ // checks to see if payload has hit the max mission alt
             skyCheck++;
@@ -144,14 +151,13 @@ void stateMachine(){
       /////////////////////////////////////////////////////////////////////////////////////////////////////
 
       case 0x04: // Descent
-        StateSwitch();        //Necessary to check if we can enter the recovery state
         
         break;
 
       /////////////////////////////////////////////////////////////////////////////////////////////////////
       
       case 0x08: // Recovery
-        StateSwitch();        //Not necessary to call it here, but done so to be consistent with other states
+   
         if(!recovery)
         {
           recovery = true;

@@ -190,15 +190,14 @@ void stateMachine(){
       ////////////////////////////////////////////////////////////////////////////////////////////////
       case 0x02: // Fast Descent
         Serial.println("STATE_MURI_FAST_DESCENT");
-        if(!fast)
-        {
-          CutB=true;
-          smartTwoString = "RELEASED";
-          CutA=true;
-          smartOneString = "RELEASED";
-          opcHeatRelay.setState(false);
-          batHeatRelay.setState(false);
-          fast=true;
+        if(!fast) {
+            CutB=true;
+            smartTwoString = "RELEASED";
+            CutA=true;
+            smartOneString = "RELEASED";
+            opcHeatRelay.setState(false);
+            batHeatRelay.setState(false);
+            fast=true;
         }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -272,31 +271,69 @@ void stateMachine(){
 
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
 void stateSwitch(){
+  static byte ascent_counter = 0;
+  static byte slow_ascent_counter = 0;
+  static byte slow_descent_counter = 0;
+  static byte fast_descent_counter = 0;
+  static byte recovery_counter = 0;
   static byte wilson = 0; // counter for castaway
   if(hdotInit && Control_Altitude!=0 && !recovery){ // if it has been initialized, it is above sea level, and it is not in recovery
     if(ascent_rate>=(5000/60) || ascent_rate<=(-5000/60)){
       Serial.println("GPS Jump Detected");
     }
-    else if(ascent_rate > (250/60)){
-      muriState = STATE_MURI_ASCENT;
-      stateString = "ASCENT";
-    }
-    else if(ascent_rate>(50/60) && ascent_rate<=(250/60)){
-      muriState = STATE_MURI_SLOW_ASCENT;
-      stateString = "SLOW ASCENT";
-    }
-    else if(ascent_rate >= (-1500/60) && ascent_rate < (-50/60)){
-      muriState = STATE_MURI_SLOW_DESCENT;
-      stateString = "SLOW DESCENT";
-      if(Control_Altitude<minAlt){ // determine minimum altitude
-        minAlt=Control_Altitude-10000;
+    
+    if(ascent_rate > (250/60)){
+      ascent_counter++;
+      if (ascent_counter >= 5) {
+        muriState = STATE_MURI_ASCENT;
+        stateString = "ASCENT";
+        ascent_counter = 0;
       }
     }
-    else if(ascent_rate<=(-2000/60) && Control_Altitude>7000){
-      muriState = STATE_MURI_FAST_DESCENT;
-      stateString = "FAST DESCENT";
+    else{
+      ascent_counter = 0;
     }
-    else if(ascent_rate>=(-50/60) && ascent_rate<=(50/60)){
+    
+    if(ascent_rate>(50/60) && ascent_rate<=(250/60)){
+      slow_ascent_counter++;
+      if (slow_ascent_counter >= 5) {
+        muriState = STATE_MURI_SLOW_ASCENT;
+        stateString = "SLOW ASCENT";
+        slow_ascent_counter = 0;
+      }
+    }
+    else {
+      slow_ascent_counter = 0;
+    }
+    
+    if(ascent_rate >= (-1500/60) && ascent_rate < (-50/60)){
+      slow_descent_counter++;
+      if (slow_descent_counter >= 5) {
+        muriState = STATE_MURI_SLOW_DESCENT;
+        stateString = "SLOW DESCENT";
+        slow_descent_counter = 0;
+        if(Control_Altitude<minAlt){ // determine minimum altitude
+          minAlt=Control_Altitude-10000;
+        }
+      }
+    }
+    else {
+      slow_descent_counter = 0;   
+    }
+    
+    if(ascent_rate<=(-2000/60) && Control_Altitude>7000){
+      fast_descent_counter++;
+      if (fast_descent_counter >= 5) {
+        muriState = STATE_MURI_FAST_DESCENT;
+        stateString = "FAST DESCENT";
+        fast_descent_counter = 0;
+      }
+    }
+    else {
+      fast_descent_counter = 0;
+    }
+    
+    if(ascent_rate>=(-50/60) && ascent_rate<=(50/60)){
       wilson++;
       if(wilson>100){
         muriState = STATE_MURI_CAST_AWAY;
@@ -304,7 +341,12 @@ void stateSwitch(){
         wilson=0;
       }
     }
-    else if(muriState == STATE_MURI_FAST_DESCENT && Control_Altitude<7000){
+    else {
+      wilson = 0;
+    }
+
+    
+    if(muriState == STATE_MURI_FAST_DESCENT && Control_Altitude<7000){
       muriState = STATE_MURI_RECOVERY;
       stateString = "RECOVERY";
     } 

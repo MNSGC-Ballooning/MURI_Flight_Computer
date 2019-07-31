@@ -317,5 +317,4 @@ void loop(){
   
 //  if (millis()>180000){ //cuts B at 4 hours for thermal vac 14400000
 //    CutB=true;
-  }
 }

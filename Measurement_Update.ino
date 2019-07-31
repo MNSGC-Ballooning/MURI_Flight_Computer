@@ -2,7 +2,7 @@
 //function to handle both retrieval of data from GPS module and sensors, as well as recording it on the SD card
 void updateSensors() {
  static unsigned long prevTime = 0;
- if(millis()-prevTime>=3000){
+ if(millis()-prevTime>=4000){
 
   prevTime = millis();
   

@@ -262,6 +262,7 @@ void setup() {
   Serial.println("Setup Complete");
 
 }
+
 void loop(){
   static unsigned long controlCounter = 0;
   static unsigned long mainCounter = 0;
@@ -311,10 +312,10 @@ void loop(){
     MeasurementCheck();
     stateMachine();
   } 
-  if (millis()>7200000){ //cuts A at 2 hours for thermal vac 7200000
-    CutA=true;
-  }
-  if (millis()>14400000){ //cuts B at 4 hours for thermal vac 14400000
-    CutB=true;
+//  if (millis()>300000){ //cuts A at 2 hours for thermal vac 7200000
+//    CutA=true;
+  
+//  if (millis()>180000){ //cuts B at 4 hours for thermal vac 14400000
+//    CutB=true;
   }
 }

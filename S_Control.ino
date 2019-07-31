@@ -335,7 +335,7 @@ void stateSwitch(){
     
     if(ascent_rate>=(-50/60) && ascent_rate<=(50/60)){
       wilson++;
-      if(wilson>100){
+      if(wilson>50){
         muriState = STATE_MURI_CAST_AWAY;
         stateString = "CAST AWAY";
         wilson=0;

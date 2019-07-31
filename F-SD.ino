@@ -15,7 +15,7 @@ void SDLog() {
   data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(PressurePSI) + "," + String(PressureATM) + ",");
   data += (batHeat_Status + "," + opcHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
-  data += (SmartLog + "," + String(ascent_rate) + "," + stateString + "," + String(BalloonBurst)+ ",");
+  data += (SmartLog + "," + String(ascent_rate) + "," + stateString + "," + BalloonBurstString());
   openFlightlog();
 
   Serial.println(data + ",=");
@@ -45,4 +45,16 @@ void closeFlightlog() {
     if (!FlightlogOpen)
       digitalWrite(SD_LED, LOW);
   }
+}
+
+String BalloonBurstString() {
+  String BurstString = "";
+  if (BalloonBurst) {
+    BurstString = "True";
+  }
+  else {
+    BurstString = "False";
+  }
+
+  return BurstString;
 }

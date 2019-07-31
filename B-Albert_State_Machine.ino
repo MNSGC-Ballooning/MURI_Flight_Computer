@@ -95,6 +95,8 @@ void stateMachine(){
      /////////////////////////////////////////////////////////////////////////////////////////////////////
       
       case 0x02: // Ascent
+
+        Serial.println("STATE_ALBERT_ASCENT");
       
         if(Control_Altitude != 0) {
           if(Control_Altitude > MAX_ALTITUDE){ // checks to see if payload has hit the max mission alt
@@ -111,8 +113,9 @@ void stateMachine(){
             skyCheck = 0;
           }
 
-          if(Control_Altitude!=prev_Control_Altitude && GPSfix) {
-            if((GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) ) //Checks to see if payload is outside of longitudinal boundaries
+          if(GPSfix) {
+            Serial.println("Check fences");
+            if(float(GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) ) //Checks to see if payload is outside of longitudinal boundaries
             {
               termination_longitude_check++;
               Serial.println("Termination Longitude check: " + String(termination_longitude_check));
@@ -128,7 +131,7 @@ void stateMachine(){
             }
 
 
-            if((GPS.getLat() != 0) && ((float(GPS.getLat()) > NORTHERN_BOUNDARY) || (float(GPS.getLat()) < SOUTHERN_BOUNDARY)) ) //Checks to see if payload is outside of latitudinal boundaries
+            if(float(GPS.getLat() != 0) && ((float(GPS.getLat()) > NORTHERN_BOUNDARY) || (float(GPS.getLat()) < SOUTHERN_BOUNDARY)) ) //Checks to see if payload is outside of latitudinal boundaries
             {
               termination_latitude_check++;
               Serial.println("Termination Latitude check: " + String(termination_latitude_check));
@@ -174,6 +177,7 @@ void stateMachine(){
 void StateSwitch(){
   static byte balloon_burst_check = 0;
   static byte state_init_check = 0;
+  static byte recovery_check = 0;
   
   if(AlbertState == STATE_ALBERT_INITIALIZATION && GPSfix) {
     if(Control_Altitude != 0 && Control_Altitude > 5000) {
@@ -181,6 +185,7 @@ void StateSwitch(){
       if (state_init_check >= 5) {
         AlbertState = STATE_ALBERT_ASCENT;
         stateString = "ASCENT";
+        state_init_check = 0;
       }
     }
     else {
@@ -192,8 +197,8 @@ void StateSwitch(){
     if(ascent_rate < -2000) {
       balloon_burst_check++;
       if(balloon_burst_check >= 5) {
-        AlbertState = STATE_ALBERT_DESCENT;
-        stateString = "DESCENT";
+        releaseSMART();
+        balloon_burst_check = 0;
         BalloonBurst = true;
       }
     }
@@ -203,10 +208,19 @@ void StateSwitch(){
   }
 
   
-  else if(AlbertState == STATE_ALBERT_DESCENT && Control_Altitude != 0 && Control_Altitude < 7000 && GPSfix) {      //Detects if the payload is nearing the ground 
-      AlbertState = STATE_ALBERT_RECOVERY;
-      stateString = "RECOVERY";
-  }
+  else if(AlbertState == STATE_ALBERT_DESCENT && GPSfix) {      //Detects if the payload is nearing the ground 
+    if (Control_Altitude != 0 && Control_Altitude < 7000) {
+      recovery_check++;
+      if (recovery_check >= 5) {
+        AlbertState = STATE_ALBERT_RECOVERY;
+        stateString = "RECOVERY";
+        recovery_check = 0;
+      }
+    }
+    else {
+      recovery_check = 0;      
+    }
+  }    
 
 } 
 

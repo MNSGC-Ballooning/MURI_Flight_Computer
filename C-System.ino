@@ -95,7 +95,7 @@ String FlightTimeStr() {
 }
 
 
-String FlightTimeMinutes(){
+long FlightTimeMinutes(){
   unsigned long minutes = millis() / 1000;
   minutes = minutes / 60;
   return minutes;

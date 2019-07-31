@@ -13,7 +13,7 @@ void updateSensors() {
 
   OPCdata = Plan.logUpdate();                               // Update the plantower
 
-  OPCdata += ",=," + Sps.logUpdate();             // Update the sensirion
+  OPCdata += ",=," + Sps.logUpdate();                       // Update the sensirion
 
   SDLog();                                                  // Log everything to the SD card
    

@@ -55,7 +55,7 @@
 #include <LatchRelay.h>                                                    //Latching relays
 #include <OneWire.h>                                                       //Dallas data flow control
 #include <DallasTemperature.h>                                             //Dallas temperature measurements
-#include <UbloxGPS.h>                                                      //GPS System
+#include <UbloxGPS.h>                                                     //GPS System
 #include <Arduino.h>                                                       //"Microcontroller stuff" - Garret Ailts 
 #include <SmartController.h>                                               //External smart units using xbees to send commands
 #include <OPCSensor.h>                                                     //Optical Particle Counters (OPCs)
@@ -142,6 +142,7 @@ float PressureATM;                                                         //ATM
 ////////Optical Particle Counters////////////
 Plantower Plan(&PMS_SERIAL, 7000);                                         //Particle counter objects
 SPS Sps(&SPS_SERIAL);
+R1 r1(15);
 String OPCdata = "";                                                       //OPC data string
 
 /////////////////////////////////////////////

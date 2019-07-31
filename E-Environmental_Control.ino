@@ -1,7 +1,7 @@
 //////Contains Active Heating, Temperature Sensor, and Pressure Sensor Code//////
 
-
 //////////ACTIVE HEATING//////////
+
 void actHeat(){
   // Compare digital temp. to critical temp.:  
   if(150 < t3 && t3 < t_low) {
@@ -10,10 +10,10 @@ void actHeat(){
   if(t3 > t_high) {
     coldBattery = false; // if temperature is above high critical temperature
   }
-  if(150 < t4 && t4 < t_low){
+  if(150 < t2 && t2 < t_low){
     coldOPC = true;    
   }
-  if(t4 > t_high){
+  if(t2 > t_high){
     coldOPC = false;
   }
 
@@ -32,8 +32,6 @@ void actHeat(){
   }
 }
 
-
-
 //////////PRESSURE//////////
 
 void GetPressure() { 
@@ -44,8 +42,6 @@ void GetPressure() {
   PressureATM = PressurePSI*PSI_TO_ATM;                         //Convert PSI reading to ATM
   
 }
-
-
 
 //////////TEMPERATURE//////////
 

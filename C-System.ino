@@ -15,6 +15,8 @@ void updateSensors() {
 
   OPCdata += ",=," + Sps.logUpdate();                       // Update the sensirion
 
+  OPCdata += ",=," + r1.logUpdate();                        // Update the Alphasense
+
   SDLog();                                                  // Log everything to the SD card
    
   

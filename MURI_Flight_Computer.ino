@@ -154,7 +154,7 @@ String SmartData;                                                          //Jus
 static String SmartLog;                                                    //Log everytime, is just data from smart
 static bool Cut=false;                                                     //Set to true to cut A SMART
 static bool ChangeData=true;                                               //Just set true after every data log
-SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0);               //Smart controller
+SmartController SOCO = SmartController(1,XBEE_SERIAL,200.0);               //Smart controller
 String smartOneString = "Primed";
 
 float ascent_rate = 0;                                                     //Ascent rate of payload in feet per minute
@@ -218,7 +218,9 @@ void loop(){
   if (millis()-controlCounter>=CONTROL_LOOP_TIME){                         //Control loop
     controlCounter = millis();
     SMARTControl();                                                        //SMART system
-    SOCO.Cut(1,Cut);                                                       //WHAT DOES THIS DO
+    SOCO.Cut(1,Cut);                                                       //Sends cut command if Cut=true, else nothing
     stateMachine();                                                        //State machine update
-  }   
+    
+  }  
+
 }

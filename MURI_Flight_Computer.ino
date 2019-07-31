@@ -86,7 +86,8 @@
 /////////////////////////////////////////////
 #define MAIN_LOOP_TIME 5000                                                //Main loop runs at .025 Hz
 #define CONTROL_LOOP_TIME 1000                                             //Control loop runs at 1 Hz
-#define TIMER_RATE (1000) 
+#define TIMER_RATE (1000)                                                  //Does this have a purpose? Probably not.
+#define STATE_INIT_TIME 3600000                                           //Forces state machine into ascent state if it hasn't already happened
 #define C2K 273.15                                                         //Celcius to Kelvin adjustment (CHANGE CODE TO CELCIUS)
 #define SPECIFIC_GAS_CONSTANT  287                                         //(J/kg*K)
 #define SEA_LEVEL_PRESSURE  101325                                         //(Pa)
@@ -170,6 +171,7 @@ boolean recovery = false;
 unsigned long smartTimer = 0;                                              //Loop speed timers
 unsigned long controlCounter = 0;
 unsigned long mainCounter = 0;
+unsigned long StateInitTimer = 0;                                          //State Machine timer
 
 /////Heating/////
 float t_low = 283;                                                         //Active heating boundaries and booleans
@@ -220,7 +222,5 @@ void loop(){
     SMARTControl();                                                        //SMART system
     SOCO.Cut(1,Cut);                                                       //Sends cut command if Cut=true, else nothing
     stateMachine();                                                        //State machine update
-    
-  }  
-
+  }   
 }

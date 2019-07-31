@@ -15,6 +15,10 @@ void updateSensors() {
 
   OPCdata += ",=," + Sps.logUpdate();                       // Update the sensirion
 
+
+  OPCdata += ",=," + r1.logUpdate();                        // Update the Alphasense
+
+
   SDLog();                                                  // Log everything to the SD card
    
   
@@ -95,7 +99,9 @@ String FlightTimeStr() {
 }
 
 
+
 long FlightTimeMinutes(){
+
   unsigned long minutes = millis() / 1000;
   minutes = minutes / 60;
   return minutes;

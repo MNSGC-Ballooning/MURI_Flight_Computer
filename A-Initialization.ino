@@ -1,3 +1,4 @@
+//Initializations
 void initLEDs() {
   pinMode(Pin_LED, OUTPUT);                                                         // LED pins defined
   pinMode(SD_LED, OUTPUT);
@@ -28,9 +29,10 @@ void initSD(){
   
   Serial.println("Flight log created: " + Fname);
 
-  String FHeader = "Flight Time, Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, External Ambient (K), Internal Ambient (K), Battery (K),";
-  FHeader = "Pressure(PSI), Pressure(ATM), Battery Heater Status, PMS Heater Status, Control Altitude, Smart, Ascent Rate, System State, Balloon Burst,";
-  FHeader+= "PT, nhits, 0.3um, 0.5um, 1.0um, 2.5um, 5.0um, 10.0um,SPS,nhits,MC 1um,MC 2.5um,MC 4um,MC 10um,NC 0.5um,NC 1.0um,NC 2.5um,NC 4.0um,NC 10.0um,APS";
+  String FHeader = "Flight Time,Minutes,Lat,Long,Altitude (ft),Date,Hour:Min:Sec,Satellites,Fix,External Ambient (K),Internal Ambient (K),Battery (K),";
+  FHeader = "Pressure(PSI),Pressure(ATM),Battery Heater Status,PMS Heater Status,Control Altitude,Smart,Ascent Rate,System State,Balloon Burst,";
+  FHeader+= "PT,nhits,0.3um,0.5um,1.0um,2.5um,5.0um,10.0um,SPS,nhits,MC 1um,MC 2.5um,MC 4um,MC 10um,NC 0.5um,NC 1.0um,NC 2.5um,NC 4.0um,NC 10.0um,APS,";
+  FHeader+= "R1,nhits,00.4,00.7,01.1,01.5,01.9,02.4,03,04,05,06,07,08,09,10,11,12,12.4";
   Flog.println(FHeader);//set up Flight log format
   Serial.println("Flight log header added");
 
@@ -77,4 +79,5 @@ void initTempSensors() {                                                        
 void initOPCs() {                                                                   // Initializes the PLANTOWER and SPS30 OPCs
   Plan.initOPC();
   Sps.initOPC();
+  r1.initOPC();
 }

@@ -71,8 +71,8 @@
 #define ONE_WIRE_BUS 29                                                    //External Temp
 #define TWO_WIRE_BUS 30                                                    //Internal Temp
 #define THREE_WIRE_BUS 31                                                  //Battery Temp
-#define OPC_HEATER_ON 24                                                   //Laching relay pins for the OPC Heater
-#define OPC_HEATER_OFF 25
+#define OPC_HEATER_ON 3                                                   //Laching relay pins for the OPC Heater
+#define OPC_HEATER_OFF 4
 #define BAT_HEATER_ON 5                                                    //Latching relay pins for the battery heater
 #define BAT_HEATER_OFF 6
 #define HONEYWELL_PRESSURE A16                                             //Pressure sensor, on an analog pin

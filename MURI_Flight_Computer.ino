@@ -182,7 +182,7 @@ String stateString = "";                                                   //Dat
 File Flog;
 static String data;
 String Fname = "";
-boolean SDcard = true;                //DOES THIS DO ANYTHING
+boolean SDcard = true;
 
 //////////////////////////////////////////////
 /////////Initialize Flight Computer///////////

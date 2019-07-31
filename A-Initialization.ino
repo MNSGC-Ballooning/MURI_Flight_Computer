@@ -1,14 +1,13 @@
 void initLEDs() {
-  pinMode(Pin_LED, OUTPUT);
+  pinMode(Pin_LED, OUTPUT);                                                 //LED pins defined
   pinMode(SD_LED, OUTPUT);
   pinMode(Fix_LED, OUTPUT);
 }
 
 void initSD(){
-  //initialize SD card
-  pinMode(chipSelect, OUTPUT);
+  pinMode(chipSelect, OUTPUT);                                              //initialize SD card
   
-  while (!SD.begin(chipSelect)) {//power LED will blink if no card is inserted
+  while (!SD.begin(chipSelect)) {                                           //power LED will blink if no card is inserted
     Serial.println("No SD");
     digitalWrite(SD_LED, HIGH);
     delay(500);

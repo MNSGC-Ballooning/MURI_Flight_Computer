@@ -106,8 +106,12 @@ float float_longitude = -92.5; //longitude at which the balloon begins to float
 #define Baro_Rate (TIMER_RATE / 200)  // Process MS5607 data at 100Hz
 #define C2K 273.15 
 #define PMS_TIME 1 //PMS Timer
+#define EASTERN_BOUNDARY -92.3                              //Longitude of Waterloo, IA
+#define WESTERN_BOUNDARY -97.4                              //Longitude of Yankton, SD
+#define NORTHERN_BOUNDARY 45.6                              //Latitude of St. Cloud, MN
+#define SOUTHERN_BOUNDARY 41.6                              //Latitude of Des Moines, IA 
 
-//////////////On Baord SD Chipselect/////////////
+//////////////On Board SD Chipselect/////////////
 const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
 
 ///////////////////////////////////////////////
@@ -313,9 +317,5 @@ void loop(){
     MeasurementCheck();
     stateMachine();
   } 
-//  if (millis()>300000){ //cuts A at 2 hours for thermal vac 7200000
-//    CutA=true;
-  
-//  if (millis()>180000){ //cuts B at 4 hours for thermal vac 14400000
-//    CutB=true;
+
 }

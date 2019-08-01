@@ -21,8 +21,8 @@ void stateMachine(){
   static unsigned long castAway = 0;
   static byte initCounter = 0;
   static byte skyCheck = 0;
-  static byte float_longitude_check = 0;   //how many times we have exceed the given longitude
   static byte termination_longitude_check = 0;
+  static byte termination_latitude_check = 0;
   static byte floorCheck = 0;
   static byte snail = 0;
   static bool init = false;
@@ -97,60 +97,53 @@ void stateMachine(){
      ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
      prev_Control_Altitude = Control_Altitude;
      prev_time = millis();                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
-         
-
   }
+
 
  
   stateSwitch();                                //Controller that changes State based on derivative of altitude
   
 ////////////////////////Finite State Machine/////////////////////////
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-  if(Control_Altitude!=0 && Control_Altitude!=prev_Control_Altitude){
-    if(FixStatus==Fix && float(GPS.getLon()) > float_longitude && GPS.getLon() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix) * Add termination longitude check
-    {
-      float_longitude_check++; // and 1 to # of times outside mission area
-      Serial.println("Float Longitude check: " + String(termination_longitude_check));
-      if (float_longitude_check>5)
-      {
-        // stateSwtich function takes care of that since we falling fast.
-        CutA=true;
-        smartOneString = "RELEASED";
-        float_longitude_check = 0;
-      }
-    }
-    else
-    {
-      // if longitude is still in acceptable range, then reset check
-      float_longitude_check = 0;
-    }
-//
-//    Serial.println("Ascent Rate: " + String(ascent_rate));
+   if(GPSstatus == Lock) {
+           if(float(GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) ) //Checks to see if payload is outside of longitudinal boundaries
+           {
+             termination_longitude_check++;
+             Serial.println("Termination Longitude check: " + String(termination_longitude_check));
+             if (termination_longitude_check>5)
+             {
+               CutA=true;
+               smartOneString = "RELEASED";
+               CutB=true;
+               smartTwoString = "RELEASED";
+               termination_longitude_check = 0;
+             }
+           }
+           else
+           {                                                       // if longitude is still in acceptable range, then reset check
+             termination_longitude_check = 0;
+           }
 
-    
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-    if(FixStatus==Fix && float(GPS.getLon()) > termination_longitude && GPS.getLon() != 0) // if payload drifts outide of longitude bounds and longitude is not 0 (gps has fix) * Add termination longitude check
-    {
-      termination_longitude_check++; // and 1 to # of times outside mission area
-      Serial.println("Termination Longitude check: " + String(termination_longitude_check));
-      if (termination_longitude_check>5)
-      {
-        // stateSwtich function takes care of that since we falling fast.
-        CutA=true;
-        CutB=true;
-        smartOneString = "RELEASED";
-        smartTwoString = "RELEASED";
-        termination_longitude_check = 0;
-      }
-    }
-    else
-    {
-      // if longitude is still in acceptable range, then reset check
-      termination_longitude_check = 0;
-    }
 
-//    Serial.println("Ascent Rate: " + String(ascent_rate));
+           if(float(GPS.getLat() != 0) && ((float(GPS.getLat()) > NORTHERN_BOUNDARY) || (float(GPS.getLat()) < SOUTHERN_BOUNDARY)) ) //Checks to see if payload is outside of latitudinal boundaries
+           {
+             termination_latitude_check++;
+             if (termination_latitude_check>5)
+             {
+               CutA=true;
+               smartOneString = "RELEASED";
+               CutB=true;
+               smartTwoString = "RELEASED";
+               termination_latitude_check = 0;
+             }
+           }
+           else
+           {                                                       // if latitude is still in acceptable range, then reset check
+             termination_latitude_check = 0;
+           }
+       }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////    
     if(muriState == STATE_MURI_INIT && !hdotInit) // its a boolean checking to see if we initialized
@@ -198,7 +191,6 @@ void stateMachine(){
             opcHeatRelay.setState(false);
             batHeatRelay.setState(false);
             fast=true;
-        }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
       case 0x04: // Slow Descent
@@ -265,9 +257,10 @@ void stateMachine(){
           recovery = true;
         }
         break;
-    }   
-  }
+    }
+  }   
 }
+
 
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
 void stateSwitch(){

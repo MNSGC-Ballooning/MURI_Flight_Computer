@@ -6,12 +6,7 @@ void updateSensors() {
 
   prevTime = millis();
   
-//  if(opcRelay.getState()==true){
-//    opcRelay_Status = "ON";
-//  }
-//  else if(opcRelay.getState()==false){
-//    opcRelay_Status = "OFF";
-//  }
+
   if(batHeatRelay.getState()==true){
     batHeat_Status = "ON";
   }
@@ -47,7 +42,7 @@ void updateSensors() {
   OPCdata += ",=," + R1A.logUpdate();
   
   data = "";
-  data = flightTimeStr()+ "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
+  data = flightTimeStr()+ "," + flightMinutes() + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
   + String(alt_GPS, 1) + ","
   + String(GPS.getMonth()) + "/" + String(GPS.getDay()) + "/" + String(GPS.getYear()) + ","
   + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()) + ","

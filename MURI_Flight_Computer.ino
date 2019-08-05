@@ -12,6 +12,7 @@
 #include <Arduino.h>               //"Microcontroller stuff" - Garrett Ailts 
 #include "Salus_Baro.h"            //Library for MS5607
 #include <SmartController.h>       //Library for smart units using xbees to send commands
+#include <OPCSensor.h>             //Library for OPCs
 //#include <SoftwareSerial.h>        //Software Serial library for Plan Tower
 
 //==============================================================
@@ -87,13 +88,13 @@ long Master_Timer =  20000; //Master cut timer
 #define OPC_HEATER_OFF 25
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
-#define XBEE_SERIAL Serial5
+#define R1A_SLAVE_PIN 15
+#define PMS_SERIAL Serial1
 #define UBLOX_SERIAL Serial2
-//#define PMS5003_SERIAL Serial1
-//#define SIREN_ON 32
-//#define SIREN_OFF 33
-#define PMSAserial Serial1
-#define PMSBserial Serial3
+#define XBEE_SERIAL Serial3
+#define SPS_SERIAL Serial4
+
+
 
 //////////////////////////////////////////////
 /////////////////Constants////////////////////
@@ -101,13 +102,11 @@ long Master_Timer =  20000; //Master cut timer
 
 //////////// TIMERS ////////////
 #define MAIN_LOOP_TIME 1000                         // Main loop runs at 1 Hz
-#define CONTROL_LOOP_TIME 1000                      // Control loop runs at 0.5 Hz
+#define CONTROL_LOOP_TIME 1000                      // Control loop runs at 1.0 Hz
+#define LOG_TIMER 4000                              // Log timer runs at 0.25 Hz
 #define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 600000       // Release SMARTs after 10 minutes if max alt is less than 80000ft
 #define LONG_ASCENT_TIMER 12600000                  // SMARTs release if ascent takes longer than 3.5 hours
 #define LONG_DESCENT_TIMER 3600000                  // SMARTS release if descent takes longer than 3.5 hours
-#define TIMER_RATE (1000) 
-#define Baro_Rate (TIMER_RATE / 200)  // Process MS5607 data at 100Hz
-
 
 
 #define C2K 273.15 
@@ -156,15 +155,6 @@ UbloxGPS GPS(&UBLOX_SERIAL);
 //boolean fixU = false;
 float alt_GPS = 0;               // altitude calculated by the GPS in feet
 
-
-
-//MS5607 pressure and temperature sensor
-Salus_Baro myBaro;
-float pressure = 0;
-float alt_pressure_library = 0;  // altitiude calculated by the pressure sensor library
-float temperature = 0;
-unsigned long prevTime = 0;
-float startAlt = 0;
 
 float prev_alt_feet = 0;         // previous calculated altitude
 
@@ -215,31 +205,17 @@ String stateString = "";
 File Flog;
 static String data;
 String Fname = "";
-String FnamePMS = "";
 boolean SDcard = true;
 
-//Plantower Definitions
 
-int nhitsA=1;            //used to count successful data transmissions
-int ntotA=1;             //used to count total attempted transmitions
-int nhitsB=1;
-int ntotB=1;
-int badLogA =1;
-boolean goodLogA = false;
-int badLogB =1;
-boolean goodLogB = false;
-static String dataPMSA="";                
-static String dataPMSB="";                
-struct PMS5003data {
-  uint16_t framelen;
-  uint16_t pm10_standard, pm25_standard, pm100_standard;
-  uint16_t pm10_env, pm25_env, pm100_env;
-  uint16_t particles_03um, particles_05um, particles_10um, particles_25um, particles_50um, particles_100um;
-  uint16_t unused;
-  uint16_t checksum;
-};
-struct PMS5003data PMSAdata;
-struct PMS5003data PMSBdata;
+//////////OPCs//////////
+Plantower PlanA(&PMS_SERIAL, LOG_TIMER);
+SPS SPSA(&SPS_SERIAL);
+R1 R1A(R1A_SLAVE_PIN);
+
+String OPCdata = "";
+
+
 //////////////////////////////////////////////
 /////////Initialize Flight Computer///////////
 //////////////////////////////////////////////
@@ -256,9 +232,6 @@ void setup() {
   //Initialize Serial
   Serial.begin(9600); //USB Serial for debugging
  
-  PMSAserial.begin(9600);
-  
-  PMSBserial.begin(9600);
   
   //Initialize Radio
   XBEE_SERIAL.begin(9600); //For smart xBee
@@ -273,12 +246,12 @@ void setup() {
   sensor3.begin();
   sensor4.begin();
 
-  //Initialize Pressure Altimeter
-  initMS5607();
-  Serial.println("Finished init baro");
 
   //Initialize Relays
   initRelays();
+
+  //Initialize OPCs
+  initOPCs();
   
   Serial.println("Setup Complete");
 
@@ -287,11 +260,9 @@ void setup() {
 void loop(){
   static unsigned long controlCounter = 0;
   static unsigned long mainCounter = 0;
-//  static unsigned long pmsCounter = 0;
-   GPS.update();
+  GPS.update();
+  PlanA.readData();
   // Main Thread
-   readPMSdataA(&PMSAserial);
-   readPMSdataB(&PMSBserial);
   if (millis()-mainCounter>=MAIN_LOOP_TIME){
     mainCounter = millis();
     actionBlink();

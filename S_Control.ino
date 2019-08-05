@@ -71,8 +71,7 @@ void stateMachine(){
     lockcounter = 0;
   }
 
-                              
-  alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
+
 
   if(GPSstatus == Lock)
   {
@@ -102,6 +101,7 @@ void stateMachine(){
 
  
   stateSwitch();                                //Controller that changes State based on derivative of altitude
+  AbortControl();
   
 ////////////////////////Finite State Machine/////////////////////////
 
@@ -322,7 +322,7 @@ void stateSwitch(){
       fast_descent_counter = 0;
     }
     
-    if(ascent_rate>=(-50/60) && ascent_rate<=(50/60) && muriState != STATE_MURI_CAST_AWAY && Control_Altitude != 0){
+    if(ascent_rate>=(-50/60) && ascent_rate<=(50/60) && muriState != STATE_MURI_CAST_AWAY){
       wilson++;
       if(wilson>50){
         muriState = STATE_MURI_CAST_AWAY;
@@ -357,7 +357,7 @@ void CutSMARTB() {
 
 void AbortControl() {
 
-   //Cut down if ascent takes too long
+   //Cut down if ascent takes too long 
    if (muriState == STATE_MURI_ASCENT && ((ascentTimer - millis()) > LONG_ASCENT_TIMER)) {
      CutSMARTA();
      CutSMARTB();

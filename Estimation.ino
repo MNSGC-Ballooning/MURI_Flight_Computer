@@ -19,7 +19,7 @@ void MeasurementCheck() {
   {
     FixStatus = Fix;
   }
-  else if(GPS.getFixAge() > 4000 && (myBaro.getAltitude()*METERS_TO_FEET)>0 && (myBaro.getAltitude()*METERS_TO_FEET) > (prev_alt_feet - 6000) && (myBaro.getAltitude()*METERS_TO_FEET) < (prev_alt_feet + 6000))
+  else if(GPS.getFixAge() > 4000)
   {
     FixStatus = NoFix;
   }

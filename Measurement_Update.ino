@@ -2,7 +2,7 @@
 //function to handle both retrieval of data from GPS module and sensors, as well as recording it on the SD card
 void updateSensors() {
  static unsigned long prevTime = 0;
- if(millis()-prevTime>=4000){
+ if(millis()-prevTime>= LOG_TIMER){
 
   prevTime = millis();
   
@@ -34,20 +34,18 @@ void updateSensors() {
 
   //Pressure, Temp, and Altitude
 
-  t1 = sensor1.getTempCByIndex(0) + 273.15;
-  t2 = sensor2.getTempCByIndex(0) + 273.15;
-  t3 = sensor3.getTempCByIndex(0) + 273.15;
-  t4 = sensor4.getTempCByIndex(0) + 273.15;
-
-  myBaro.baroTask();
-  pressure = myBaro.getPressure()/10;
-  temperature = myBaro.getTemperature()+C2K;
+  t1 = sensor1.getTempCByIndex(0);
+  t2 = sensor2.getTempCByIndex(0);
+  t3 = sensor3.getTempCByIndex(0);
+  t4 = sensor4.getTempCByIndex(0);
 
 
   alt_GPS = GPS.getAlt_feet();                                // altitude calulated by the Ublox GPS
-  alt_pressure_library = myBaro.getAltitude()*METERS_TO_FEET;   // altitude calcuated by the pressure sensor library
-//  alt_pressure = Pressure_Alt_Calc(pressure*1000, t2);               // altitude calculated by the Hypsometric formula using pressure sensor data
-  //openFlightlog();
+  
+  OPCdata = PlanA.logUpdate();
+  OPCdata += ",=," + SPSA.logUpdate();
+  OPCdata += ",=," + R1A.logUpdate();
+  
   data = "";
   data = flightTimeStr()+ "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
   + String(alt_GPS, 1) + ","
@@ -68,21 +66,14 @@ void updateSensors() {
 
   data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + ",");
   data += (batHeat_Status + "," + opcHeat_Status + ",");
-  data += (String(temperature)+ ",");
-  data += (String(pressure) + ",");
-  data += (String(alt_pressure_library) + ",");
   data += (String(Control_Altitude) + ",");
   data += (SmartLogA + "," + SmartLogB + "," + String(ascent_rate) + "," + stateString + ",");
+  data += ("=," + OPCdata);
   openFlightlog();
   Serial.println(data);
   delay(100);
-  pmsUpdateA();
-
-  pmsUpdateB();
-
-  Serial.println(dataPMSA);
-  Serial.println(dataPMSB);
-  Flog.println(data + " " + "," + dataPMSA + "," + " " + "," + dataPMSB);
+  
+  Flog.println(data);
   closeFlightlog();
 
 //SMART 

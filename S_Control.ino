@@ -45,8 +45,8 @@ void stateMachine(){
   }
   if(millis() >= masterTimer) // if mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
   {
-    CutA=true;
-    CutB=true;
+    CutSMARTA();
+    CutSMARTB();
     muriState = STATE_MURI_RECOVERY;
     stateString = "RECOVERY";
   }
@@ -112,10 +112,8 @@ void stateMachine(){
              Serial.println("Termination Longitude check: " + String(termination_longitude_check));
              if (termination_longitude_check>5)
              {
-               CutA=true;
-               smartOneString = "RELEASED";
-               CutB=true;
-               smartTwoString = "RELEASED";
+               CutSMARTA();
+               CutSMARTB();
                termination_longitude_check = 0;
              }
            }
@@ -130,10 +128,8 @@ void stateMachine(){
              termination_latitude_check++;
              if (termination_latitude_check>5)
              {
-               CutA=true;
-               smartOneString = "RELEASED";
-               CutB=true;
-               smartTwoString = "RELEASED";
+               CutSMARTA();
+               CutSMARTB();
                termination_latitude_check = 0;
              }
            }
@@ -167,16 +163,15 @@ void stateMachine(){
     {
       case 0x01: // Ascent
         Serial.println("STATE_MURI_ASCENT");
-        if(Control_Altitude>maxAlt && Control_Altitude!=0)// checks to see if payload has hit the max mission alt
+        if(Control_Altitude>MAX_ALTITUDE && Control_Altitude!=0)// checks to see if payload has hit the max mission alt
         {
           skyCheck++;
           Serial.println("Max alt hits: " + String(skyCheck));
           if(skyCheck>5)
           {
             // if the payload is consistenly above max mission alt. , the first balloon is released
-            CutA=true;
-            smartOneString = "RELEASED";
-            skyCheck = 0;
+           CutSMARTA();
+           skyCheck = 0;
           }
         }
         break;
@@ -184,10 +179,6 @@ void stateMachine(){
       case 0x02: // Fast Descent
         Serial.println("STATE_MURI_FAST_DESCENT");
         if(!fast) {
-            CutB=true;
-            smartTwoString = "RELEASED";
-            CutA=true;
-            smartOneString = "RELEASED";
             opcHeatRelay.setState(false);
             batHeatRelay.setState(false);
             fast=true;
@@ -195,23 +186,26 @@ void stateMachine(){
       /////////////////////////////////////////////////////////////////////////////////////////////////////
       case 0x04: // Slow Descent
         Serial.println("STATE_MURI_SLOW_DESCENT");
-        if(Control_Altitude<minAlt && Control_Altitude!=0) // checks to see if it is below data collection range...
+        if(Control_Altitude<MIN_ALTITUDE && Control_Altitude!=0 && !LowMaxAltitude) // checks to see if it is below data collection range...
         {
           floorCheck++;
           Serial.println("Min alt hits: " + String(floorCheck));
           if(floorCheck>5)
           {
             // if consistently below data collection range then release all balloons again just in case
-            CutB=true;
-            smartTwoString = "RELEASED";
-            CutA=true;
-            smartOneString = "RELEASED";
+            CutSMARTA();
+            CutSMARTB();
             floorCheck = 0;
           }
         }
         else
         {
           floorCheck = 0;
+        }
+
+        if (LowMaxAltitude && ((millis() - LowAltitudeReleaseTimer) > LOW_MAX_ALTITUDE_CUTDOWN_TIMER)) {
+          CutSMARTA();
+          CutSMARTB();
         }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,14 +216,12 @@ void stateMachine(){
         {
           if(Control_Altitude<30000)
           {
-            CutB=true;
+            CutSMARTB();
           }
           else if(Control_Altitude>=30000)
           {
-            CutA=true;
-            smartOneString = "RELEASED";
-            CutB=true;
-            smartTwoString = "RELEASED";
+            CutSMARTA();
+            CutSMARTB();
           }
           snail = 0;
          }
@@ -244,8 +236,8 @@ void stateMachine(){
         }
         if(millis()-castAway >= 600000)
         {
-          CutA=true;
-          CutB=true;
+          CutSMARTA();
+          CutSMARTB();
         }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -253,13 +245,13 @@ void stateMachine(){
         Serial.println("STATE_MURI_RECOVERY");
         if(!recovery)
         {
-//          opcRelay.setState(false);
           recovery = true;
         }
         break;
     }
-  }   
-}
+  }
+}   
+
 
 
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
@@ -275,11 +267,12 @@ void stateSwitch(){
       Serial.println("GPS Jump Detected");
     }
     
-    if(ascent_rate > (250/60)){
+    if(ascent_rate > (300/60) && muriState != STATE_MURI_ASCENT){
       ascent_counter++;
       if (ascent_counter >= 5) {
         muriState = STATE_MURI_ASCENT;
         stateString = "ASCENT";
+        ascentTimer = millis();
         ascent_counter = 0;
       }
     }
@@ -287,7 +280,7 @@ void stateSwitch(){
       ascent_counter = 0;
     }
     
-    if(ascent_rate>(50/60) && ascent_rate<=(250/60)){
+    if(ascent_rate>(50/60) && ascent_rate<=(300/60) && muriState != STATE_MURI_SLOW_ASCENT){
       slow_ascent_counter++;
       if (slow_ascent_counter >= 5) {
         muriState = STATE_MURI_SLOW_ASCENT;
@@ -299,22 +292,25 @@ void stateSwitch(){
       slow_ascent_counter = 0;
     }
     
-    if(ascent_rate >= (-1500/60) && ascent_rate < (-50/60)){
+    if(ascent_rate >= (-1500/60) && ascent_rate < (-50/60) && muriState != STATE_MURI_SLOW_DESCENT){
       slow_descent_counter++;
       if (slow_descent_counter >= 5) {
         muriState = STATE_MURI_SLOW_DESCENT;
         stateString = "SLOW DESCENT";
+        descentTimer = 0;
         slow_descent_counter = 0;
-//        if(Control_Altitude<minAlt){ // determine minimum altitude
-//          minAlt=Control_Altitude-10000;
-//        }
+
+        if (Control_Altitude < MIN_ALTITUDE) {
+         LowAltitudeReleaseTimer = millis();
+         LowMaxAltitude = true; 
+        }
       }
     }
     else {
       slow_descent_counter = 0;   
     }
     
-    if(ascent_rate<=(-2000/60) && Control_Altitude>7000){
+    if(ascent_rate<=(-2000/60) && Control_Altitude>7000 && muriState != STATE_MURI_FAST_DESCENT){
       fast_descent_counter++;
       if (fast_descent_counter >= 5) {
         muriState = STATE_MURI_FAST_DESCENT;
@@ -326,7 +322,7 @@ void stateSwitch(){
       fast_descent_counter = 0;
     }
     
-    if(ascent_rate>=(-50/60) && ascent_rate<=(50/60)){
+    if(ascent_rate>=(-50/60) && ascent_rate<=(50/60) && muriState != STATE_MURI_CAST_AWAY && Control_Altitude != 0){
       wilson++;
       if(wilson>50){
         muriState = STATE_MURI_CAST_AWAY;
@@ -339,9 +335,39 @@ void stateSwitch(){
     }
 
     
-    if(muriState == STATE_MURI_FAST_DESCENT && Control_Altitude<7000){
+    if((muriState == STATE_MURI_FAST_DESCENT || muriState == STATE_MURI_SLOW_DESCENT) && Control_Altitude<7000){
       muriState = STATE_MURI_RECOVERY;
       stateString = "RECOVERY";
     } 
   } 
+}
+
+
+
+void CutSMARTA() {
+  CutA=true;
+  smartOneString = "RELEASED";
+}
+
+void CutSMARTB() {
+  CutB=true;
+  smartTwoString = "RELEASED";
+}
+
+
+void AbortControl() {
+
+   //Cut down if ascent takes too long
+   if (muriState == STATE_MURI_ASCENT && ((ascentTimer - millis()) > LONG_ASCENT_TIMER)) {
+     CutSMARTA();
+     CutSMARTB();
+   }
+
+
+   //Cut down if slow descent takes too long
+   if (muriState == STATE_MURI_SLOW_DESCENT && ((descentTimer - millis()) > LONG_DESCENT_TIMER)) {
+      CutSMARTA();
+      CutSMARTB();
+   }
+
 }

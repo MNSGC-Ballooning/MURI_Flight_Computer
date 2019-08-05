@@ -9,7 +9,7 @@
 #include <DallasTemperature.h>
 #include <UbloxGPS.h>              //Needs TinyGPS++ in order to function
 #include <i2c_t3.h>                //Required for usage of MS5607 with Teensy 3.5/3.6
-#include <Arduino.h>               //"Microcontroller stuff" - Garret Ailts 
+#include <Arduino.h>               //"Microcontroller stuff" - Garrett Ailts 
 #include "Salus_Baro.h"            //Library for MS5607
 #include <SmartController.h>       //Library for smart units using xbees to send commands
 //#include <SoftwareSerial.h>        //Software Serial library for Plan Tower
@@ -46,8 +46,6 @@ long maxAlt = 100000; //Default max cutdown altitude in feet! Changeable via xBe
 long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
 long Release_Timer = 15000; //Starting value for active timer that terminates flight when the timer runs out!
 long Master_Timer =  20000; //Master cut timer 
-float termination_longitude = -92.0; //longitude at which all flight systems are terminated
-float float_longitude = -92.5; //longitude at which the balloon begins to float
 //boolean opcActive = true;
 
 //=============================================================================================================================================
@@ -100,16 +98,26 @@ float float_longitude = -92.5; //longitude at which the balloon begins to float
 //////////////////////////////////////////////
 /////////////////Constants////////////////////
 //////////////////////////////////////////////
-#define MAIN_LOOP_TIME 1000          // Main loop runs at 1 Hz
-#define CONTROL_LOOP_TIME 1000        // Control loop runs at 0.5 Hz
+
+//////////// TIMERS ////////////
+#define MAIN_LOOP_TIME 1000                         // Main loop runs at 1 Hz
+#define CONTROL_LOOP_TIME 1000                      // Control loop runs at 0.5 Hz
+#define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 600000       // Release SMARTs after 10 minutes if max alt is less than 80000ft
+#define LONG_ASCENT_TIMER 12600000                  // SMARTs release if ascent takes longer than 3.5 hours
+#define LONG_DESCENT_TIMER 3600000                  // SMARTS release if descent takes longer than 3.5 hours
 #define TIMER_RATE (1000) 
 #define Baro_Rate (TIMER_RATE / 200)  // Process MS5607 data at 100Hz
+
+
+
 #define C2K 273.15 
 #define PMS_TIME 1 //PMS Timer
 #define EASTERN_BOUNDARY -92.3                              //Longitude of Waterloo, IA
 #define WESTERN_BOUNDARY -97.4                              //Longitude of Yankton, SD
 #define NORTHERN_BOUNDARY 45.6                              //Latitude of St. Cloud, MN
 #define SOUTHERN_BOUNDARY 41.6                              //Latitude of Des Moines, IA 
+#define MAX_ALTITUDE  100000
+#define MIN_ALTITUDE  80000
 
 //////////////On Board SD Chipselect/////////////
 const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
@@ -185,6 +193,14 @@ unsigned long releaseTimer = Release_Timer * 1000;
 unsigned long masterTimer = Master_Timer * 1000;
 boolean recovery = false;
 unsigned long smartTimer = 0;
+unsigned long LowAltitudeReleaseTimer = 0;
+unsigned long ascentTimer = 0;
+unsigned long descentTimer = 0;
+
+
+//Timer Booleans
+boolean LowMaxAltitude = false;
+
 
 //Heating
 float t_low = 283;

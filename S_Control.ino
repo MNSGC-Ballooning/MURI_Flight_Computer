@@ -305,9 +305,9 @@ void stateSwitch(){
         muriState = STATE_MURI_SLOW_DESCENT;
         stateString = "SLOW DESCENT";
         slow_descent_counter = 0;
-        if(Control_Altitude<minAlt){ // determine minimum altitude
-          minAlt=Control_Altitude-10000;
-        }
+//        if(Control_Altitude<minAlt){ // determine minimum altitude
+//          minAlt=Control_Altitude-10000;
+//        }
       }
     }
     else {

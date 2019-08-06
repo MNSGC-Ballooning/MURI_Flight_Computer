@@ -43,8 +43,6 @@
 //=============================================================================================================================================
 
 //In seconds
-long maxAlt = 100000; //Default max cutdown altitude in feet! Changeable via xBee
-long minAlt = 80000; //Default cutdown altitude in feet! Changeable via xBee.
 long Release_Timer = 15000; //Starting value for active timer that terminates flight when the timer runs out!
 long Master_Timer =  20000; //Master cut timer 
 //boolean opcActive = true;
@@ -75,19 +73,17 @@ long Master_Timer =  20000; //Master cut timer
 /////////////////////////////////////////////
 ///////////////Pin Definitions///////////////
 /////////////////////////////////////////////
-#define ledPin 21           //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
-#define ledSD 23            //Pin which controls the SD LED
-#define fix_led 22          //led  which blinks for fix
-#define ONE_WIRE_BUS 29     //Internal Temp
-#define TWO_WIRE_BUS 30     //External Temp
-#define THREE_WIRE_BUS 31   //Battery Temp
-#define FOUR_WIRE_BUS 32    //OPC Temp
-//#define OPC_ON 5            //Relay switches
-//#define OPC_OFF 6
-#define OPC_HEATER_ON 24
-#define OPC_HEATER_OFF 25
+#define LED_PIN 20                  //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
+#define LED_FIX 21                  //led  which blinks for fix
+#define LED_SD 22                   //Pin which controls the SD LED
+#define ONE_WIRE_BUS 28             //Battery Temp
+#define TWO_WIRE_BUS 29             //Internal Temp
+#define THREE_WIRE_BUS 30           //External Temp
+#define SENSOR_HEATER_ON 3
+#define SENSOR_HEATER_OFF 4
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
+#define HONEYWELL_PRESSURE A9       //Analog Honeywell Pressure Sensor
 #define R1A_SLAVE_PIN 15
 #define PMS_SERIAL Serial1
 #define UBLOX_SERIAL Serial2
@@ -104,13 +100,15 @@ long Master_Timer =  20000; //Master cut timer
 #define MAIN_LOOP_TIME 1000                         // Main loop runs at 1 Hz
 #define CONTROL_LOOP_TIME 1000                      // Control loop runs at 1.0 Hz
 #define LOG_TIMER 4000                              // Log timer runs at 0.25 Hz
-#define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 600000       // Release SMARTs after 10 minutes if max alt is less than 80000ft
-#define LONG_ASCENT_TIMER 12600000                  // SMARTs release if ascent takes longer than 3.5 hours
-#define LONG_DESCENT_TIMER 3600000                  // SMARTS release if descent takes longer than 3.5 hours
+#define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 10           // Release SMARTs after 10 minutes if max alt is less than 80000ft
+#define LONG_ASCENT_TIMER 210                       // SMARTs release if ascent takes longer than 3.5 hours
+#define LONG_DESCENT_TIMER 90                       // SMARTS release if descent takes longer than 1.5 hours
 
 
-#define C2K 273.15 
-#define PMS_TIME 1 //PMS Timer
+#define MINUTES_TO_MILLIS 60000
+#define PSI_TO_ATM  0.068046                                //Live love conversions   
+#define C2K 273.15                                          //Celsius to Kelvin. What else is there to say?    
+#define PMS_TIME 1                                          //PMS Timer
 #define EASTERN_BOUNDARY -92.3                              //Longitude of Waterloo, IA
 #define WESTERN_BOUNDARY -97.4                              //Longitude of Yankton, SD
 #define NORTHERN_BOUNDARY 45.6                              //Latitude of St. Cloud, MN
@@ -125,12 +123,12 @@ const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
 ////////////////Power Relays///////////////////
 //////////////////////////////////////////////
 //LatchRelay opcRelay(OPC_ON, OPC_OFF);
-LatchRelay opcHeatRelay(OPC_HEATER_ON,OPC_HEATER_OFF);
+LatchRelay sensorHeatRelay(SENSOR_HEATER_ON,SENSOR_HEATER_OFF);
 LatchRelay batHeatRelay(BAT_HEATER_ON,BAT_HEATER_OFF);
 //LatchRelay sirenRelay(SIREN_ON, SIREN_OFF);
 //boolean  opcON = false;
 //String opcRelay_Status = "";
-String opcHeat_Status = "";
+String sensorHeat_Status = "";
 String batHeat_Status = "";
 
 /////////////////////////////////////////////
@@ -140,15 +138,20 @@ String batHeat_Status = "";
 OneWire oneWire1(ONE_WIRE_BUS);
 OneWire oneWire2(TWO_WIRE_BUS);
 OneWire oneWire3(THREE_WIRE_BUS);
-OneWire oneWire4(FOUR_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-DallasTemperature sensor4(&oneWire4);
 float t1;
 float t2;
 float t3;
-float t4;
+
+
+//Honeywell Pressure Sensor
+int pressureSensor;                                                        //Analog number given by sensor
+float pressureSensorVoltage;                                               //Voltage calculated from analog number
+float PressurePSI;                                                         //PSI calculated from voltage
+float PressureATM;                                                         //ATM calculated from PSI
+
 
 //GPS
 UbloxGPS GPS(&UBLOX_SERIAL);
@@ -161,21 +164,24 @@ float prev_alt_feet = 0;         // previous calculated altitude
 ///////////////////////////////////////////
 /////////////////Control///////////////////
 ///////////////////////////////////////////
-// SMART
-String SmartData; //Just holds temporary copy of Smart data
-static String SmartLogA; //Log everytime, is just data from smart
+//SMART
+String SmartData;                                                       //Just holds temporary copy of Smart data
+static String SmartLogA;                                                //Log everytime, is just data from smart
 static String SmartLogB;
-static bool CutA=false; //Set to true to cut A SMART
-static bool CutB=false; //Set to true to cut B SMART
-static bool ChangeData=true; //Just set true after every data log
-SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0); //Smart controller
+static bool CutA=false;                                                 //Set to true to cut A SMART
+static bool CutB=false;                                                 //Set to true to cut B SMART
+static bool ChangeData=true;                                            //Just set true after every data log
+SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0);            //Smart controller
 String smartOneString = "Primed";
 String smartTwoString = "Primed";
-float alt_pressure = 0;          // altitude calculated by the pressure sensor in feet
-float ascent_rate = 0;     // ascent rate of payload in feet per minute
-float Control_Altitude = 0;                 // final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
-static float prev_time = 0;                 // prev time for S_Control
-static float prev_Control_Altitude = 0;     // records the most recent altitude given by GPS when it had lock
+String smartOneCut = "";
+String smartTwoCut = "";
+
+//Control Telemetry
+float ascent_rate = 0;                                                  // ascent rate of payload in feet per minute
+float Control_Altitude = 0;                                             // final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
+static float prev_time = 0;                                             // prev time for S_Control
+static float prev_Control_Altitude = 0;                                 // records the most recent altitude given by GPS when it had lock
 int test =0;
 
 //Timers
@@ -196,7 +202,7 @@ boolean LowMaxAltitude = false;
 float t_low = 283;
 float t_high = 289;
 boolean coldBattery = false;
-boolean coldOPC = false;
+boolean coldSensor = false;
 
 //////////////////////////////////////////
 ///////////////Data Logging///////////////
@@ -222,9 +228,9 @@ String OPCdata = "";
 void setup() {
 
   // initialize LEDs
-  pinMode(ledPin, OUTPUT);
-  pinMode(ledSD, OUTPUT);
-  pinMode(fix_led, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(LED_SD, OUTPUT);
+  pinMode(LED_FIX, OUTPUT);
 
   //Initialize SD
   initSD();
@@ -244,7 +250,6 @@ void setup() {
   sensor1.begin();
   sensor2.begin();
   sensor3.begin();
-  sensor4.begin();
 
 
   //Initialize Relays

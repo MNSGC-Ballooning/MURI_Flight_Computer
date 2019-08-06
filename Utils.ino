@@ -1,8 +1,8 @@
 // LED
 void actionBlink(){
-  digitalWrite(ledPin,HIGH);
+  digitalWrite(LED_PIN,HIGH);
   delay(10);
-  digitalWrite(ledPin,LOW);
+  digitalWrite(LED_PIN,LOW);
 }
 
 void fixBlink(){
@@ -10,23 +10,23 @@ void fixBlink(){
   if (GPS.getFixAge()<4000){
     if(millis()-prevTime>=15000){
       prevTime = millis();
-      digitalWrite(fix_led,HIGH);
+      digitalWrite(LED_FIX,HIGH);
       delay(10);
-      digitalWrite(fix_led,LOW);
+      digitalWrite(LED_FIX,LOW);
     }
   }
   else{
-      digitalWrite(fix_led,HIGH);
+      digitalWrite(LED_FIX,HIGH);
       delay(10);
-      digitalWrite(fix_led,LOW);
+      digitalWrite(LED_FIX,LOW);
   }
    
 }
 
 void logBlink(){
-  digitalWrite(ledSD,HIGH);
+  digitalWrite(LED_SD,HIGH);
   delay(10);
-  digitalWrite(ledSD,LOW);
+  digitalWrite(LED_SD,LOW);
 }
 
 // GPS   
@@ -68,7 +68,7 @@ void openFlightlog() {
     //add .c_str() next to Fname
     Flog = SD.open(Fname.c_str(), FILE_WRITE);
     FlightlogOpen = true;
-    digitalWrite(ledSD, HIGH);
+    digitalWrite(LED_SD, HIGH);
   }
 }
 void closeFlightlog() {
@@ -76,6 +76,6 @@ void closeFlightlog() {
     Flog.close();
     FlightlogOpen = false;
     if (!FlightlogOpen)
-      digitalWrite(ledSD, LOW);
+      digitalWrite(LED_SD, LOW);
   }
 }

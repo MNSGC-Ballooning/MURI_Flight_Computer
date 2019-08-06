@@ -6,11 +6,11 @@ void actHeat(){
   if(t3 > t_high) {
     coldBattery = false; // if temperature is above high critical temperature
   }
-  if(150 < t4 && t4 < t_low){
-    coldOPC = true;    
+  if(150 < t2 && t2 < t_low){
+    coldSensor = true;    
   }
-  if(t4 > t_high){
-    coldOPC = false;
+  if(t2 > t_high){
+    coldSensor = false;
   }
 
 //turn heater on/off:
@@ -20,10 +20,10 @@ void actHeat(){
   else if(!coldBattery && batHeatRelay.getState()==true){
     batHeatRelay.setState(false);
   }
-  if(coldOPC && opcHeatRelay.getState()==false){
-    opcHeatRelay.setState(true);
+  if(coldSensor && sensorHeatRelay.getState()==false){
+    sensorHeatRelay.setState(true);
   }
-  else if(!coldOPC && opcHeatRelay.getState()==true){
-    opcHeatRelay.setState(false);
+  else if(!coldSensor && sensorHeatRelay.getState()==true){
+    sensorHeatRelay.setState(false);
   }
 }

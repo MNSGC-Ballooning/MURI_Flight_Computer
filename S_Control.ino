@@ -21,16 +21,12 @@ void stateMachine(){
   static unsigned long castAway = 0;
   static byte initCounter = 0;
   static byte skyCheck = 0;
-  static byte termination_longitude_check = 0;
-  static byte termination_latitude_check = 0;
   static byte floorCheck = 0;
   static byte snail = 0;
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-//  static float prev_time = 0;             // previous calculated time (in milliseconds)
   static int lockcounter;                 // counter for getting GPS Lock
-//  static float prev_Control_Altitude = 0;     // records the most recent altitude given by GPS when it had lock
 
   
   
@@ -46,7 +42,9 @@ void stateMachine(){
   if(millis() >= masterTimer) // if mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
   {
     CutSMARTA();
+    smartOneCut = "Master Timer";
     CutSMARTB();
+    smartTwoCut = "Master Timer";
     muriState = STATE_MURI_RECOVERY;
     stateString = "RECOVERY";
   }
@@ -79,20 +77,12 @@ void stateMachine(){
     
     ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // calculates ascent rate in ft/sec if GPS has a lock
     prev_time = millis(); 
-    prev_Control_Altitude=Control_Altitude;// prev_time will equal the current time for the next loop
-     // same idea as prev_time. millis() used if GPS loses fix and a different method for time-keeping is needed
-    // prev_Control_Altitude = Control_Altitude;                                                // Is this being used anywhere?
-    prev_Control_Altitude = Control_Altitude;      //Only used when determining appropiate range to use data from barometer library for altitude
+    prev_Control_Altitude=Control_Altitude;         // prev_time will equal the current time for the next loop
+    prev_Control_Altitude = Control_Altitude;       //Only used when determining appropiate range to use data from barometer library for altitude
   }                                 
   else if(GPSstatus == NoLock)
   {
-//     if ((alt_pressure_library < prev_Control_Altitude + 1000) && (alt_pressure_library > prev_Control_Altitude - 1000)) {    
-//        Control_Altitude = alt_pressure_library;                           // Control_Altitude only updated by barometer library if given altitude is within 1000ft of last GPS altitude with a lock
-//     }
-//     if {
-        Control_Altitude = (ascent_rate*((millis()-prev_time)/1000))+Control_Altitude;
-//     }
-
+     Control_Altitude = (ascent_rate*((millis()-prev_time)/1000))+Control_Altitude;
      ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
      prev_Control_Altitude = Control_Altitude;
      prev_time = millis();                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
@@ -104,41 +94,6 @@ void stateMachine(){
   AbortControl();
   
 ////////////////////////Finite State Machine/////////////////////////
-
-   if(GPSstatus == Lock) {
-           if(float(GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) ) //Checks to see if payload is outside of longitudinal boundaries
-           {
-             termination_longitude_check++;
-             Serial.println("Termination Longitude check: " + String(termination_longitude_check));
-             if (termination_longitude_check>5)
-             {
-               CutSMARTA();
-               CutSMARTB();
-               termination_longitude_check = 0;
-             }
-           }
-           else
-           {                                                       // if longitude is still in acceptable range, then reset check
-             termination_longitude_check = 0;
-           }
-
-
-           if(float(GPS.getLat() != 0) && ((float(GPS.getLat()) > NORTHERN_BOUNDARY) || (float(GPS.getLat()) < SOUTHERN_BOUNDARY)) ) //Checks to see if payload is outside of latitudinal boundaries
-           {
-             termination_latitude_check++;
-             if (termination_latitude_check>5)
-             {
-               CutSMARTA();
-               CutSMARTB();
-               termination_latitude_check = 0;
-             }
-           }
-           else
-           {                                                       // if latitude is still in acceptable range, then reset check
-             termination_latitude_check = 0;
-           }
-       }
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////    
@@ -171,6 +126,7 @@ void stateMachine(){
           {
             // if the payload is consistenly above max mission alt. , the first balloon is released
            CutSMARTA();
+           smartOneCut = "Reached Altitude Ceiling";
            skyCheck = 0;
           }
         }
@@ -179,7 +135,7 @@ void stateMachine(){
       case 0x02: // Fast Descent
         Serial.println("STATE_MURI_FAST_DESCENT");
         if(!fast) {
-            opcHeatRelay.setState(false);
+            sensorHeatRelay.setState(false);
             batHeatRelay.setState(false);
             fast=true;
         break;
@@ -194,7 +150,9 @@ void stateMachine(){
           {
             // if consistently below data collection range then release all balloons again just in case
             CutSMARTA();
+            smartOneCut = "Reached Slow Descent Floor";
             CutSMARTB();
+            smartTwoCut = "Reached Slow Descent Floor";
             floorCheck = 0;
           }
         }
@@ -203,9 +161,11 @@ void stateMachine(){
           floorCheck = 0;
         }
 
-        if (LowMaxAltitude && ((millis() - LowAltitudeReleaseTimer) > LOW_MAX_ALTITUDE_CUTDOWN_TIMER)) {
+        if (LowMaxAltitude && ((millis() - LowAltitudeReleaseTimer) > (LOW_MAX_ALTITUDE_CUTDOWN_TIMER*MINUTES_TO_MILLIS))) {
           CutSMARTA();
+          smartOneCut = "Slow Descent Timer";
           CutSMARTB();
+          smartTwoCut = "Slow Descent Timer";
         }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,11 +177,14 @@ void stateMachine(){
           if(Control_Altitude<30000)
           {
             CutSMARTB();
+            smartTwoCut = "Slow Ascent Below 30k";
           }
           else if(Control_Altitude>=30000)
           {
             CutSMARTA();
+            smartOneCut = "Slow Ascent Above 30k";
             CutSMARTB();
+            smartTwoCut = "Slow Ascent Above 30k";
           }
           snail = 0;
          }
@@ -237,7 +200,9 @@ void stateMachine(){
         if(millis()-castAway >= 600000)
         {
           CutSMARTA();
+          smartOneCut = "Castaway";
           CutSMARTB();
+          smartTwoCut = "Castaway";
         }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -356,18 +321,76 @@ void CutSMARTB() {
 
 
 void AbortControl() {
+  
+  static byte termination_longitude_check = 0;
+  static byte termination_latitude_check = 0;
+
+   // Cut if the master timer is reached
+  if(millis() >= masterTimer) // if mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
+  {
+    CutSMARTA();
+    smartOneCut = "Master Timer";
+    CutSMARTB();
+    smartTwoCut = "Master Timer";
+    muriState = STATE_MURI_RECOVERY;
+    stateString = "RECOVERY";
+  }
+
+  // Cut if the geographic boundaries are breached
+  if(GPSstatus == Lock) {
+           if(float(GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) ) //Checks to see if payload is outside of longitudinal boundaries
+           {
+             termination_longitude_check++;
+             Serial.println("Termination Longitude check: " + String(termination_longitude_check));
+             if (termination_longitude_check>5)
+             {
+               CutSMARTA();
+               smartOneCut = "Reached Termination Longitude";
+               CutSMARTB();
+               smartTwoCut = "Reached Termination Longitude";
+               termination_longitude_check = 0;
+             }
+           }
+           else
+           {                                                       // if longitude is still in acceptable range, then reset check
+             termination_longitude_check = 0;
+           }
+
+
+           if(float(GPS.getLat() != 0) && ((float(GPS.getLat()) > NORTHERN_BOUNDARY) || (float(GPS.getLat()) < SOUTHERN_BOUNDARY)) ) //Checks to see if payload is outside of latitudinal boundaries
+           {
+             termination_latitude_check++;
+             if (termination_latitude_check>5)
+             {
+               CutSMARTA();
+               smartOneCut = "Reached Termination Latitude";
+               CutSMARTB();
+               smartTwoCut = "Reached Termination Latitude";
+               termination_latitude_check = 0;
+             }
+           }
+           else
+           {                                                       // if latitude is still in acceptable range, then reset check
+             termination_latitude_check = 0;
+           }
+       }
+  
 
    //Cut down if ascent takes too long 
-   if (muriState == STATE_MURI_ASCENT && ((ascentTimer - millis()) > LONG_ASCENT_TIMER)) {
+   if (muriState == STATE_MURI_ASCENT && ((ascentTimer - millis()) > (LONG_ASCENT_TIMER*MINUTES_TO_MILLIS))) {
      CutSMARTA();
+     smartOneCut = "Ascent Timer";
      CutSMARTB();
+     smartTwoCut = "Ascent Timer";
    }
 
 
    //Cut down if slow descent takes too long
-   if (muriState == STATE_MURI_SLOW_DESCENT && ((descentTimer - millis()) > LONG_DESCENT_TIMER)) {
+   if (muriState == STATE_MURI_SLOW_DESCENT && ((descentTimer - millis()) > (LONG_DESCENT_TIMER*MINUTES_TO_MILLIS))) {
       CutSMARTA();
+      smartOneCut = "Descent Timer";
       CutSMARTB();
+      smartTwoCut = "Descent Timer";
    }
 
 }

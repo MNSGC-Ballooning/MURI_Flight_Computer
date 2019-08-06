@@ -96,19 +96,26 @@ long Master_Timer =  20000; //Master cut timer
 /////////////////Constants////////////////////
 //////////////////////////////////////////////
 
-//////////// TIMERS ////////////
+//TIMERS
 #define MAIN_LOOP_TIME 1000                         // Main loop runs at 1 Hz
 #define CONTROL_LOOP_TIME 1000                      // Control loop runs at 1.0 Hz
 #define LOG_TIMER 4000                              // Log timer runs at 0.25 Hz
 #define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 10           // Release SMARTs after 10 minutes if max alt is less than 80000ft
-#define LONG_ASCENT_TIMER 210                       // SMARTs release if ascent takes longer than 3.5 hours
+#define LONG_ASCENT_TIMER 270                       // SMARTs release if ascent takes longer than 4.5 hours
 #define LONG_DESCENT_TIMER 90                       // SMARTS release if descent takes longer than 1.5 hours
 
-
+//Constants
 #define MINUTES_TO_MILLIS 60000
 #define PSI_TO_ATM  0.068046                                //Live love conversions   
 #define C2K 273.15                                          //Celsius to Kelvin. What else is there to say?    
 #define PMS_TIME 1                                          //PMS Timer
+
+//Control Constants
+#define HIGH_TEMP 16
+#define LOW_TEMP  10
+
+
+//Dimensional Boundaries
 #define EASTERN_BOUNDARY -92.3                              //Longitude of Waterloo, IA
 #define WESTERN_BOUNDARY -97.4                              //Longitude of Yankton, SD
 #define NORTHERN_BOUNDARY 45.6                              //Latitude of St. Cloud, MN
@@ -199,8 +206,6 @@ boolean LowMaxAltitude = false;
 
 
 //Heating
-float t_low = 283;
-float t_high = 289;
 boolean coldBattery = false;
 boolean coldSensor = false;
 
@@ -256,7 +261,7 @@ void setup() {
   initRelays();
 
   //Initialize OPCs
-  initOPCs();
+  //initOPCs();
   
   Serial.println("Setup Complete");
 

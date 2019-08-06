@@ -1,15 +1,15 @@
 void actHeat(){
   // Compare digital temp. to critical temp.:  
-  if(150 < t3 && t3 < t_low) {
+  if(-123 < t3 && t3 < LOW_TEMP) {
     coldBattery = true; // if temperature is below low critical temperature
   }
-  if(t3 > t_high) {
+  if(t3 > HIGH_TEMP) {
     coldBattery = false; // if temperature is above high critical temperature
   }
-  if(150 < t2 && t2 < t_low){
+  if(-123 < t2 && t2 < LOW_TEMP){
     coldSensor = true;    
   }
-  if(t2 > t_high){
+  if(t2 > HIGH_TEMP){
     coldSensor = false;
   }
 

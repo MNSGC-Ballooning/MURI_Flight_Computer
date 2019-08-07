@@ -70,7 +70,7 @@ void updateSensors() {
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
   data += (SmartLogA + "," + smartOneCut + "," + SmartLogB + "," + smartTwoCut + "," + String(ascent_rate) + "," + stateString + ",");
-  data += ("=," + OPCdata);
+  data += (",=," + OPCdata);
   openFlightlog();
   Serial.println(data);
   delay(100);

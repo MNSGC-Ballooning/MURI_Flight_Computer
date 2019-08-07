@@ -39,15 +39,7 @@ void stateMachine(){
     init=true; // initalize state machine
     Serial.println("Initializing...");
   }
-  if(millis() >= masterTimer) // if mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
-  {
-    CutSMARTA();
-    smartOneCut = "Master Timer";
-    CutSMARTB();
-    smartTwoCut = "Master Timer";
-    muriState = STATE_MURI_RECOVERY;
-    stateString = "RECOVERY";
-  }
+
   if(muriState!=STATE_MURI_FAST_DESCENT || !recovery)
   {
    actHeat(); 
@@ -221,6 +213,7 @@ void stateMachine(){
 
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
 void stateSwitch(){
+  
   static byte ascent_counter = 0;
   static byte slow_ascent_counter = 0;
   static byte slow_descent_counter = 0;
@@ -301,9 +294,15 @@ void stateSwitch(){
 
     
     if((muriState == STATE_MURI_FAST_DESCENT || muriState == STATE_MURI_SLOW_DESCENT) && Control_Altitude<7000){
-      muriState = STATE_MURI_RECOVERY;
-      stateString = "RECOVERY";
-    } 
+      recovery_counter++;
+      if (recovery_counter >= 5) {
+        muriState = STATE_MURI_RECOVERY;
+        stateString = "RECOVERY"; 
+      }
+    }
+    else {
+      recovery_counter = 0; 
+    }
   } 
 }
 

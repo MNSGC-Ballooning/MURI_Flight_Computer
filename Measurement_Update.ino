@@ -3,7 +3,7 @@
 void updateSensors() {
  static unsigned long prevTime = 0;
  if(millis()-prevTime>= LOG_TIMER){
-
+  oledTime = millis();
   prevTime = millis();
   
 

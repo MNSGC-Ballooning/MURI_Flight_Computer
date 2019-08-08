@@ -8,12 +8,14 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <UbloxGPS.h>              //Needs TinyGPS++ in order to function
-#include <i2c_t3.h>                //Required for usage of MS5607 with Teensy 3.5/3.6
+//#include <i2c_t3.h>                //Required for usage of MS5607 with Teensy 3.5/3.6
 #include <Arduino.h>               //"Microcontroller stuff" - Garrett Ailts 
-#include "Salus_Baro.h"            //Library for MS5607
+//#include "Salus_Baro.h"            //Library for MS5607
 #include <SmartController.h>       //Library for smart units using xbees to send commands
 #include <OPCSensor.h>             //Library for OPCs
 //#include <SoftwareSerial.h>        //Software Serial library for Plan Tower
+#include <Wire.h>
+#include <SFE_MicroOLED.h>
 
 //==============================================================
 //               MURI Flight Computer
@@ -70,9 +72,9 @@
 /////////////////////////////////////////////
 ///////////////Pin Definitions///////////////
 /////////////////////////////////////////////
-#define LED_PIN 20                  //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
-#define LED_FIX 21                  //led  which blinks for fix
-#define LED_SD 22                   //Pin which controls the SD LED
+//#define LED_PIN 20                  //Pin which controls the DATA LED, which blinks differently depending on what payload is doing
+//#define LED_FIX 21                  //led  which blinks for fix
+#define LED_SD 22                     //Pin which controls the SD LED
 #define ONE_WIRE_BUS 28             //Battery Temp
 #define TWO_WIRE_BUS 29             //Internal Temp
 #define THREE_WIRE_BUS 30           //External Temp
@@ -86,7 +88,8 @@
 #define UBLOX_SERIAL Serial2
 #define XBEE_SERIAL Serial3
 #define SPS_SERIAL Serial4
-
+#define PIN_RESET 23  //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
+#define DC_JUMPER 19  //The DC_JUMPER is the I2C Address Select jumper. Set to 1 if the jumper is open (Default), or set to 0 if it's closed.
 
 
 //////////////////////////////////////////////
@@ -101,6 +104,7 @@
 #define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 10           // Release SMARTs after 10 minutes if max alt is less than 80000ft
 #define LONG_ASCENT_TIMER 240                       // SMARTs release if ascent takes longer than 4 hours
 #define LONG_DESCENT_TIMER 90                       // SMARTS release if descent takes longer than 1.5 hours
+#define SCREEN_UPDATE_RATE 1000
 
 //Constants
 #define MINUTES_TO_MILLIS 60000
@@ -120,6 +124,7 @@
 #define SOUTHERN_BOUNDARY 41.6                              //Latitude of Des Moines, IA 
 #define MAX_ALTITUDE  110000
 #define MIN_ALTITUDE  80000
+
 
 //////////////On Board SD Chipselect/////////////
 const int chipSelect = BUILTIN_SDCARD; //On board SD card for teensy
@@ -169,8 +174,8 @@ float prev_alt_feet = 0;         // previous calculated altitude
 ///////////////////////////////////////////
 //SMART
 String SmartData;                                                       //Just holds temporary copy of Smart data
-static String SmartLogA;                                                //Log everytime, is just data from smart
-static String SmartLogB;
+static String SmartLogA = "";                                           //Log everytime, is just data from smart
+static String SmartLogB = "";
 static bool CutA=false;                                                 //Set to true to cut A SMART
 static bool CutB=false;                                                 //Set to true to cut B SMART
 static bool ChangeData=true;                                            //Just set true after every data log
@@ -185,7 +190,7 @@ float ascent_rate = 0;                                                  // ascen
 float Control_Altitude = 0;                                             // final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
 static float prev_time = 0;                                             // prev time for S_Control
 static float prev_Control_Altitude = 0;                                 // records the most recent altitude given by GPS when it had lock
-int test =0;
+int test = 0;
 
 //Timers
 boolean recovery = false;
@@ -221,45 +226,61 @@ R1 R1A(R1A_SLAVE_PIN);
 
 String OPCdata = "";
 
+//////////////////////////////////
+// MicroOLED Object Declaration //
+//////////////////////////////////
+MicroOLED oled(PIN_RESET, DC_JUMPER);    // I2C declaration
+bool finalMessage[2] = {false,false};
+unsigned long screenUpdateTimer = 0;
+unsigned short screen = 0;
+unsigned long oledTime = 0;
 
 //////////////////////////////////////////////
 /////////Initialize Flight Computer///////////
 //////////////////////////////////////////////
 void setup() {
 
+  //Initialize OLED Screen
+  initOLED(oled);
+
   // initialize LEDs
-  pinMode(LED_PIN, OUTPUT);
-  pinMode(LED_SD, OUTPUT);
-  pinMode(LED_FIX, OUTPUT);
+//  pinMode(LED_PIN, OUTPUT);
+    pinMode(LED_SD, OUTPUT);
+//  pinMode(LED_FIX, OUTPUT);
 
   //Initialize SD
   initSD();
+  oledPrintNew(oled, "SD Init");
 
   //Initialize Serial
   Serial.begin(9600); //USB Serial for debugging
- 
   
   //Initialize Radio
   XBEE_SERIAL.begin(9600); //For smart xBee
-
+  oledPrintAdd(oled, "XB Init");
 
   //Initialize GPS
   initGPS();
+  oledPrintAdd(oled, "GPSInit");
+  delay(1000);
   
   //Initialize Temp Sensors
   sensor1.begin();
   sensor2.begin();
   sensor3.begin();
-
+  oledPrintNew(oled, "TmpInit");
 
   //Initialize Relays
   initRelays();
+  oledPrintAdd(oled, "RlyInit");
 
   //Initialize OPCs
   initOPCs();
+  oledPrintAdd(oled, "OPCInit");
+  delay(1000);
   
   Serial.println("Setup Complete");
-
+  oledPrintNew(oled, " Setup Complet");
 }
 
 void loop(){
@@ -267,11 +288,12 @@ void loop(){
   static unsigned long mainCounter = 0;
   GPS.update();
   PlanA.readData();
+  oledUpdate();
   // Main Thread
   if (millis()-mainCounter>=MAIN_LOOP_TIME){
     mainCounter = millis();
-    actionBlink();
-    fixBlink();
+//    actionBlink();
+//    fixBlink();
     updateSensors();   //Updates and logs all sensor data
     actHeat();
     

@@ -1,12 +1,29 @@
+void initOLED(MicroOLED& named){
+  delay(100);
+  Wire.begin();
+  named.begin();    // Initialize the OLED
+  named.clear(ALL); // Clear the display's internal memory
+  named.display();  // Display what's in the buffer (splashscreen)
+  delay(1000);     // Delay 1000 ms
+  named.clear(PAGE); // Clear the buffer.
+  
+  named.setFontType(1);
+  named.clear(PAGE);
+  named.setCursor(0,0);
+  named.print("SICKO  MODE   YEET");
+  named.display();
+  delay(2000);
+}
+
 void initSD(){
   //initialize SD card
   pinMode(chipSelect, OUTPUT);
   
   while (!SD.begin(chipSelect)) {//power LED will blink if no card is inserted
     Serial.println("No SD");
-    digitalWrite(LED_SD, HIGH);
-    delay(500);
-    digitalWrite(LED_SD, LOW);
+//    digitalWrite(LED_SD, HIGH);
+//    delay(500);
+//    digitalWrite(LED_SD, LOW);
     delay(500);
     SDcard = false;
   }

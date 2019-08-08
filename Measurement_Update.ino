@@ -5,7 +5,7 @@ void updateSensors() {
   oledTime = millis();
   prevTime = millis();
 
-  if(batHeatRelay.getState()==true){                                      //Relay Status Collection
+  if(batHeatRelay.getState()==true){                                     //Relay Status Collection
     batHeat_Status = "ON";
   }
   else if(batHeatRelay.getState()==false){

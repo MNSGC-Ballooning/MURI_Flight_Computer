@@ -1,5 +1,5 @@
 //Controller that looks at the derivative of altitude and the current altitude state
-#define STATE_MURI_INIT           0x00                                 //0000 0000
+#define STATE_MURI_INIT           0x00                                  //0000 0000
 #define STATE_MURI_ASCENT         0x01                                 //0000 0001
 #define STATE_MURI_FAST_DESCENT   0x02                                 //0000 0010
 #define STATE_MURI_SLOW_DESCENT   0x04                                 //0000 0100
@@ -204,13 +204,13 @@ void stateSwitch(){
   static byte slow_descent_counter = 0;
   static byte fast_descent_counter = 0;
   static byte recovery_counter = 0;
-  static byte wilson = 0; // counter for castaway
-  if(hdotInit && Control_Altitude!=0 && !recovery && GPSstatus == Lock){ // if it has been initialized, it is above sea level, and it is not in recovery
+  static byte wilson = 0;                                              //Counter for castaway
+  if(hdotInit&&Control_Altitude!=0&&!recovery&&GPSstatus==Lock){       //If it has been initialized, it is above sea level, and it is not in recovery
     if(ascent_rate>=(5000/60) || ascent_rate<=(-5000/60)){
       Serial.println("GPS Jump Detected");
     }
     
-    if(ascent_rate > (300/60) && muriState != STATE_MURI_ASCENT){
+    if(ascent_rate > (300/60) && muriState != STATE_MURI_ASCENT){      //Ascent rate trigger if the balloon is rising
       ascent_counter++;
       if (ascent_counter >= 5) {
         muriState = STATE_MURI_ASCENT;
@@ -224,7 +224,7 @@ void stateSwitch(){
     }
     
     if(ascent_rate>(50/60) && ascent_rate<=(300/60) && muriState != STATE_MURI_SLOW_ASCENT){
-      slow_ascent_counter++;
+      slow_ascent_counter++;                                           //Slow ascent trigger if the balloon is rising too slowly
       if (slow_ascent_counter >= 5) {
         muriState = STATE_MURI_SLOW_ASCENT;
         stateString = "SLOW ASCENT";
@@ -236,7 +236,7 @@ void stateSwitch(){
     }
     
     if(ascent_rate >= (-1500/60) && ascent_rate < (-50/60) && muriState != STATE_MURI_SLOW_DESCENT){
-      slow_descent_counter++;
+      slow_descent_counter++;                                          //Slow descent if one balloon cuts away
       if (slow_descent_counter >= 5) {
         muriState = STATE_MURI_SLOW_DESCENT;
         stateString = "SLOW DESCENT";
@@ -245,7 +245,7 @@ void stateSwitch(){
 
         if (Control_Altitude < MIN_ALTITUDE) {
          LowAltitudeReleaseTimer = millis();
-         LowMaxAltitude = true; 
+         LowMaxAltitude = true;                                        //Preps second balloon for cutaway
         }
       }
     }
@@ -256,7 +256,7 @@ void stateSwitch(){
     if(ascent_rate<=(-2000/60) && Control_Altitude>7000 && muriState != STATE_MURI_FAST_DESCENT){
       fast_descent_counter++;
       if (fast_descent_counter >= 5) {
-        muriState = STATE_MURI_FAST_DESCENT;
+        muriState = STATE_MURI_FAST_DESCENT;                           //Fast descent once both balloons cut away
         stateString = "FAST DESCENT";
         fast_descent_counter = 0;
       }
@@ -266,7 +266,7 @@ void stateSwitch(){
     }
     
     if(ascent_rate>=(-50/60) && ascent_rate<=(50/60) && muriState != STATE_MURI_CAST_AWAY){
-      wilson++;
+      wilson++;                                                        //If the payload gets stuck and cannot rise or fall quickly
       if(wilson>50){
         muriState = STATE_MURI_CAST_AWAY;
         stateString = "CAST AWAY";
@@ -279,7 +279,7 @@ void stateSwitch(){
 
     
     if((muriState == STATE_MURI_FAST_DESCENT || muriState == STATE_MURI_SLOW_DESCENT) && Control_Altitude<7000){
-      recovery_counter++;
+      recovery_counter++;                                              //If the payload is nearing the ground
       if (recovery_counter >= 5) {
         muriState = STATE_MURI_RECOVERY;
         stateString = "RECOVERY"; 
@@ -291,8 +291,6 @@ void stateSwitch(){
   } 
 }
 
-
-
 void CutSMARTA() {
   CutA=true;
   smartOneString = "RELEASED";
@@ -303,14 +301,12 @@ void CutSMARTB() {
   smartTwoString = "RELEASED";
 }
 
-
 void AbortControl() {
-  
   static byte termination_longitude_check = 0;
   static byte termination_latitude_check = 0;
 
-   // Cut if the master timer is reached
-  if((millis() - masterClock) >= MASTER_TIMER*MINUTES_TO_MILLIS) // if mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
+                                                                     //Cut if the master timer is reached
+  if((millis() - masterClock) >= MASTER_TIMER*MINUTES_TO_MILLIS)     //If mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
   {
     CutSMARTA();
     smartOneCut = "Master Timer";
@@ -320,10 +316,9 @@ void AbortControl() {
     stateString = "RECOVERY";
   }
 
-  // Cut if the geographic boundaries are breached
-  if(GPSstatus == Lock) {
-       if(float(GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) ) //Checks to see if payload is outside of longitudinal boundaries
-       {
+  if(GPSstatus == Lock) {                                              //Cut if the geographic boundaries are breached
+       if(float(GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) )
+       {                                                               //Checks to see if payload is outside of longitudinal boundaries
          termination_longitude_check++;
          Serial.println("Termination Longitude check: " + String(termination_longitude_check));
          if (termination_longitude_check>5)
@@ -336,13 +331,12 @@ void AbortControl() {
          }
        }
        else
-       {                                                       // if longitude is still in acceptable range, then reset check
+       {                                                               //If longitude is still in acceptable range, then reset check
          termination_longitude_check = 0;
        }
 
-
-       if(float(GPS.getLat() != 0) && ((float(GPS.getLat()) > NORTHERN_BOUNDARY) || (float(GPS.getLat()) < SOUTHERN_BOUNDARY)) ) //Checks to see if payload is outside of latitudinal boundaries
-       {
+       if(float(GPS.getLat() != 0) && ((float(GPS.getLat()) > NORTHERN_BOUNDARY) || (float(GPS.getLat()) < SOUTHERN_BOUNDARY)) )
+       {                                                               //Checks to see if payload is outside of latitudinal boundaries
          termination_latitude_check++;
          if (termination_latitude_check>5)
          {
@@ -354,27 +348,22 @@ void AbortControl() {
          }
        }
        else
-       {                                                       // if latitude is still in acceptable range, then reset check
+       {                                                               //If latitude is still in acceptable range, then reset check
          termination_latitude_check = 0;
        }
    }
-  
-
-   //Cut down if ascent takes too long 
+   
    if (muriState == STATE_MURI_ASCENT && ((millis() - ascentTimer) > (LONG_ASCENT_TIMER*MINUTES_TO_MILLIS))) {
-     CutSMARTA();
+     CutSMARTA();                                                      //Cut down if ascent takes too long
      smartOneCut = "Ascent Timer";
      CutSMARTB();
      smartTwoCut = "Ascent Timer";
    }
 
-
-   //Cut down if slow descent takes too long
    if (muriState == STATE_MURI_SLOW_DESCENT && ((millis() - descentTimer) > (LONG_DESCENT_TIMER*MINUTES_TO_MILLIS))) {
-      CutSMARTA();
+      CutSMARTA();                                                     //Cut down if slow descent takes too long
       smartOneCut = "Descent Timer";
       CutSMARTB();
       smartTwoCut = "Descent Timer";
    }
-
 }

@@ -198,7 +198,7 @@ boolean coldSensor = false;
 ////////////////////////////////
 //////////Data Logging//////////
 ////////////////////////////////
-String stateString = "";                                              //Variables needed to establish the flight log
+String stateString = "";                                               //Variables needed to establish the flight log
 File Flog;
 static String data;
 String Fname = "";
@@ -207,7 +207,7 @@ boolean SDcard = true;
 ////////////////////////
 //////////OPCs//////////
 ////////////////////////
-Plantower PlanA(&PMS_SERIAL, LOG_TIMER);                              //Establish objects and logging string for the OPCs
+Plantower PlanA(&PMS_SERIAL, LOG_TIMER);                               //Establish objects and logging string for the OPCs
 //SPS SPSA(&SPS_SERIAL);
 R1 R1A(R1A_SLAVE_PIN);
 
@@ -216,7 +216,7 @@ String OPCdata = "";
 ////////////////////////////////////////////////
 //////////MicroOLED Object Declaration//////////
 ////////////////////////////////////////////////
-MicroOLED oled(PIN_RESET, DC_JUMPER);                                 //Object I2C declaration
+MicroOLED oled(PIN_RESET, DC_JUMPER);                                  //Object I2C declaration
 bool finalMessage[2] = {false,false};
 unsigned short screen = 0;
 
@@ -224,31 +224,27 @@ unsigned short screen = 0;
 //////////Initialize Flight Computer//////////
 //////////////////////////////////////////////
 void setup() {
-  initOLED(oled);                                                     //Initialize OLED Screen
-  pinMode(LED_SD, OUTPUT);                                            //Initialize LED
+  initOLED(oled);                                                      //Initialize OLED Screen
+  pinMode(LED_SD, OUTPUT);                                             //Initialize LED
   
-  initSD();                                                           //Initialize SD
+  initSD();                                                            //Initialize SD
   oledPrintNew(oled, "SD Init");
 
-  Serial.begin(9600);                                                 //USB Serial for debugging
-  
-  
-  XBEE_SERIAL.begin(9600);                                            //Initialize Radio
+  Serial.begin(9600);                                                  //USB Serial for debugging
+  XBEE_SERIAL.begin(9600);                                             //Initialize Radio
   oledPrintAdd(oled, "XB Init");
 
-  initGPS();                                                          //Initialize GPS
+  initGPS();                                                           //Initialize GPS
   oledPrintAdd(oled, "GPSInit");
   delay(1000);
   
-  sensor1.begin();                                                    //Initialize Temp Sensors
-  sensor2.begin();
-  sensor3.begin();
+  initTemp();                                                          //Initialize Temp Sensors
   oledPrintNew(oled, "TmpInit");
 
-  initRelays();                                                       //Initialize Relays
+  initRelays();                                                        //Initialize Relays
   oledPrintAdd(oled, "RlyInit");
 
-  initOPCs();                                                         //Initialize OPCs
+  initOPCs();                                                          //Initialize OPCs
   oledPrintAdd(oled, "OPCInit");
   delay(1000);
   
@@ -257,19 +253,20 @@ void setup() {
 }
 
 void loop(){
-  GPS.update();                                                       //Update GPS and plantower on private loops
+  GPS.update();                                                        //Update GPS and plantower on private loops
   PlanA.readData();
 
-  SmartUpdate();                                                      //System to update SMART Units
+  SmartUpdate();                                                       //System to update SMART Units
      
-  if (millis()-controlCounter>=CONTROL_LOOP_TIME){                    //Control loop, runs slower, to ease stress on certain tasks
+  if (millis()-controlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
     controlCounter = millis();
-    SOCO.Cut(1,CutA);                                                 //Cut command logic for SMART
+    
+    SOCO.Cut(1,CutA);                                                  //Cut command logic for SMART
     SOCO.Cut(2,CutB);
-    FixCheck();                                                       //Provide logic for GPS fix
-    stateMachine();                                                   //Update state machine
-    updateSensors();                                                  //Updates and logs all sensor data
-    actHeat();                                                        //Controls active heating
-    oledUpdate();                                                     //Update screen
+    FixCheck();                                                        //Provide logic for GPS fix
+    stateMachine();                                                    //Update state machine
+    updateSensors();                                                   //Updates and logs all sensor data
+    actHeat();                                                         //Controls active heating
+    oledUpdate();                                                      //Update screen
   } 
 }

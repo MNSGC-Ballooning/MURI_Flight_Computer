@@ -19,8 +19,7 @@ void FixCheck(){                                                        //Check 
   }
 }
 
-//returns the above flight time as a usable string for print statements
-String flightTimeStr() {
+String flightTimeStr() {                                                //Returns the flight time as a usable string for print statements  
   unsigned long t = millis() / 1000;
   String fTime = "";
   fTime += (String(t / 3600) + ":");
@@ -33,22 +32,20 @@ String flightTimeStr() {
   return fTime;
 }
 
-float flightMinutes() {
+float flightMinutes() {                                                 //Return time in minutes
   float minutes = millis() / 1000;
   minutes = minutes / 60;
   return minutes;
 }
 
-float masterClockMinutes() {
+float masterClockMinutes() {                                            //Return master time in minutes
   float returnclock = masterClock / 1000;
   returnclock = returnclock / 60;
   return returnclock;
 }
 
-// SD for Flight Computer
-boolean FlightlogOpen = false;
-
-void openFlightlog() {
+boolean FlightlogOpen = false;                                          //SD for Flight Computer
+void openFlightlog() {                                                  //Open flight log
   if (!FlightlogOpen&&SDcard) {
     //add .c_str() next to Fname
     Flog = SD.open(Fname.c_str(), FILE_WRITE);
@@ -56,7 +53,7 @@ void openFlightlog() {
     digitalWrite(LED_SD, HIGH);
   }
 }
-void closeFlightlog() {
+void closeFlightlog() {                                                 //Close flight log
   if (FlightlogOpen&&SDcard) {
     Flog.close();
     FlightlogOpen = false;
@@ -65,7 +62,7 @@ void closeFlightlog() {
 }
 
 void SmartUpdate(){
-      if (ChangeData){                                                   //System to request data from Smart A and B
+      if (ChangeData){                                                  //System to request data from Smart A and B
       SmartLogA="";
       SOCO.RequestTemp(1);
       smartTimer=millis();

@@ -45,7 +45,7 @@ void initSD(){
   FHeader += "SPSA, nhits, MC1.0, MC2.5, MC4.0, MC10.0, NC0.5, NC1.0, NC2.5, NC4.0, NC10.0, Average Particle Size,";
   FHeader += "R1A, nhits, 0.4u, 0.7u, 1.1u, 1.5u, 1.9u, 2.4u, 3.0u, 4.0u, 5.0u, 6.0u, 7.0u, 8.0u, 9.0u, 10.0u, 11.0u, 12.0u, 12.4u";
   Flog.println(FHeader);                                                //Set up Flight log format
-  Serial.println("Flight log header added");
+  Serial.println("Flight log header added");                            
 
   closeFlightlog();
 }
@@ -60,6 +60,12 @@ void initGPS(){
     Serial.println("Airbrone mode set!");
   }
   Serial.println("GPS configured");
+}
+
+void initTemp(){
+  sensor1.begin();                                                    //Initialize Temp Sensors
+  sensor2.begin();
+  sensor3.begin();
 }
 
 void initRelays(){

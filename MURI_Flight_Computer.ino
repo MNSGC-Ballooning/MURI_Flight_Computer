@@ -318,5 +318,8 @@ void loop(){
     MeasurementCheck();
     stateMachine();
   } 
+//  if (millis()>1800000){
+//    SOCO.Cut(1,true);
+//  }
 
 }

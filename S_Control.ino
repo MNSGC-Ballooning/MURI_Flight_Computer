@@ -1,47 +1,39 @@
 //Controller that looks at the derivative of altitude and the current altitude state
-#define STATE_MURI_INIT           0x00    //0000 0000
-#define STATE_MURI_ASCENT         0x01    //0000 0001
-#define STATE_MURI_FAST_DESCENT   0x02    //0000 0010
-#define STATE_MURI_SLOW_DESCENT   0x04    //0000 0100
-#define STATE_MURI_SLOW_ASCENT    0x08    //0000 1000
-#define STATE_MURI_CAST_AWAY      0x10    //0001 0000
-#define STATE_MURI_RECOVERY       0x20    //0010 0000
+#define STATE_MURI_INIT           0x00                                 //0000 0000
+#define STATE_MURI_ASCENT         0x01                                 //0000 0001
+#define STATE_MURI_FAST_DESCENT   0x02                                 //0000 0010
+#define STATE_MURI_SLOW_DESCENT   0x04                                 //0000 0100
+#define STATE_MURI_SLOW_ASCENT    0x08                                 //0000 1000
+#define STATE_MURI_CAST_AWAY      0x10                                 //0001 0000
+#define STATE_MURI_RECOVERY       0x20                                 //0010 0000
 
-#define Lock    0xAA   //10101010
-#define NoLock  0xBB   //10111011
+#define Lock                      0xAA                                 //10101010
+#define NoLock                    0xBB                                 //10111011
 boolean usingGPS = false;
 uint8_t muriState;
 uint8_t GPSstatus = NoLock;
-//float ascent_rate = 0;     // ascent rate of payload in feet per minute
 boolean hdotInit = false; 
 
-
-
 void stateMachine(){
-  static unsigned long castAway = 0;
-  static byte initCounter = 0;
-  static byte skyCheck = 0;
-  static byte floorCheck = 0;
-  static byte snail = 0;
+  static unsigned long castAway = 0;                                   //Counter for cast away state
+  static byte initCounter = 0;                                         //Counter for initialization
+  static byte skyCheck = 0;                                            //Counter for max ascent
+  static byte floorCheck = 0;                                          //Counter for max slow descent
+  static byte snail = 0;                                               //Counter for slow ascent
+  static int lockcounter;                                              //Counter for getting GPS Lock
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-  static int lockcounter;                 // counter for getting GPS Lock
 
-  
-  
-
-  
   if(!init)
   {
     muriState = STATE_MURI_INIT;
     stateString = "INITIALIZATION";
-    init=true; // initalize state machine
+    init=true;                                                         //Initalize state machine
     Serial.println("Initializing...");
   }
-
-  // determine GPSstatus (lock or no lock)
-  if(FixStatus == Fix)
+               
+  if(FixStatus == Fix)                                                 //Determine GPSstatus (lock or no lock)
   {
     lockcounter++;
     if(lockcounter>=2)
@@ -55,36 +47,32 @@ void stateMachine(){
     lockcounter = 0;
   }
 
-
-
   if(GPSstatus == Lock)
   {
-    Control_Altitude = GPS.getAlt_feet();       // altitude equals the alitude recorded by the Ublox
-    
-    ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // calculates ascent rate in ft/sec if GPS has a lock
-    prev_time = millis();                           // prev_time will equal the current time for the next loop
-    prev_Control_Altitude = Control_Altitude;       // populate the previous altitude variabel with the current altitude for the next loop
+    Control_Altitude = GPS.getAlt_feet();                              //Altitude equals the alitude recorded by the Ublox
+                                                                       //Calculates ascent rate in ft/sec if GPS has a lock
+    ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; 
+    prev_time = millis();                                              //prev_time will equal the current time for the next loop
+    prev_Control_Altitude = Control_Altitude;                          //Populate the previous altitude variabel with the current altitude for the next loop
   }                                 
   else if(GPSstatus == NoLock)
   {
      Control_Altitude = (ascent_rate*((millis()-prev_time)/1000))+Control_Altitude;
      prev_Control_Altitude = Control_Altitude;
-     prev_time = millis();                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
+     prev_time = millis();                                             //prev_time still calculated in seconds in case GPS gets a lock on the next loop
   }
-
-
  
-  stateSwitch();                                //Controller that changes State based on derivative of altitude
-  AbortControl();                               //Abort porcedures for bad situations
-  
-////////////////////////Finite State Machine/////////////////////////
+  stateSwitch();                                                       //Controller that changes State based on derivative of altitude
+  AbortControl();                                                      //Abort porcedures for bad situations
 
-   
-    if(muriState == STATE_MURI_INIT && !hdotInit) // its a boolean checking to see if we initialized
-    {
-      if(Control_Altitude>2000)
+////////////////////////////////////////  
+//////////Finite State Machine//////////
+////////////////////////////////////////  
+    if(muriState == STATE_MURI_INIT && !hdotInit)                      //A boolean checking to see if we initialized
+    {                                                                  //You need an initialization state cause the ascent rate during the very
+      if(Control_Altitude>2000)                                        //beginning of the flight is non-linear and you may not have a GPS fix.
       {
-        initCounter++;
+        initCounter++;                                                 //To change states, multiple consecutive confirmations from the change requirements must occur
         if(initCounter>5)
         {
           hdotInit=true;
@@ -92,26 +80,23 @@ void stateMachine(){
           Serial.println("h_dot initialized!");
           initCounter = 0;
         }
-      }
-      else
-      {
+      } else {
         initCounter = 0; 
       }
     }
-    // You need an initialization state cause the ascent rate during the very beginning of the flight is non-linear and you may not have a GPS fix.
-
 
     switch(muriState)
     {
-      case 0x01: // Ascent
+//////////Ascent/////////     
+      case 0x01:
         Serial.println("STATE_MURI_ASCENT");
-        if(Control_Altitude>MAX_ALTITUDE && Control_Altitude!=0)// checks to see if payload has hit the max mission alt
+        if(Control_Altitude>MAX_ALTITUDE && Control_Altitude!=0)       //Checks to see if payload has hit the max mission alt
         {
           skyCheck++;
           Serial.println("Max alt hits: " + String(skyCheck));
           if(skyCheck>5)
           {
-            // if the payload is consistenly above max mission alt. , the first balloon is released
+                                                                       //If the payload is consistenly above max mission alt., the first balloon is released
            CutSMARTA();
            smartOneCut = "Reached Altitude Ceiling";
            skyCheck = 0;
@@ -121,10 +106,10 @@ void stateMachine(){
         {
           skyCheck = 0;
         }
-        
         break;
-      ////////////////////////////////////////////////////////////////////////////////////////////////
-      case 0x02: // Fast Descent
+     
+//////////Fast Descent//////////
+      case 0x02:
         Serial.println("STATE_MURI_FAST_DESCENT");
         if(!fast) {
             sensorHeatRelay.setState(false);
@@ -132,16 +117,16 @@ void stateMachine(){
             fast=true;
         }
         break;
-      /////////////////////////////////////////////////////////////////////////////////////////////////////
-      case 0x04: // Slow Descent
-        Serial.println("STATE_MURI_SLOW_DESCENT");
-        if(Control_Altitude<MIN_ALTITUDE && Control_Altitude!=0 && !LowMaxAltitude) // checks to see if it is below data collection range...
+
+//////////Slow Descent//////////
+      case 0x04:
+        Serial.println("STATE_MURI_SLOW_DESCENT");                     //Checks to see if it is below data collection range...
+        if(Control_Altitude<MIN_ALTITUDE && Control_Altitude!=0 && !LowMaxAltitude) 
         {
           floorCheck++;
           Serial.println("Min alt hits: " + String(floorCheck));
-          if(floorCheck>5)
+          if(floorCheck>5)                                             //If consistently below data collection range then release all balloons again just in case
           {
-            // if consistently below data collection range then release all balloons again just in case
             CutSMARTA();
             smartOneCut = "Reached Slow Descent Floor";
             CutSMARTB();
@@ -155,20 +140,21 @@ void stateMachine(){
         }
 
         if (LowMaxAltitude && ((millis() - LowAltitudeReleaseTimer) > (LOW_MAX_ALTITUDE_CUTDOWN_TIMER*MINUTES_TO_MILLIS))) {
-          CutSMARTA();
+          CutSMARTA();                                                 //Timer Backup system- comes standard on your balloon today!
           smartOneCut = "Slow Descent Timer Below 80k";
           CutSMARTB();
           smartTwoCut = "Slow Descent Timer Below 80k";
         }
         
         break;
-      /////////////////////////////////////////////////////////////////////////////////////////////////////
-      case 0x08: // Slow Ascent
+        
+//////////Slow Ascent//////////        
+        case 0x08:
         Serial.println("STATE_MURI_SLOW_ASCENT");
 
         if (((millis() - masterClock) > 600000) && GPSstatus == Lock) {
           snail++;
-          if (snail > 20) {                           // If your ascent rate is too slow consistently
+          if (snail > 20) {                                            //If your ascent rate is too slow consistently, cut!
            CutSMARTA();
            smartOneCut = "Too Slow Of An Ascent Rate";
            CutSMARTB();
@@ -179,13 +165,12 @@ void stateMachine(){
         else 
         {
           snail = 0;
-        }
-
-       
+        } 
          break;
-      /////////////////////////////////////////////////////////////////////////////////////////////////////
-      case 0x10: // Cast Away
-        Serial.println("STATE_MURI_CAST_AWAY");
+
+//////////Cast Away//////////         
+      case 0x10:
+        Serial.println("STATE_MURI_CAST_AWAY");                        //If the balloon is stuck, it is in cast away
         if(!cast)
         {
           castAway = millis();
@@ -199,8 +184,9 @@ void stateMachine(){
           smartTwoCut = "Castaway";
         }
         break;
-      /////////////////////////////////////////////////////////////////////////////////////////////////////
-      case 0x20: // Recovery
+
+//////////Recovery//////////
+      case 0x20:
         Serial.println("STATE_MURI_RECOVERY");
         if(!recovery)
         {
@@ -209,9 +195,6 @@ void stateMachine(){
         break;
     }
 }
-   
-
-
 
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
 void stateSwitch(){

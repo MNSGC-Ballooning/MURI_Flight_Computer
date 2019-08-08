@@ -1,10 +1,9 @@
-void actHeat(){
-  // Compare digital temp. to critical temp.:  
-  if(-123 < t3 && t3 < LOW_TEMP) {
-    coldBattery = true; // if temperature is below low critical temperature
+void actHeat(){  
+  if(-123 < t3 && t3 < LOW_TEMP) {                                      //Compare digital temp. to critical temp.
+    coldBattery = true;                                                 //If temperature is below low critical temperature
   }
   if(t3 > HIGH_TEMP) {
-    coldBattery = false; // if temperature is above high critical temperature
+    coldBattery = false;                                                //If temperature is above high critical temperature
   }
   if(-123 < t2 && t2 < LOW_TEMP){
     coldSensor = true;    
@@ -13,8 +12,7 @@ void actHeat(){
     coldSensor = false;
   }
 
-//turn heater on/off:
-  if(coldBattery && batHeatRelay.getState()==false){
+  if(coldBattery && batHeatRelay.getState()==false){                     //Turn heater on/off:
     batHeatRelay.setState(true);
   }
   else if(!coldBattery && batHeatRelay.getState()==true){

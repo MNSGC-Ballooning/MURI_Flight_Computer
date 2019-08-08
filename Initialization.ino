@@ -1,4 +1,3 @@
-
 void initSD(){
   //initialize SD card
   pinMode(chipSelect, OUTPUT);

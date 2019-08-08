@@ -30,27 +30,20 @@
 //=============================================================================================================================================
 //=============================================================================================================================================
 
-// ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄    ▄  ▄▄▄▄▄▄▄▄▄▄▄       ▄▄       ▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄   ▄▄▄▄▄▄▄▄▄▄▄ 
-//▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌  ▐░▌▐░░░░░░░░░░░▌     ▐░░▌     ▐░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░▌ ▐░░░░░░░░░░░▌
-//▐░█▀▀▀▀▀▀▀▀▀  ▀▀▀▀█░█▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░▌ ▐░▌ ▐░█▀▀▀▀▀▀▀█░▌     ▐░▌░▌   ▐░▐░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀▀▀ 
-//▐░▌               ▐░▌     ▐░▌          ▐░▌▐░▌  ▐░▌       ▐░▌     ▐░▌▐░▌ ▐░▌▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░▌          
-//▐░█▄▄▄▄▄▄▄▄▄      ▐░▌     ▐░▌          ▐░▌░▌   ▐░▌       ▐░▌     ▐░▌ ▐░▐░▌ ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄▄▄ 
-//▐░░░░░░░░░░░▌     ▐░▌     ▐░▌          ▐░░▌    ▐░▌       ▐░▌     ▐░▌  ▐░▌  ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░░░░░░░░░░░▌
-// ▀▀▀▀▀▀▀▀▀█░▌     ▐░▌     ▐░▌          ▐░▌░▌   ▐░▌       ▐░▌     ▐░▌   ▀   ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░█▀▀▀▀▀▀▀▀▀ 
-//          ▐░▌     ▐░▌     ▐░▌          ▐░▌▐░▌  ▐░▌       ▐░▌     ▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░▌          
-// ▄▄▄▄▄▄▄▄▄█░▌ ▄▄▄▄█░█▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄ ▐░▌ ▐░▌ ▐░█▄▄▄▄▄▄▄█░▌     ▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄▄▄ 
-//▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌  ▐░▌▐░░░░░░░░░░░▌     ▐░▌       ▐░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░▌ ▐░░░░░░░░░░░▌
-// ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀    ▀  ▀▀▀▀▀▀▀▀▀▀▀       ▀         ▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀   ▀▀▀▀▀▀▀▀▀▀▀ 
-                                                                                                                     
-                                                                                                                                                                                                              
-//=============================================================================================================================================
-//=============================================================================================================================================
 
-//In seconds
-long Release_Timer = 15000; //Starting value for active timer that terminates flight when the timer runs out!
-long Master_Timer =  20000; //Master cut timer 
-//boolean opcActive = true;
+//                  /$$$$$$  /$$$$$$  /$$$$$$  /$$   /$$  /$$$$$$        /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$      
+//                 /$$__  $$|_  $$_/ /$$__  $$| $$  /$$/ /$$__  $$      | $$$    /$$$ /$$__  $$| $$__  $$| $$_____/      
+//                | $$  \__/  | $$  | $$  \__/| $$ /$$/ | $$  \ $$      | $$$$  /$$$$| $$  \ $$| $$  \ $$| $$            
+//                |  $$$$$$   | $$  | $$      | $$$$$/  | $$  | $$      | $$ $$/$$ $$| $$  | $$| $$  | $$| $$$$$         
+//                 \____  $$  | $$  | $$      | $$  $$  | $$  | $$      | $$  $$$| $$| $$  | $$| $$  | $$| $$__/         
+//                 /$$  \ $$  | $$  | $$    $$| $$\  $$ | $$  | $$      | $$\  $ | $$| $$  | $$| $$  | $$| $$            
+//                |  $$$$$$/ /$$$$$$|  $$$$$$/| $$ \  $$|  $$$$$$/      | $$ \/  | $$|  $$$$$$/| $$$$$$$/| $$$$$$$$      
+//                 \______/ |______/ \______/ |__/  \__/ \______/       |__/     |__/ \______/ |_______/ |________/      
+                                                                                                       
+                                                                                                       
+                                                                                                       
 
+                                                                                                                                                                         
 //=============================================================================================================================================
 //=============================================================================================================================================
 
@@ -104,8 +97,9 @@ long Master_Timer =  20000; //Master cut timer
 #define MAIN_LOOP_TIME 1000                         // Main loop runs at 1 Hz
 #define CONTROL_LOOP_TIME 1000                      // Control loop runs at 1.0 Hz
 #define LOG_TIMER 4000                              // Log timer runs at 0.25 Hz
+#define MASTER_TIMER 300                            // Ultimate Release Timer
 #define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 10           // Release SMARTs after 10 minutes if max alt is less than 80000ft
-#define LONG_ASCENT_TIMER 270                       // SMARTs release if ascent takes longer than 4.5 hours
+#define LONG_ASCENT_TIMER 240                       // SMARTs release if ascent takes longer than 4 hours
 #define LONG_DESCENT_TIMER 90                       // SMARTS release if descent takes longer than 1.5 hours
 
 //Constants
@@ -124,7 +118,7 @@ long Master_Timer =  20000; //Master cut timer
 #define WESTERN_BOUNDARY -97.4                              //Longitude of Yankton, SD
 #define NORTHERN_BOUNDARY 45.6                              //Latitude of St. Cloud, MN
 #define SOUTHERN_BOUNDARY 41.6                              //Latitude of Des Moines, IA 
-#define MAX_ALTITUDE  100000
+#define MAX_ALTITUDE  110000
 #define MIN_ALTITUDE  80000
 
 //////////////On Board SD Chipselect/////////////
@@ -168,8 +162,6 @@ float PressureATM;                                                         //ATM
 UbloxGPS GPS(&UBLOX_SERIAL);
 //boolean fixU = false;
 float alt_GPS = 0;               // altitude calculated by the GPS in feet
-
-
 float prev_alt_feet = 0;         // previous calculated altitude
 
 ///////////////////////////////////////////
@@ -196,17 +188,16 @@ static float prev_Control_Altitude = 0;                                 // recor
 int test =0;
 
 //Timers
-unsigned long releaseTimer = Release_Timer * 1000;
-unsigned long masterTimer = Master_Timer * 1000;
 boolean recovery = false;
 unsigned long smartTimer = 0;
 unsigned long LowAltitudeReleaseTimer = 0;
 unsigned long ascentTimer = 0;
 unsigned long descentTimer = 0;
+unsigned long masterClock = 0;
 
 
 //Timer Booleans
-boolean LowMaxAltitude = false;
+boolean LowMaxAltitude = false;                                          // Set to true if balloon releases before 80,000 feet
 
 
 //Heating
@@ -225,7 +216,7 @@ boolean SDcard = true;
 
 //////////OPCs//////////
 Plantower PlanA(&PMS_SERIAL, LOG_TIMER);
-SPS SPSA(&SPS_SERIAL);
+//SPS SPSA(&SPS_SERIAL);
 R1 R1A(R1A_SLAVE_PIN);
 
 String OPCdata = "";
@@ -315,11 +306,8 @@ void loop(){
     controlCounter = millis();
     SOCO.Cut(1,CutA);
     SOCO.Cut(2,CutB);
-    MeasurementCheck();
+    FixCheck();
     stateMachine();
   } 
-//  if (millis()>1800000){
-//    SOCO.Cut(1,true);
-//  }
 
 }

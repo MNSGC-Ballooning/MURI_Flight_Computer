@@ -20,13 +20,14 @@ void updateSensors() {
     sensorHeat_Status = "OFF";
   }
 
+
+
+  //Pressure, Temp, and Altitude
+
   sensor1.requestTemperatures();
   sensor2.requestTemperatures();
   sensor3.requestTemperatures();
 
-
-
-  //Pressure, Temp, and Altitude
 
   t1 = sensor1.getTempCByIndex(0);
   t2 = sensor2.getTempCByIndex(0);
@@ -48,7 +49,7 @@ void updateSensors() {
   OPCdata += ",=," + R1A.logUpdate();
   
   data = "";
-  data = flightTimeStr()+ "," + flightMinutes() + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
+  data = flightTimeStr()+ "," + String(flightMinutes()) + "," +  String(masterClockMinutes()) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
   + String(alt_GPS, 1) + ","
   + String(GPS.getMonth()) + "/" + String(GPS.getDay()) + "/" + String(GPS.getYear()) + ","
   + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()) + ","
@@ -84,5 +85,3 @@ void updateSensors() {
   }  
   
 }
-  
-  

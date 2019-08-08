@@ -14,7 +14,7 @@ uint8_t FixStatus= NoFix;
 
 
 // check if gps fix is good
-void MeasurementCheck() {
+void FixCheck() {
   if (GPS.getFixAge() < 4000)// && (GPS.getAlt_feet() > ((myBaro.getAltitude()*METERS_TO_FEET)-3000)) && (GPS.getAlt_feet() < ((myBaro.getAltitude()*METERS_TO_FEET)+3000)) && ((myBaro.getAltitude()*METERS_TO_FEET)>0)) 
   {
     FixStatus = Fix;

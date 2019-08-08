@@ -60,6 +60,12 @@ float flightMinutes() {
   return minutes;
 }
 
+float masterClockMinutes() {
+  float returnclock = masterClock / 1000;
+  returnclock = returnclock / 60;
+  return returnclock;
+}
+
 // SD for Flight Computer
 boolean FlightlogOpen = false;
 

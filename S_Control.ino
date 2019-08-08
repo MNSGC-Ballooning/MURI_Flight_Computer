@@ -40,12 +40,6 @@ void stateMachine(){
     Serial.println("Initializing...");
   }
 
-  if(muriState!=STATE_MURI_FAST_DESCENT || !recovery)
-  {
-   actHeat(); 
-  }
-  
-
   // determine GPSstatus (lock or no lock)
   if(FixStatus == Fix)
   {
@@ -68,14 +62,12 @@ void stateMachine(){
     Control_Altitude = GPS.getAlt_feet();       // altitude equals the alitude recorded by the Ublox
     
     ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // calculates ascent rate in ft/sec if GPS has a lock
-    prev_time = millis(); 
-    prev_Control_Altitude=Control_Altitude;         // prev_time will equal the current time for the next loop
-    prev_Control_Altitude = Control_Altitude;       //Only used when determining appropiate range to use data from barometer library for altitude
+    prev_time = millis();                           // prev_time will equal the current time for the next loop
+    prev_Control_Altitude = Control_Altitude;       // populate the previous altitude variabel with the current altitude for the next loop
   }                                 
   else if(GPSstatus == NoLock)
   {
      Control_Altitude = (ascent_rate*((millis()-prev_time)/1000))+Control_Altitude;
-     ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; // ascent rate calcutlated the same way as before, but delta t determined by millis() as GPS won't return good time data
      prev_Control_Altitude = Control_Altitude;
      prev_time = millis();                       // prev_time still calculated in seconds in case GPS gets a lock on the next loop
   }
@@ -83,25 +75,28 @@ void stateMachine(){
 
  
   stateSwitch();                                //Controller that changes State based on derivative of altitude
-  AbortControl();
+  AbortControl();                               //Abort porcedures for bad situations
   
 ////////////////////////Finite State Machine/////////////////////////
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////    
+   
     if(muriState == STATE_MURI_INIT && !hdotInit) // its a boolean checking to see if we initialized
     {
-//      Serial.println("STATE_MURI_INIT"); // records current state
-      if(Control_Altitude>5000)
+      if(Control_Altitude>2000)
       {
-        // this looks like it keeps counting while above 5000 ft to initialize hdot, whatever that means
         initCounter++;
         if(initCounter>5)
         {
           hdotInit=true;
+          masterClock = millis();
           Serial.println("h_dot initialized!");
+          initCounter = 0;
         }
-      } 
+      }
+      else
+      {
+        initCounter = 0; 
+      }
     }
     // You need an initialization state cause the ascent rate during the very beginning of the flight is non-linear and you may not have a GPS fix.
 
@@ -122,6 +117,11 @@ void stateMachine(){
            skyCheck = 0;
           }
         }
+        else 
+        {
+          skyCheck = 0;
+        }
+        
         break;
       ////////////////////////////////////////////////////////////////////////////////////////////////
       case 0x02: // Fast Descent
@@ -130,6 +130,7 @@ void stateMachine(){
             sensorHeatRelay.setState(false);
             batHeatRelay.setState(false);
             fast=true;
+        }
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
       case 0x04: // Slow Descent
@@ -155,31 +156,32 @@ void stateMachine(){
 
         if (LowMaxAltitude && ((millis() - LowAltitudeReleaseTimer) > (LOW_MAX_ALTITUDE_CUTDOWN_TIMER*MINUTES_TO_MILLIS))) {
           CutSMARTA();
-          smartOneCut = "Slow Descent Timer";
+          smartOneCut = "Slow Descent Timer Below 80k";
           CutSMARTB();
-          smartTwoCut = "Slow Descent Timer";
+          smartTwoCut = "Slow Descent Timer Below 80k";
         }
+        
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
       case 0x08: // Slow Ascent
         Serial.println("STATE_MURI_SLOW_ASCENT");
-        snail++;
-        if(snail>10)
+
+        if (((millis() - masterClock) > 600000) && GPSstatus == Lock) {
+          snail++;
+          if (snail > 20) {                           // If your ascent rate is too slow consistently
+           CutSMARTA();
+           smartOneCut = "Too Slow Of An Ascent Rate";
+           CutSMARTB();
+           smartTwoCut = "Too Slow Of An Ascent Rate";
+           snail = 0;
+          }  
+        }
+        else 
         {
-          if(Control_Altitude<30000)
-          {
-            CutSMARTB();
-            smartTwoCut = "Slow Ascent Below 30k";
-          }
-          else if(Control_Altitude>=30000)
-          {
-            CutSMARTA();
-            smartOneCut = "Slow Ascent Above 30k";
-            CutSMARTB();
-            smartTwoCut = "Slow Ascent Above 30k";
-          }
           snail = 0;
-         }
+        }
+
+       
          break;
       /////////////////////////////////////////////////////////////////////////////////////////////////////
       case 0x10: // Cast Away
@@ -206,8 +208,8 @@ void stateMachine(){
         }
         break;
     }
-  }
-}   
+}
+   
 
 
 
@@ -220,7 +222,7 @@ void stateSwitch(){
   static byte fast_descent_counter = 0;
   static byte recovery_counter = 0;
   static byte wilson = 0; // counter for castaway
-  if(hdotInit && Control_Altitude!=0 && !recovery){ // if it has been initialized, it is above sea level, and it is not in recovery
+  if(hdotInit && Control_Altitude!=0 && !recovery && GPSstatus == Lock){ // if it has been initialized, it is above sea level, and it is not in recovery
     if(ascent_rate>=(5000/60) || ascent_rate<=(-5000/60)){
       Serial.println("GPS Jump Detected");
     }
@@ -255,7 +257,7 @@ void stateSwitch(){
       if (slow_descent_counter >= 5) {
         muriState = STATE_MURI_SLOW_DESCENT;
         stateString = "SLOW DESCENT";
-        descentTimer = 0;
+        descentTimer = millis();
         slow_descent_counter = 0;
 
         if (Control_Altitude < MIN_ALTITUDE) {
@@ -325,7 +327,7 @@ void AbortControl() {
   static byte termination_latitude_check = 0;
 
    // Cut if the master timer is reached
-  if(millis() >= masterTimer) // if mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
+  if((millis() - masterClock) >= MASTER_TIMER*MINUTES_TO_MILLIS) // if mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
   {
     CutSMARTA();
     smartOneCut = "Master Timer";
@@ -337,46 +339,46 @@ void AbortControl() {
 
   // Cut if the geographic boundaries are breached
   if(GPSstatus == Lock) {
-           if(float(GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) ) //Checks to see if payload is outside of longitudinal boundaries
-           {
-             termination_longitude_check++;
-             Serial.println("Termination Longitude check: " + String(termination_longitude_check));
-             if (termination_longitude_check>5)
-             {
-               CutSMARTA();
-               smartOneCut = "Reached Termination Longitude";
-               CutSMARTB();
-               smartTwoCut = "Reached Termination Longitude";
-               termination_longitude_check = 0;
-             }
-           }
-           else
-           {                                                       // if longitude is still in acceptable range, then reset check
-             termination_longitude_check = 0;
-           }
-
-
-           if(float(GPS.getLat() != 0) && ((float(GPS.getLat()) > NORTHERN_BOUNDARY) || (float(GPS.getLat()) < SOUTHERN_BOUNDARY)) ) //Checks to see if payload is outside of latitudinal boundaries
-           {
-             termination_latitude_check++;
-             if (termination_latitude_check>5)
-             {
-               CutSMARTA();
-               smartOneCut = "Reached Termination Latitude";
-               CutSMARTB();
-               smartTwoCut = "Reached Termination Latitude";
-               termination_latitude_check = 0;
-             }
-           }
-           else
-           {                                                       // if latitude is still in acceptable range, then reset check
-             termination_latitude_check = 0;
-           }
+       if(float(GPS.getLon() != 0) && ((float(GPS.getLon()) < WESTERN_BOUNDARY) || (float(GPS.getLon()) > EASTERN_BOUNDARY)) ) //Checks to see if payload is outside of longitudinal boundaries
+       {
+         termination_longitude_check++;
+         Serial.println("Termination Longitude check: " + String(termination_longitude_check));
+         if (termination_longitude_check>5)
+         {
+           CutSMARTA();
+           smartOneCut = "Reached Termination Longitude";
+           CutSMARTB();
+           smartTwoCut = "Reached Termination Longitude";
+           termination_longitude_check = 0;
+         }
        }
+       else
+       {                                                       // if longitude is still in acceptable range, then reset check
+         termination_longitude_check = 0;
+       }
+
+
+       if(float(GPS.getLat() != 0) && ((float(GPS.getLat()) > NORTHERN_BOUNDARY) || (float(GPS.getLat()) < SOUTHERN_BOUNDARY)) ) //Checks to see if payload is outside of latitudinal boundaries
+       {
+         termination_latitude_check++;
+         if (termination_latitude_check>5)
+         {
+           CutSMARTA();
+           smartOneCut = "Reached Termination Latitude";
+           CutSMARTB();
+           smartTwoCut = "Reached Termination Latitude";
+           termination_latitude_check = 0;
+         }
+       }
+       else
+       {                                                       // if latitude is still in acceptable range, then reset check
+         termination_latitude_check = 0;
+       }
+   }
   
 
    //Cut down if ascent takes too long 
-   if (muriState == STATE_MURI_ASCENT && ((ascentTimer - millis()) > (LONG_ASCENT_TIMER*MINUTES_TO_MILLIS))) {
+   if (muriState == STATE_MURI_ASCENT && ((millis() - ascentTimer) > (LONG_ASCENT_TIMER*MINUTES_TO_MILLIS))) {
      CutSMARTA();
      smartOneCut = "Ascent Timer";
      CutSMARTB();
@@ -385,7 +387,7 @@ void AbortControl() {
 
 
    //Cut down if slow descent takes too long
-   if (muriState == STATE_MURI_SLOW_DESCENT && ((descentTimer - millis()) > (LONG_DESCENT_TIMER*MINUTES_TO_MILLIS))) {
+   if (muriState == STATE_MURI_SLOW_DESCENT && ((millis() - descentTimer) > (LONG_DESCENT_TIMER*MINUTES_TO_MILLIS))) {
       CutSMARTA();
       smartOneCut = "Descent Timer";
       CutSMARTB();

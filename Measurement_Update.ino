@@ -20,13 +20,14 @@ void updateSensors() {
     sensorHeat_Status = "OFF";
   }
 
+
+
+  //Pressure, Temp, and Altitude
+
   sensor1.requestTemperatures();
   sensor2.requestTemperatures();
   sensor3.requestTemperatures();
 
-
-
-  //Pressure, Temp, and Altitude
 
   t1 = sensor1.getTempCByIndex(0);
   t2 = sensor2.getTempCByIndex(0);
@@ -44,11 +45,11 @@ void updateSensors() {
   //Populate a string with the OPC data
   
   OPCdata = PlanA.logUpdate();
-  OPCdata += ",=," + SPSA.logUpdate();
+//  OPCdata += ",=," + SPSA.logUpdate();
   OPCdata += ",=," + R1A.logUpdate();
   
   data = "";
-  data = flightTimeStr()+ "," + flightMinutes() + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
+  data = flightTimeStr()+ "," + String(flightMinutes()) + "," +  String(masterClockMinutes()) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
   + String(alt_GPS, 1) + ","
   + String(GPS.getMonth()) + "/" + String(GPS.getDay()) + "/" + String(GPS.getYear()) + ","
   + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()) + ","
@@ -69,7 +70,7 @@ void updateSensors() {
   data += (String(PressurePSI) + "," + String(PressureATM) + ",");
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
-  data += (SmartLogA + "," + smartOneCut + "," + SmartLogB + "," + smartTwoCut + "," + String(ascent_rate) + "," + stateString + ",");
+  data += (SmartLogA + "," + smartOneCut + "," + SmartLogB + "," + smartTwoCut + "," + String(ascent_rate) + "," + stateString);
   data += (",=," + OPCdata);
   openFlightlog();
   Serial.println(data);

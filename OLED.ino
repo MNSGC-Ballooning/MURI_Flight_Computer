@@ -1,3 +1,4 @@
+//OLED functions
 void oledOn(MicroOLED &named){ named.command(DISPLAYON); }              //Turn on Display
                                                                         
 void oledOff(MicroOLED &named){ named.command(DISPLAYOFF); }            //Turn off Display
@@ -20,6 +21,7 @@ void oledUpdate(){                                                      //Update
     oled.setFontType(0);
     oledPrintNew(oled, "If Found  Call:JamesFlaten    (651).399.2423");
     finalMessage[1] = true;
+    //ADD REASON FOR CUT
     
   } else if ((GPS.getAlt_feet()>2000)&&!finalMessage[0]) {              //Turn off screen in flight
     oledPrintNew(oled, "");

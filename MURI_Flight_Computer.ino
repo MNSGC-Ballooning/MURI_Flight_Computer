@@ -1,8 +1,11 @@
-//==============================================================
+//============================================================================================================================================
 //               MURI Flight Computer
-//               Written by Asif Ally  - allyx004 Summer 2019
-//               Edited by Patrick James Collins (PJ) coll0792 Summer 2019   
-//==============================================================
+//               Written by Patrick James Collins (PJ) - coll0792 Summer 2019
+//               Edited by Asif Ally (AA)  - allyx004 Summer 2019
+//               OPC Library and OLED Written by Nathan Pharis (NP) phari009 and Jacob Meiners (JM) meine042 Summer 2019   
+//               SMART Library Written by Vinchenzo Nguyen (VN) Summer 2019
+//               In Memory of Garrett Ailts (GA) - ailts008 Summer of '69
+//============================================================================================================================================
 
 //Version Description: MURI Flight Computer for double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
 //Switches states based on ascent rate

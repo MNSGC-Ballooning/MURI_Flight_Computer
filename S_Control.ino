@@ -24,6 +24,7 @@ void stateMachine(){
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
+  static bool SwitchedState = false;
 
   if(!init)
   {
@@ -65,6 +66,14 @@ void stateMachine(){
   stateSwitch();                                                       //Controller that changes State based on derivative of altitude
   AbortControl();                                                      //Abort porcedures for bad situations
 
+  if (SwitchedState) {                                                 //Set these counters to zero so thay the payload must remain in the same state
+    initCounter = 0;                                                   //in order to fully fill a counter
+    skyCheck = 0;
+    floorCheck = 0;
+    snail = 0;
+    SwitchedState = false;    
+  }
+
 ////////////////////////////////////////  
 //////////Finite State Machine//////////
 ////////////////////////////////////////  
@@ -80,7 +89,8 @@ void stateMachine(){
           Serial.println("h_dot initialized!");
           initCounter = 0;
         }
-      } else {
+      }
+      else {
         initCounter = 0; 
       }
     }
@@ -95,9 +105,8 @@ void stateMachine(){
           skyCheck++;
           Serial.println("Max alt hits: " + String(skyCheck));
           if(skyCheck>5)
-          {
-                                                                       //If the payload is consistenly above max mission alt., the first balloon is released
-           CutSMARTA();
+          {                                                           
+           CutSMARTA();                                                //If the payload is consistenly above max mission alt., the first balloon is released
            smartOneCut = "Reached Altitude Ceiling";
            skyCheck = 0;
           }
@@ -152,7 +161,7 @@ void stateMachine(){
         case 0x08:
         Serial.println("STATE_MURI_SLOW_ASCENT");
 
-        if (((millis() - masterClock) > 600000) && GPSstatus == Lock) {
+        if (((millis() - masterClock) > SLOW_ASCENT_ABORT_DELAY*MINUTES_TO_MILLIS) && GPSstatus == Lock) {
           snail++;
           if (snail > 20) {                                            //If your ascent rate is too slow consistently, cut!
            CutSMARTA();
@@ -217,6 +226,7 @@ void stateSwitch(){
         stateString = "ASCENT";
         ascentTimer = millis();
         ascent_counter = 0;
+        SwitchedState = true;
       }
     }
     else{
@@ -229,6 +239,7 @@ void stateSwitch(){
         muriState = STATE_MURI_SLOW_ASCENT;
         stateString = "SLOW ASCENT";
         slow_ascent_counter = 0;
+        SwitchedState = true;
       }
     }
     else {
@@ -242,6 +253,7 @@ void stateSwitch(){
         stateString = "SLOW DESCENT";
         descentTimer = millis();
         slow_descent_counter = 0;
+        SwitchedState = true;
 
         if (Control_Altitude < MIN_ALTITUDE) {
          LowAltitudeReleaseTimer = millis();
@@ -259,6 +271,7 @@ void stateSwitch(){
         muriState = STATE_MURI_FAST_DESCENT;                           //Fast descent once both balloons cut away
         stateString = "FAST DESCENT";
         fast_descent_counter = 0;
+        SwitchedState = true;
       }
     }
     else {
@@ -271,6 +284,7 @@ void stateSwitch(){
         muriState = STATE_MURI_CAST_AWAY;
         stateString = "CAST AWAY";
         wilson=0;
+        SwitchedState = true;
       }
     }
     else {
@@ -283,6 +297,7 @@ void stateSwitch(){
       if (recovery_counter >= 5) {
         muriState = STATE_MURI_RECOVERY;
         stateString = "RECOVERY"; 
+        SwitchedState = true;
       }
     }
     else {

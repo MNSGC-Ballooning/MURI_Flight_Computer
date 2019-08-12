@@ -4,7 +4,7 @@
 //               Edited by Asif Ally (AA)  - allyx004 Summer 2019
 //               OPC Library and OLED Written by Nathan Pharis (NP) phari009 and Jacob Meiners (JM) meine042 Summer 2019   
 //               SMART Library Written by Vinchenzo Nguyen (VN) Summer 2019
-//               In Memory of Garrett Ailts (GA) - ailts008 Summer of '69
+//               In Memory of Garrett Ailts (GA) - ailts008 Summer of '69 (nice)
 //============================================================================================================================================
 
 //Version Description: MURI Flight Computer for double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
@@ -80,22 +80,23 @@
 #define UBLOX_SERIAL Serial2
 #define XBEE_SERIAL Serial3
 #define SPS_SERIAL Serial4
-#define PIN_RESET 23                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
-#define DC_JUMPER 19                                                   //The DC_JUMPER is the I2C Address Select jumper. Set to 1 if the jumper is open (Default), or set to 0 if it's closed.
+#define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 
 /////////////////////////////
 //////////Constants//////////
 /////////////////////////////
 //TIMERS
 #define CONTROL_LOOP_TIME 1000                                         //Control loop runs at 1.0 Hz
-#define LOG_TIMER 4000                                                 //Log timer runs at 0.25 Hz
+#define STATE_LOG_TIMER 4000                                           //Log timer runs at 0.25 Hz
+#define SCREEN_UPDATE_RATE 1000                                        //Rate of the screen updates
 #define MASTER_TIMER 300                                               //Ultimate Release Timer
 #define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 10                              //Release SMARTs after 10 minutes if max alt is less than 80000ft
 #define LONG_ASCENT_TIMER 240                                          //SMARTs release if ascent takes longer than 4 hours
 #define LONG_DESCENT_TIMER 90                                          //SMARTS release if descent takes longer than 1.5 hours
-#define SCREEN_UPDATE_RATE 1000                                        //Rate of the screen updates
+#define SLOW_ASCENT_ABORT_DELAY 20                                    //Time needed to wait until abort procedures b/c of slow ascent are activiated
 
 //Constants
+#define DC_JUMPER 1                                                    //The DC_JUMPER is the I2C Address Select jumper. Set to 1 if the jumper is open (Default), or set to 0 if it's closed.
 #define MINUTES_TO_MILLIS 60000                                        //MATH TIME
 #define PSI_TO_ATM  0.068046                                           //Live love conversions   
 #define C2K 273.15                                                     //Celsius to Kelvin. What else is there to say?    
@@ -188,7 +189,8 @@ unsigned long descentTimer = 0;
 unsigned long masterClock = 0;
 unsigned long screenUpdateTimer = 0;
 unsigned long oledTime = 0;                                            //Tracks the time of the main loop
-unsigned long controlCounter = 0;
+unsigned long ControlCounter = 0;
+unsigned long StateLogCounter = 0;
 
 //Timer Booleans
 boolean LowMaxAltitude = false;                                        //Set to true if balloon releases before 80,000 feet
@@ -210,7 +212,7 @@ boolean SDcard = true;
 ////////////////////////
 //////////OPCs//////////
 ////////////////////////
-Plantower PlanA(&PMS_SERIAL, LOG_TIMER);                               //Establish objects and logging string for the OPCs
+Plantower PlanA(&PMS_SERIAL, STATE_LOG_TIMER);                               //Establish objects and logging string for the OPCs
 //SPS SPSA(&SPS_SERIAL);
 R1 R1A(R1A_SLAVE_PIN);
 
@@ -247,8 +249,8 @@ void setup() {
   initRelays();                                                        //Initialize Relays
   oledPrintAdd(oled, "RlyInit");
 
-  initOPCs();                                                          //Initialize OPCs
-  oledPrintAdd(oled, "OPCInit");
+//  initOPCs();                                                          //Initialize OPCs
+//  oledPrintAdd(oled, "OPCInit");
   delay(1000);
   
   Serial.println("Setup Complete");
@@ -261,15 +263,20 @@ void loop(){
 
   SmartUpdate();                                                       //System to update SMART Units
      
-  if (millis()-controlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
-    controlCounter = millis();
+  if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
+    ControlCounter = millis();
     
     SOCO.Cut(1,CutA);                                                  //Cut command logic for SMART
     SOCO.Cut(2,CutB);
     FixCheck();                                                        //Provide logic for GPS fix
-    stateMachine();                                                    //Update state machine
-    updateSensors();                                                   //Updates and logs all sensor data
-    actHeat();                                                         //Controls active heating
-    oledUpdate();                                                      //Update screen
+    
+    if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
+      StateLogCounter = millis();
+      
+      stateMachine();                                                    //Update state machine
+      updateSensors();                                                   //Updates and logs all sensor data
+      actHeat();                                                         //Controls active heating
+      oledUpdate();                                                      //Update screen
+    } 
   } 
 }

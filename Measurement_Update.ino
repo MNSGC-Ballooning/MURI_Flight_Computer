@@ -1,10 +1,7 @@
 //function to handle both retrieval of data from sensors, as well as recording it on the SD card
 void updateSensors() {
- static unsigned long prevTime = 0;
- if(millis()-prevTime>= LOG_TIMER){
+  
   oledTime = millis();
-  prevTime = millis();
-
   if(batHeatRelay.getState()==true){                                     //Relay Status Collection
     batHeat_Status = "ON";
   }
@@ -34,9 +31,9 @@ void updateSensors() {
   PressurePSI = (pressureSensorVoltage - (0.1*5.0))/(4.0/15.0);         //Convert the voltage to PSI
   PressureATM = PressurePSI*PSI_TO_ATM;                                 //Convert PSI reading to ATM
 
-  OPCdata = PlanA.logUpdate();                                          //Populate a string with the OPC data
+//  OPCdata = PlanA.logUpdate();                                          //Populate a string with the OPC data
 //  OPCdata += ",=," + SPSA.logUpdate();
-  OPCdata += ",=," + R1A.logUpdate();
+//  OPCdata += ",=," + R1A.logUpdate();
   
   data = "";
   data = flightTimeStr()+ "," + String(flightMinutes()) + "," +  String(masterClockMinutes()) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
@@ -66,5 +63,5 @@ void updateSensors() {
   closeFlightlog();
  
   ChangeData=true;                                                     //Telling SmartController that we have logged the data
-  }   
+    
 }

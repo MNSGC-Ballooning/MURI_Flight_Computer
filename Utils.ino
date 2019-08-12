@@ -39,8 +39,8 @@ float flightMinutes() {                                                 //Return
 }
 
 float masterClockMinutes() {                                            //Return master time in minutes
-  float returnclock = masterClock / 1000;
-  returnclock = returnclock / 60;
+  float returnclock = masterClock / MINUTES_TO_MILLIS;
+  returnclock = (millis()/MINUTES_TO_MILLIS) - (returnclock);
   return returnclock;
 }
 
@@ -71,7 +71,7 @@ void SmartUpdate(){
         SmartLogA=SOCO.Response();
       }
       
-    ` SmartLogB="";
+      SmartLogB="";
       SOCO.RequestTemp(2);
       smartTimer=millis();
       while(millis()-smartTimer<150 && SmartLogB == "")

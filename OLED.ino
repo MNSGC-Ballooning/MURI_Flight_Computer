@@ -36,17 +36,17 @@ void oledUpdate(){                                                      //Update
      if (screen == 0) {                                                 //There are two screens that this system will cycle through    
       localDataPrint += "GPS:";                                         //Print GPS satellite count
       if (GPS.getSats()<10) {
-        localDataPrint += '0' + String(GPS.getSats());
+        localDataPrint += '0' + String(GPS.getSats()) + " ";
       } else {
-        localDataPrint += String(GPS.getSats()) + ' ';
+        localDataPrint += String(GPS.getSats()) + " ";
       }
-      if (oledTime < LOG_TIMER) {                                       //Indicate proper logging
+      if (oledTime > STATE_LOG_TIMER) {                                       //Indicate proper logging
         localDataPrint += "GoodLog";
       } else {
         localDataPrint += "BadLog!";
        }
             
-     localDataPrint +=  (MASTER_TIMER*MINUTES_TO_MILLIS-millis());      //Master timer
+     localDataPrint +=  flightMinutes();      //Master timer
        
      screen++; 
      oledPrintNew(oled, localDataPrint);
@@ -63,23 +63,23 @@ void oledUpdate(){                                                      //Update
         localDataPrint += "SMRTB=0";
       }
 
-      if (PlanA.getLogQuality()){                                       //OPC Statuses
-        localDataPrint += "P1";
-      } else {
-        localDataPrint += "P0";
-      }
-
+//      if (PlanA.getLogQuality()){                                       //OPC Statuses
+//        localDataPrint += "P1";
+//      } else {
+//        localDataPrint += "P0";
+//      }
+//
 //      if (SPSA.getLogQuality()){
 //        localDataPrint+= "S1";
 //      } else {
 //        localDataPrint += "S0";
 //      }
-
-      if (R1A.getLogQuality()){
-        localDataPrint+= "R1";
-      } else {
-        localDataPrint += "R0";
-      }   
+//
+//      if (R1A.getLogQuality()){
+//        localDataPrint+= "R1";
+//      } else {
+//        localDataPrint += "R0";
+//      }   
          
        screen--;
        oledPrintNew(oled, localDataPrint);

@@ -4,13 +4,15 @@ void actHeat(){
   
   if (t3 < -100) {
     batTemp = t1;
-  } else {
+  } 
+  else {
     batTemp = t3;
   }
 
   if (t1 < -100) {
     sensTemp = t3;
-  } else {
+  } 
+  else {
     sensTemp = t1;
   }
   

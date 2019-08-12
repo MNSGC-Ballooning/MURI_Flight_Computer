@@ -2,10 +2,6 @@
 
 //function to handle both retrieval of data from GPS module and sensors, as well as recording it on the SD card
 void updateSensors() {
- static unsigned long prevTime = 0;
- if(millis()-prevTime>=3000){
-
-  prevTime = millis();
   
   UpdateRelays();                                           // Update the relay states
 
@@ -15,14 +11,18 @@ void updateSensors() {
 
   GetGPSAltitude();                                         // Update the GPS altitude in alt_GPS
 
+  OPCdata = Plan.logUpdate();                               // Update the plantower
+
+  OPCdata += ",=," + Sps.logUpdate();                       // Update the sensirion
+
+
+  OPCdata += ",=," + r1.logUpdate();                        // Update the Alphasense
+
+
   SDLog();                                                  // Log everything to the SD card
-  
-  }  
+   
   
 }
-
-
-
 
 //////////////// LED ////////////////
 
@@ -83,8 +83,8 @@ void UpdateRelays() {
 
 /////////////Flight Time/////////////
 
-//returns the above flight time as a usable string for print statements
-String flightTimeStr() {
+//returns the above flight time as usable strings for print statements
+String FlightTimeStr() {
   unsigned long t = millis() / 1000;
   String fTime = "";
   fTime += (String(t / 3600) + ":");
@@ -95,8 +95,17 @@ String flightTimeStr() {
   t %= 60;
   fTime += (String(t / 10) + String(t % 10));
   return fTime;
+
 }
 
+
+
+float FlightTimeMinutes(){
+
+  float minutes = millis() / 1000;
+  minutes = minutes / 60;
+  return minutes;
+}
 
 
 /////////////// SMART ///////////////

@@ -2,18 +2,18 @@ void actHeat(){
   short batTemp;
   short sensTemp;
   
-  if (t3 < -100) {
-    batTemp = t1;
+  if (t1 < -100) {
+    batTemp = t2;
   } 
   else {
-    batTemp = t3;
+    batTemp = t1;
   }
 
-  if (t1 < -100) {
-    sensTemp = t3;
+  if (t2 < -100) {
+    sensTemp = t1;
   } 
   else {
-    sensTemp = t1;
+    sensTemp = t2;
   }
   
   if(-100 < batTemp && batTemp < LOW_TEMP) {                            //Compare digital temp. to critical temp.

@@ -24,7 +24,6 @@ void stateMachine(){
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-  static bool SwitchedState = false;
 
   if(!init)
   {
@@ -33,6 +32,12 @@ void stateMachine(){
     init=true;                                                         //Initalize state machine
     Serial.println("Initializing...");
   }
+
+  if(!FirstAlt) {
+    SetFirstAlt();
+  }
+
+  
                
   if(FixStatus == Fix)                                                 //Determine GPSstatus (lock or no lock)
   {
@@ -77,15 +82,15 @@ void stateMachine(){
 ////////////////////////////////////////  
 //////////Finite State Machine//////////
 ////////////////////////////////////////  
-    if(muriState == STATE_MURI_INIT && !hdotInit)                      //A boolean checking to see if we initialized
-    {                                                                  //You need an initialization state cause the ascent rate during the very
-      if(Control_Altitude>2000)                                        //beginning of the flight is non-linear and you may not have a GPS fix.
+    if(muriState == STATE_MURI_INIT && !hdotInit)                                   //A boolean checking to see if we initialized
+    {                                                                               //You need an initialization state cause the ascent rate during the very
+      if(Initial_Altitude != 0  && (Control_Altitude - Initial_Altitude) > 500)     //beginning of the flight is non-linear and you may not have a GPS fix.
       {
-        initCounter++;                                                 //To change states, multiple consecutive confirmations from the change requirements must occur
+        initCounter++;                                                              //To change states, multiple consecutive confirmations from the change requirements must occur
         if(initCounter>5)
         {
           hdotInit=true;
-          masterClock = millis();
+          masterClock = millis();                                                   //Master clock is set to begin once the balloon gets 500 feet off the ground from where the flight began
           Serial.println("h_dot initialized!");
           initCounter = 0;
         }

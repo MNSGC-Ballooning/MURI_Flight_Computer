@@ -142,7 +142,7 @@ OneWire oneWire3(THREE_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);                                  //Temperature sensors
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-float t1;                                                              //Temperature vvalues
+float t1;                                                              //Temperature values
 float t2;
 float t3;
 
@@ -179,7 +179,10 @@ float ascent_rate = 0;                                                 //Ascent 
 float Control_Altitude = 0;                                            //Final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
 static float prev_time = 0;                                            //Prev time for S_Control
 static float prev_Control_Altitude = 0;                                //Records the most recent altitude given by GPS when it had lock
-int test = 0;
+static float Initial_Altitude = 0;                                     //Altitude at which GPS initially gets a lock
+static bool FirstAlt = false;
+static bool SwitchedState = false;
+
 
 //Timers and Counters
 unsigned long smartTimer = 0;                                          //To time loop speeds and flight times and Automatic Sonde InFo (ASIF) 
@@ -213,7 +216,7 @@ boolean SDcard = true;
 //////////OPCs//////////
 ////////////////////////
 Plantower PlanA(&PMS_SERIAL, STATE_LOG_TIMER);                               //Establish objects and logging string for the OPCs
-//SPS SPSA(&SPS_SERIAL);
+SPS SPSA(&SPS_SERIAL);
 R1 R1A(R1A_SLAVE_PIN);
 
 String OPCdata = "";
@@ -249,8 +252,8 @@ void setup() {
   initRelays();                                                        //Initialize Relays
   oledPrintAdd(oled, "RlyInit");
 
-//  initOPCs();                                                          //Initialize OPCs
-//  oledPrintAdd(oled, "OPCInit");
+  initOPCs();                                                          //Initialize OPCs
+  oledPrintAdd(oled, "OPCInit");
   delay(1000);
   
   Serial.println("Setup Complete");

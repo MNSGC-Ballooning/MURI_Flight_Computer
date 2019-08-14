@@ -19,6 +19,13 @@ void FixCheck(){                                                        //Check 
   }
 }
 
+void SetFirstAlt() {
+  if (GPSstatus == Lock) {
+    Initial_Altitude = GPS.getAlt_feet();
+    FirstAlt = true;
+  }
+}
+
 String flightTimeStr() {                                                //Returns the flight time as a usable string for print statements  
   unsigned long t = millis() / 1000;
   String fTime = "";

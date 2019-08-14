@@ -20,8 +20,8 @@ void SDLog() {
 
   Serial.println(data + ",=");
 
-  Serial.println(OPCdata);
-  Flog.println(data + ",=," + OPCdata);
+//  Serial.println(OPCdata);
+//  Flog.println(data + ",=," + OPCdata);
 
   closeFlightlog();
 

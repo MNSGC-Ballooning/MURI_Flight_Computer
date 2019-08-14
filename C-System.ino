@@ -11,12 +11,12 @@ void updateSensors() {
 
   GetGPSAltitude();                                         // Update the GPS altitude in alt_GPS
 
-  OPCdata = Plan.logUpdate();                               // Update the plantower
-
-  OPCdata += ",=," + Sps.logUpdate();                       // Update the sensirion
-
-
-  OPCdata += ",=," + r1.logUpdate();                        // Update the Alphasense
+//  OPCdata = Plan.logUpdate();                               // Update the plantower
+//
+//  OPCdata += ",=," + Sps.logUpdate();                       // Update the sensirion
+//
+//
+//  OPCdata += ",=," + r1.logUpdate();                        // Update the Alphasense
 
 
   SDLog();                                                  // Log everything to the SD card

@@ -77,6 +77,8 @@ void stateMachine(){
 
 
   StateSwitch();
+
+  Serial.println("out of state switch");
   
 ////////////////////////Finite State Machine/////////////////////////  
 
@@ -175,6 +177,7 @@ void stateMachine(){
 
 /////////////////////////////////////////// FUNCTIONS //////////////////////////////////////////////////////////
 void StateSwitch(){
+  Serial.println("in state switch");
   static byte balloon_burst_check = 0;
   static byte state_init_check = 0;
   static byte recovery_check = 0;

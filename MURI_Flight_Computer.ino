@@ -201,18 +201,19 @@ void setup() {
   initGPS();                                                               //Initialize GPS
   initTempSensors();                                                       //Initialize Temp Sensors
   initRelays();                                                            //Initialize Relays
-  initOPCs();                                                              //Init OPCs
+//  initOPCs();                                                              //Init OPCs
   
   Serial.println("Setup Complete");
 }
                                                                            
 
 void loop(){
-  UpdateGPS();                                                             //Update the GPS with new values
-  Plan.readData();                                                         //Update the plantower Data
+//  UpdateGPS();                                                             //Update the GPS with new values
+//  Plan.readData();                                                         //Update the plantower Data
   
   if (millis()-mainCounter>=MAIN_LOOP_TIME){                               //Logging Loop
     mainCounter = millis();
+
     actionBlink();                                                         //Indicates loop activity
     fixBlink();                                                            //Indicates if a fix is present
     updateSensors();                                                       //Updates and logs all sensor data

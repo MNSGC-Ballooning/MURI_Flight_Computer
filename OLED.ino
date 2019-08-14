@@ -76,7 +76,7 @@ void oledUpdate(){                                                      //Update
         localDataPrint += String(t2,2) + "   ";
       }
             
-      localDataPrint += String(flightMinutes(),7);      //Master timer
+      localDataPrint += String(flightMinutes(),2);      //Master timer
 
          
       screen++;

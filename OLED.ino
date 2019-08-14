@@ -35,7 +35,19 @@ void oledUpdate(){                                                      //Update
 
     if (screen == 0) {                                                 //There are two screens that this system will cycle through    
       localDataPrint += "GPSALT:";                                     //Print GPS satellite count
-      localDataPrint += String(GPS.getAlt_feet(),7);
+      
+      if (GPS.getAlt_feet()>=1000) {
+        localDataPrint += String(GPS.getAlt_feet(),2);
+      }
+      else if (GPS.getAlt_feet() > 100) {
+        localDataPrint += String(GPS.getAlt_feet(),2) + " ";
+      }
+      else if (GPS.getAlt_feet() > 10) {
+        localDataPrint += String(GPS.getAlt_feet(),2) + "  ";
+      }
+      else{
+        localDataPrint += String(GPS.getAlt_feet(),2) + "   ";
+      }
       localDataPrint += "SAT: ";
       if (GPS.getSats()<10) {
         localDataPrint += '0' + String(GPS.getSats()) + " ";
@@ -53,10 +65,19 @@ void oledUpdate(){                                                      //Update
       } else {
         localDataPrint += "BadLog!";
        }
+
+      if (t2<=-10) {
+        localDataPrint += String(t2,2) + " ";
+      }
+      else if (t2>=10 || (-10<t2 && t2<0)) {
+        localDataPrint += String(t2,2) + "  ";                   //Internal temp
+      }
+      else if (t2>=0 && t2<10) {
+        localDataPrint += String(t2,2) + "   ";
+      }
             
       localDataPrint += String(flightMinutes(),7);      //Master timer
 
-      localDataPrint += String(t2,7);                   //Internal temp
          
       screen++;
       oledPrintNew(oled, localDataPrint);  

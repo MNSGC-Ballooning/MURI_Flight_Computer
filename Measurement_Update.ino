@@ -33,7 +33,7 @@ void updateSensors() {
 
   OPCdata = PlanA.logUpdate();                                          //Populate a string with the OPC data
   OPCdata += ",=," + SPSA.logUpdate();
-  OPCdata += ",=," + R1A.logUpdate();
+//  OPCdata += ",=," + R1A.logUpdate();
   
   data = "";
   data = flightTimeStr()+ "," + String(flightMinutes()) + "," +  String(masterClockMinutes()) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 

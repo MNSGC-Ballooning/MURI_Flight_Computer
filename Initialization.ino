@@ -39,7 +39,7 @@ void initSD(){
   
   Serial.println("Flight log created: " + Fname);
 
-  String FHeader = "Flight Time, Minutes, Matser Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, IntTemp (C), ExtTemp (C), BatTemp (C), Pressure (PSI), Pressure (ATM),";
+  String FHeader = "Flight Time, Minutes, Matser Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, BatTemp (C), IntTemp (C),ExtTemp (C), Pressure (PSI), Pressure (ATM),";
   FHeader += "Battery Heater Status, Sensor Heater Status, Control Altitude, Smart A, Smart A Cut Reason, Smart B, Smart B Cut Reason, Ascent Rate, System State,";
   FHeader += "PTA, nhits, pt1_bin1, pt1_bin2, pt1_bin3, pt1_bin4, pt1_bin5, pt1_bin6,";
   FHeader += "SPSA, nhits, MC1.0, MC2.5, MC4.0, MC10.0, NC0.5, NC1.0, NC2.5, NC4.0, NC10.0, Average Particle Size,";
@@ -82,5 +82,5 @@ void initOPCs() {                                                       //Sets u
 
   PlanA.initOPC();
   SPSA.initOPC();
-  R1A.initOPC(); 
+//  R1A.initOPC(); 
 }

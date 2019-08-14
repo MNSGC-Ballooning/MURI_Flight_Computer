@@ -120,6 +120,8 @@
 #define MAX_ALTITUDE  110000
 #define MIN_ALTITUDE  80000                                            //Minimum altitude of slow descent
 
+static bool SwitchedState = false;
+
 
 //On Board SD Chipselect
 const int chipSelect = BUILTIN_SDCARD;                                 //On board SD card for teensy
@@ -142,7 +144,7 @@ OneWire oneWire3(THREE_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);                                  //Temperature sensors
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-float t1;                                                              //Temperature values
+float t1;                                                              //Temperature vvalues
 float t2;
 float t3;
 
@@ -179,10 +181,9 @@ float ascent_rate = 0;                                                 //Ascent 
 float Control_Altitude = 0;                                            //Final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
 static float prev_time = 0;                                            //Prev time for S_Control
 static float prev_Control_Altitude = 0;                                //Records the most recent altitude given by GPS when it had lock
-static float Initial_Altitude = 0;                                     //Altitude at which GPS initially gets a lock
-static bool FirstAlt = false;
-static bool SwitchedState = false;
-
+static float Initial_Altitude = 0;                                     //Initial altitude set when GPS first gets a fix
+static bool FirstAlt = false;                                          //Indicates if Initial_Altitude has been set
+int test = 0;
 
 //Timers and Counters
 unsigned long smartTimer = 0;                                          //To time loop speeds and flight times and Automatic Sonde InFo (ASIF) 
@@ -281,5 +282,11 @@ void loop(){
       actHeat();                                                         //Controls active heating
       oledUpdate();                                                      //Update screen
     } 
-  } 
+  }
+  if (millis() > 60000){
+    SOCO.Cut(1,true); 
+  }
+  if (millis() > 120000){
+    SOCO.Cut(2,true);
+  }
 }

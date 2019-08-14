@@ -63,18 +63,18 @@ void oledUpdate(){                                                      //Update
         localDataPrint += "SMRTB=0";
       }
 
-//      if (PlanA.getLogQuality()){                                       //OPC Statuses
-//        localDataPrint += "P1";
-//      } else {
-//        localDataPrint += "P0";
-//      }
-//
-//      if (SPSA.getLogQuality()){
-//        localDataPrint+= "S1";
-//      } else {
-//        localDataPrint += "S0";
-//      }
-//
+      if (PlanA.getLogQuality()){                                       //OPC Statuses
+        localDataPrint += "P1";
+      } else {
+        localDataPrint += "P0";
+      }
+
+      if (SPSA.getLogQuality()){
+        localDataPrint+= "S1";
+      } else {
+        localDataPrint += "S0";
+      }
+
 //      if (R1A.getLogQuality()){
 //        localDataPrint+= "R1";
 //      } else {

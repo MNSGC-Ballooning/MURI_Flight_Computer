@@ -24,7 +24,7 @@ void stateMachine(){
   static bool init = false;
   static bool fast = false;
   static bool cast = false;
-  static bool SwitchedState = false;
+//  static bool SwitchedState = false;
 
   if(!init)
   {

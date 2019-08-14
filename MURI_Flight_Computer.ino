@@ -120,6 +120,8 @@
 #define MAX_ALTITUDE  110000
 #define MIN_ALTITUDE  80000                                            //Minimum altitude of slow descent
 
+static bool SwitchedState = false;
+
 
 //On Board SD Chipselect
 const int chipSelect = BUILTIN_SDCARD;                                 //On board SD card for teensy
@@ -213,7 +215,7 @@ boolean SDcard = true;
 //////////OPCs//////////
 ////////////////////////
 Plantower PlanA(&PMS_SERIAL, STATE_LOG_TIMER);                               //Establish objects and logging string for the OPCs
-//SPS SPSA(&SPS_SERIAL);
+SPS SPSA(&SPS_SERIAL);
 R1 R1A(R1A_SLAVE_PIN);
 
 String OPCdata = "";
@@ -249,8 +251,8 @@ void setup() {
   initRelays();                                                        //Initialize Relays
   oledPrintAdd(oled, "RlyInit");
 
-//  initOPCs();                                                          //Initialize OPCs
-//  oledPrintAdd(oled, "OPCInit");
+  initOPCs();                                                          //Initialize OPCs
+  oledPrintAdd(oled, "OPCInit");
   delay(1000);
   
   Serial.println("Setup Complete");
@@ -278,5 +280,11 @@ void loop(){
       actHeat();                                                         //Controls active heating
       oledUpdate();                                                      //Update screen
     } 
-  } 
+  }
+  if (millis() > 60000){
+    SOCO.Cut(1,true); 
+  }
+  if (millis() > 120000){
+    SOCO.Cut(2,true);
+  }
 }

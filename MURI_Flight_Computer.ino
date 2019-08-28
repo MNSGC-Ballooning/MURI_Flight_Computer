@@ -70,7 +70,7 @@
 #define ONE_WIRE_BUS 28                                                //Battery Temp
 #define TWO_WIRE_BUS 29                                                //Internal Temp
 #define THREE_WIRE_BUS 30                                              //External Temp
-#define SENSOR_HEATER_ON 3                                             //Latching Relay pins
+#define SENSOR_HEATER_ON 3                                             //Latching Relay pins for heaters
 #define SENSOR_HEATER_OFF 4
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
@@ -121,7 +121,6 @@
 #define MIN_ALTITUDE  80000                                            //Minimum altitude of slow descent
 
 static bool SwitchedState = false;
-
 
 //On Board SD Chipselect
 const int chipSelect = BUILTIN_SDCARD;                                 //On board SD card for teensy
@@ -233,6 +232,8 @@ unsigned short screen = 0;
 //////////Initialize Flight Computer//////////
 //////////////////////////////////////////////
 void setup() {
+  analogReadResolution(13);
+
   initOLED(oled);                                                      //Initialize OLED Screen
   pinMode(LED_SD, OUTPUT);                                             //Initialize LED
   
@@ -255,7 +256,7 @@ void setup() {
 
   initOPCs();                                                          //Initialize OPCs
   oledPrintAdd(oled, "OPCInit");
-  delay(1000);
+    delay(1000);
   
   Serial.println("Setup Complete");
   oledPrintNew(oled, " Setup Complet");
@@ -274,9 +275,10 @@ void loop(){
     SOCO.Cut(2,CutB);
     FixCheck();                                                        //Provide logic for GPS fix
     
-    if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
+   if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
       StateLogCounter = millis();
-      
+
+      Serial.println(PlanA.logUpdate());
       stateMachine();                                                    //Update state machine
       updateSensors();                                                   //Updates and logs all sensor data
       actHeat();                                                         //Controls active heating

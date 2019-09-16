@@ -67,25 +67,3 @@ void closeFlightlog() {                                                 //Close 
     digitalWrite(LED_SD, LOW);
   }
 }
-
-void SmartUpdate(){
-      if (ChangeData){                                                  //System to request data from Smart A and B
-      SmartLogA="";
-      SOCO.RequestTemp(1);
-      smartTimer=millis();
-      while(millis()-smartTimer<150 && SmartLogA == "")
-      {
-        SmartLogA=SOCO.Response();
-      }
-      
-      SmartLogB="";
-      SOCO.RequestTemp(2);
-      smartTimer=millis();
-      while(millis()-smartTimer<150 && SmartLogB == "")
-      {
-        SmartLogB=SOCO.Response();
-      }
-
-      ChangeData=false;
-      }
-}

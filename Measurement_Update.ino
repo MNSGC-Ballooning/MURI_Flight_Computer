@@ -33,7 +33,8 @@ void updateSensors() {
 
   OPCdata = PlanA.logUpdate();                                          //Populate a string with the OPC data
   OPCdata += ",=," + SPSA.logUpdate();
-//  OPCdata += ",=," + R1A.logUpdate();
+  OPCdata += ",=," + HPMA.logUpdate();  
+  OPCdata += ",=," + R1A.logUpdate();
   
   data = "";
   data = flightTimeStr()+ "," + String(flightMinutes()) + "," +  String(masterClockMinutes()) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
@@ -53,15 +54,12 @@ void updateSensors() {
   data += (String(PressurePSI) + "," + String(PressureATM) + ",");
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
-  data += (SmartLogA + "," + smartOneCut + "," + SmartLogB + "," + smartTwoCut + "," + String(ascent_rate) + "," + stateString);
+  data += (SmartLogA + "," + SmartLogB + "," + String(ascent_rate) + "," + stateString);
   data += (",=," + OPCdata);
   openFlightlog();
   Serial.println(data);
   delay(100);
   
   Flog.println(data);
-  closeFlightlog();
- 
-  ChangeData=true;                                                     //Telling SmartController that we have logged the data
-    
+  closeFlightlog();   
 }

@@ -7,7 +7,7 @@
 //               In Memory of Garrett Ailts (GA) - ailts008 Summer of '69 (nice)
 //============================================================================================================================================
 
-//Version Description: MURI Flight Computer for double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
+//Version Description: MURI Flight Computer for a testing configuration. Controls fake balloon flight using a finite state machine and logs payload/atmospheric data.
 //Switches states based on ascent rate
 //
 //Use: There are two switches and a plug to fully activate the payload. Switches should be flipped in order from right to left. Switch one powers the motherboard, switch two
@@ -17,14 +17,7 @@
 //=============================================================================================================================================
 
 
-//                  /$$$$$$  /$$$$$$  /$$$$$$  /$$   /$$  /$$$$$$        /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$      
-//                 /$$__  $$|_  $$_/ /$$__  $$| $$  /$$/ /$$__  $$      | $$$    /$$$ /$$__  $$| $$__  $$| $$_____/      
-//                | $$  \__/  | $$  | $$  \__/| $$ /$$/ | $$  \ $$      | $$$$  /$$$$| $$  \ $$| $$  \ $$| $$            
-//                |  $$$$$$   | $$  | $$      | $$$$$/  | $$  | $$      | $$ $$/$$ $$| $$  | $$| $$  | $$| $$$$$         
-//                 \____  $$  | $$  | $$      | $$  $$  | $$  | $$      | $$  $$$| $$| $$  | $$| $$  | $$| $$__/         
-//                 /$$  \ $$  | $$  | $$    $$| $$\  $$ | $$  | $$      | $$\  $ | $$| $$  | $$| $$  | $$| $$            
-//                |  $$$$$$/ /$$$$$$|  $$$$$$/| $$ \  $$|  $$$$$$/      | $$ \/  | $$|  $$$$$$/| $$$$$$$/| $$$$$$$$      
-//                 \______/ |______/ \______/ |__/  \__/ \______/       |__/     |__/ \______/ |_______/ |________/      
+ 
                                                                                                        
                                                                                                                                                                                                                                                                             
 //=============================================================================================================================================
@@ -41,10 +34,10 @@
      OPC Power Relay              | 5,6                   | Digital pins that serve as the on and off pins for the opc power relay
      OPC Heater Relay             | 24,25                 | Digital pins that serve as the on and off pins for opc heater relay
      Battery Heater Relay         | 7,8                   | Digital pins that serve as the on and off pins for the battery heater relay
-     Ublox GPS                    | RX2,TX2 (9,10)        | UART bus 2 (Serial2)
+   
      PMS5003 Particle Sensor      | RX1,TX1 (1,2)         | UART bus 1 (Serial1)
      SPS30 Particle Sensor        | RX4,TX4 (31,32)       | UART bus 4 (Serial4)
-
+     HPM??
      
      ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -58,7 +51,6 @@
 #include <DallasTemperature.h>                                         //Dallas Sensor Library
 #include <UbloxGPS.h>                                                  //GPS Library
 #include <Arduino.h>                                                   //"Microcontroller stuff" - Garrett Ailts 
-#include <SmartController.h>                                           //Library for smart units using xbees to send commands
 #include <OPCSensor.h>                                                 //Library for OPCs
 #include <Wire.h>                                                      //Library for I2C
 #include <SFE_MicroOLED.h>                                             //Library for OLED
@@ -78,7 +70,7 @@
 #define R1A_SLAVE_PIN 15                                               //Chip Select pin for SPI for the R1
 #define PMS_SERIAL Serial1                                             //Serial Pins
 #define UBLOX_SERIAL Serial2
-#define XBEE_SERIAL Serial3
+#define HPM_SERIAL Serial3
 #define SPS_SERIAL Serial4
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 
@@ -93,7 +85,7 @@
 #define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 10                              //Release SMARTs after 10 minutes if max alt is less than 80000ft
 #define LONG_ASCENT_TIMER 240                                          //SMARTs release if ascent takes longer than 4 hours
 #define LONG_DESCENT_TIMER 90                                          //SMARTS release if descent takes longer than 1.5 hours
-#define SLOW_ASCENT_ABORT_DELAY 20                                    //Time needed to wait until abort procedures b/c of slow ascent are activiated
+#define SLOW_ASCENT_ABORT_DELAY 20                                     //Time needed to wait until abort procedures b/c of slow ascent are activiated
 
 //Constants
 #define DC_JUMPER 1                                                    //The DC_JUMPER is the I2C Address Select jumper. Set to 1 if the jumper is open (Default), or set to 0 if it's closed.
@@ -163,17 +155,9 @@ float prev_alt_feet = 0;                                               //Previou
 /////////////////Control///////////////////
 ///////////////////////////////////////////
 //SMART
-String SmartData;                                                      //Just holds temporary copy of Smart data
 static String SmartLogA = "";                                          //Log everytime, is just data from smart
 static String SmartLogB = "";
-static bool CutA=false;                                                //Set to true to cut A SMART
-static bool CutB=false;                                                //Set to true to cut B SMART
-static bool ChangeData=true;                                           //Just set true after every data log
-SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0);           //Smart controller
-String smartOneString = "Primed";
-String smartTwoString = "Primed";
-String smartOneCut = "";
-String smartTwoCut = "";
+
 
 //Control Telemetry
 float ascent_rate = 0;                                                 //Ascent rate of payload in feet per minute
@@ -185,7 +169,7 @@ static bool FirstAlt = false;                                          //Indicat
 int test = 0;
 
 //Timers and Counters
-unsigned long smartTimer = 0;                                          //To time loop speeds and flight times and Automatic Sonde InFo (ASIF) 
+//unsigned long smartTimer = 0;                                          //To time loop speeds and flight times and Automatic Sonde InFo (ASIF) 
 unsigned long LowAltitudeReleaseTimer = 0;
 unsigned long ascentTimer = 0;
 unsigned long descentTimer = 0;
@@ -218,6 +202,7 @@ boolean SDcard = true;
 Plantower PlanA(&PMS_SERIAL, STATE_LOG_TIMER);                               //Establish objects and logging string for the OPCs
 SPS SPSA(&SPS_SERIAL);
 R1 R1A(R1A_SLAVE_PIN);
+HPM HPMA(&HPM_SERIAL);
 
 String OPCdata = "";
 
@@ -241,8 +226,8 @@ void setup() {
   oledPrintNew(oled, "SD Init");
 
   Serial.begin(9600);                                                  //USB Serial for debugging
-  XBEE_SERIAL.begin(9600);                                             //Initialize Radio
-  oledPrintAdd(oled, "XB Init");
+//  XBEE_SERIAL.begin(9600);                                             //Initialize Radio
+//  oledPrintAdd(oled, "XB Init");
 
   initGPS();                                                           //Initialize GPS
   oledPrintAdd(oled, "GPSInit");
@@ -265,14 +250,10 @@ void setup() {
 void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
   PlanA.readData();
-
-  SmartUpdate();                                                       //System to update SMART Units
      
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
     ControlCounter = millis();
-    
-    SOCO.Cut(1,CutA);                                                  //Cut command logic for SMART
-    SOCO.Cut(2,CutB);
+
     FixCheck();                                                        //Provide logic for GPS fix
     
    if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
@@ -284,11 +265,5 @@ void loop(){
       actHeat();                                                         //Controls active heating
       oledUpdate();                                                      //Update screen
     } 
-  }
-  if (millis() > 60000){
-    SOCO.Cut(1,true); 
-  }
-  if (millis() > 120000){
-    SOCO.Cut(2,true);
   }
 }

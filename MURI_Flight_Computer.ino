@@ -54,6 +54,7 @@
 #include <OPCSensor.h>                                                 //Library for OPCs
 #include <Wire.h>                                                      //Library for I2C
 #include <SFE_MicroOLED.h>                                             //Library for OLED
+#include <RelayXbee.h>                                                 //Library for RFD900
 
 ////////////////////////////////////
 //////////Pin Definitions///////////
@@ -73,7 +74,8 @@
 #define HPM_SERIAL Serial3
 #define SPS_SERIAL Serial4
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
-
+#define RFD_Serial Serial5
+#define RFD_BAUD 38400
 /////////////////////////////
 //////////Constants//////////
 /////////////////////////////
@@ -116,6 +118,9 @@ static bool SwitchedState = false;
 
 //On Board SD Chipselect
 const int chipSelect = BUILTIN_SDCARD;                                 //On board SD card for teensy
+
+//RFD900//
+String packet;
 
 ////////////////////////////////
 //////////Power Relays//////////
@@ -228,6 +233,7 @@ void setup() {
   Serial.begin(9600);                                                  //USB Serial for debugging
 //  XBEE_SERIAL.begin(9600);                                             //Initialize Radio
 //  oledPrintAdd(oled, "XB Init");
+  RFD_Serial.begin(RFD_BAUD)                                           
 
   initGPS();                                                           //Initialize GPS
   oledPrintAdd(oled, "GPSInit");
@@ -242,6 +248,7 @@ void setup() {
   initOPCs();                                                          //Initialize OPCs
   oledPrintAdd(oled, "OPCInit");
     delay(1000);
+    
   
   Serial.println("Setup Complete");
   oledPrintNew(oled, " Setup Complet");
@@ -250,7 +257,10 @@ void setup() {
 void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
   PlanA.readData();
-     
+  //Testing RFD900//
+  packet = "test";
+  RFD_Serial.print(packet);
+  //////////////////   
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
     ControlCounter = millis();
 

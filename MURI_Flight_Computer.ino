@@ -258,8 +258,16 @@ void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
   PlanA.readData();
   //Testing RFD900//
-  packet = "test";
-  RFD_Serial.print(packet);
+  if(RFD_Serial.available()>0){                  // Checks for any incoming bytes
+    delay(10);                                  // Bytes will be received one at a time unless you add a small delay so the buffer fills with your message
+    int incomingBytes = RFD_Serial.available();  // Checks number of total bytes to be read
+    Serial.println(incomingBytes);              // Just for testing to see if delay is sufficient to receive all bytes.
+    for(int i=0; i<incomingBytes; i++)
+    {
+      packet[i] = RFD_Serial.read();             // Reads bytes one at a time and stores them in a character array.
+    }
+    Serial.println(packet);                     // prints whole character array
+  }
   //////////////////   
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
     ControlCounter = millis();

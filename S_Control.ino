@@ -111,7 +111,7 @@ void stateMachine(){
           Serial.println("Max alt hits: " + String(skyCheck));
           if(skyCheck>5)
           {                                                           
-            //SMART Cut
+           SmartLogA = "Cut Max Altitude!";
            skyCheck = 0;
           }
         }
@@ -140,7 +140,7 @@ void stateMachine(){
           Serial.println("Min alt hits: " + String(floorCheck));
           if(floorCheck>5)                                             //If consistently below data collection range then release all balloons again just in case
           {
-          //SMART Cut
+            SmartLogB = "Cut Slow Descent Ended!";
             floorCheck = 0;
           }
         }
@@ -150,7 +150,7 @@ void stateMachine(){
         }
 
         if (LowMaxAltitude && ((millis() - LowAltitudeReleaseTimer) > (LOW_MAX_ALTITUDE_CUTDOWN_TIMER*MINUTES_TO_MILLIS))) {
-          //SMART cut
+          SmartLogB = "Cut Slow Descent Timer!";
         }
         
         break;
@@ -162,7 +162,8 @@ void stateMachine(){
         if (((millis() - masterClock) > SLOW_ASCENT_ABORT_DELAY*MINUTES_TO_MILLIS) && GPSstatus == Lock) {
           snail++;
           if (snail > 20) {                                            //If your ascent rate is too slow consistently, cut!
-           //SMART cut
+          SmartLogA = "Cut Slow Ascent!";
+          SmartLogB = "Cut Slow Ascent!";
            snail = 0;
           }  
         }
@@ -182,7 +183,8 @@ void stateMachine(){
         }
         if(millis()-castAway >= 600000)
         {
-          //SMART cut
+          SmartLogA = "Cast Away!";
+          SmartLogB = "Cast Away!";
         }
         break;
 
@@ -305,7 +307,8 @@ void AbortControl() {
                                                                      //Cut if the master timer is reached
   if((millis() - masterClock) >= MASTER_TIMER*MINUTES_TO_MILLIS)     //If mission time is exceeded without recovery, it cuts the balloons and just enters the recovery state
   {
-    //SMART Cut
+    SmartLogA = "Cut Mission Length Timer!";
+    SmartLogB = "Cut Mission Length Timer!";
     muriState = STATE_MURI_RECOVERY;
     stateString = "RECOVERY";
   }
@@ -317,7 +320,8 @@ void AbortControl() {
          Serial.println("Termination Longitude check: " + String(termination_longitude_check));
          if (termination_longitude_check>5)
          {
-           //SMART Cut
+           SmartLogA = "Cut Longitude Check!";
+           SmartLogB = "Cut Longitude Check!";
            termination_longitude_check = 0;
          }
        }
@@ -331,7 +335,8 @@ void AbortControl() {
          termination_latitude_check++;
          if (termination_latitude_check>5)
          {
-          //SMART Cut
+           SmartLogA = "Cut Latitude Check!";
+           SmartLogB = "Cut Latitude Check!";
            termination_latitude_check = 0;
          }
        }
@@ -342,10 +347,11 @@ void AbortControl() {
    }
    
    if (muriState == STATE_MURI_ASCENT && ((millis() - ascentTimer) > (LONG_ASCENT_TIMER*MINUTES_TO_MILLIS))) {
-     //SMART Cut
+        SmartLogA = "Cut Long Ascent!";
    }
 
    if (muriState == STATE_MURI_SLOW_DESCENT && ((millis() - descentTimer) > (LONG_DESCENT_TIMER*MINUTES_TO_MILLIS))) {
-     //SMART Cut
+        SmartLogA = "Cut Long Descent!";
+        SmartLogB = "Cut Long Descent!";
    }
 }

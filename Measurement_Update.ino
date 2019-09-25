@@ -31,10 +31,9 @@ void updateSensors() {
   PressurePSI = (pressureSensorVoltage - (0.1*5.0))/(4.0/15.0);         //Convert the voltage to PSI
   PressureATM = PressurePSI*PSI_TO_ATM;                                 //Convert PSI reading to ATM
 
-  OPCdata = PlanA.logUpdate();                                          //Populate a string with the OPC data
-  OPCdata += ",=," + SPSA.logUpdate();
-  OPCdata += ",=," + HPMA.logUpdate();  
-  OPCdata += ",=," + R1A.logUpdate();
+  OPCdata = SPSA.logUpdate();                                          //Populate a string with the OPC data
+  OPCdata += ",=," + SPSB.logUpdate();
+  OPCdata += ",=," + HPMA.logUpdate();
   
   data = "";
   data = flightTimeStr()+ "," + String(flightMinutes()) + "," +  String(masterClockMinutes()) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
@@ -54,7 +53,7 @@ void updateSensors() {
   data += (String(PressurePSI) + "," + String(PressureATM) + ",");
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
-  data += (SmartLogA + "," + SmartLogB + "," + String(ascent_rate) + "," + stateString);
+  data += (String(ascent_rate) + "," + stateString + "," + SmartLogA + "," + SmartLogB + "," + Packet);
   data += (",=," + OPCdata);
   openFlightlog();
   Serial.println(data);

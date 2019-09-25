@@ -9,35 +9,45 @@
 
 //Version Description: MURI Flight Computer for a testing configuration. Controls fake balloon flight using a finite state machine and logs payload/atmospheric data.
 //Switches states based on ascent rate
-//
+
 //Use: There are two switches and a plug to fully activate the payload. Switches should be flipped in order from right to left. Switch one powers the motherboard, switch two
 //powers the microcontroller, and the plug initializes the recovery siren.
-//
+
 //=============================================================================================================================================
 //=============================================================================================================================================
-
-
- 
-                                                                                                       
-                                                                                                                                                                                                                                                                            
+/*
+                                                                                  
+ ad88888ba                                                                        
+d8"     "8b                                         ,d                            
+Y8,                                                 88                            
+`Y8aaaaa,    8b,dPPYba,    ,adPPYba,   ,adPPYba,  MM88MMM  ,adPPYba,  8b,dPPYba,  
+  `"""""8b,  88P'    "8a  a8P_____88  a8"     ""    88    a8P_____88  88P'   "Y8  
+        `8b  88       d8  8PP"""""""  8b            88    8PP"""""""  88          
+Y8a     a8P  88b,   ,a8"  "8b,   ,aa  "8a,   ,aa    88,   "8b,   ,aa  88          
+ "Y88888P"   88`YbbdP"'    `"Ybbd8"'   `"Ybbd8"'    "Y888  `"Ybbd8"'  88          
+             88                                                                   
+             88                                                                   
+                                                                                                 
+*/                                                                                                                                                                                                                                                                           
 //=============================================================================================================================================
 //=============================================================================================================================================
 
 /*  Teensy 3.5/3.6 pin connections:
      ------------------------------------------------------------------------------------------------------------------------------------------------------------------
      Component                    | Pins used             | Notes
-     
-     XBee Radio                   | RX3,TX3 (7,8)         | UART bus 3 (Serial3)
-     Logging LED (BLUE)           | 23                    | Blinks everytime flight log is opened to log data
+       
+     Logging LED (BLUE)           | 22                    | Blinks everytime flight log is opened to log data
      Onboard SD Reader            | None                  | On board SD card reader uses a dedicated SPI bus
      Temperature Sensors (3)      | 28-30                 | DS18B20 temp sensors uses one wire digital communication
-     OPC Power Relay              | 5,6                   | Digital pins that serve as the on and off pins for the opc power relay
-     OPC Heater Relay             | 24,25                 | Digital pins that serve as the on and off pins for opc heater relay
-     Battery Heater Relay         | 7,8                   | Digital pins that serve as the on and off pins for the battery heater relay
-   
-     PMS5003 Particle Sensor      | RX1,TX1 (1,2)         | UART bus 1 (Serial1)
-     SPS30 Particle Sensor        | RX4,TX4 (31,32)       | UART bus 4 (Serial4)
-     HPM??
+     OPC Power Relay              | 3,4                   | Digital pins that serve as the on and off pins for the opc heater relay
+     Battery Heater Relay         | 5,6                   | Digital pins that serve as the on and off pins for opc heater relay
+     Honeywell Pressure Sensor    | A9                    | Analog pins
+ 
+     UBLOX GPS                    | RX1,TX1 (1,2)         | UART bus 1 (Serial1)   
+     RFD900                       | RX2,TX2 (9,10)        | UART bus 2 (Serial2) 
+     SPS30 Particle Sensor A      | RX3,TX3 (7,8)         | UART bus 3 (Serial3)
+     SPS30 Particle Sensor B      | RX4,TX4 (31,32)       | UART bus 4 (Serial4)
+     HPM Particle Sensor          | RX5,TX5 (34,35)       | UART bus 5 (Serial5)
      
      ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -68,13 +78,12 @@
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
 #define HONEYWELL_PRESSURE A9                                          //Analog Honeywell Pressure Sensor
-#define R1A_SLAVE_PIN 15                                               //Chip Select pin for SPI for the R1
-#define PMS_SERIAL Serial1                                             //Serial Pins
-#define UBLOX_SERIAL Serial2
-#define HPM_SERIAL Serial3
-#define SPS_SERIAL Serial4
+#define UBLOX_SERIAL Serial1                                           //Serial Pins
+#define RFD_SERIAL Serial2
+#define SPS_SERIALA Serial3
+#define SPS_SERIALB Serial4
+#define HPM_SERIAL Serial5
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
-#define RFD_Serial Serial5
 #define RFD_BAUD 38400
 /////////////////////////////
 //////////Constants//////////
@@ -204,9 +213,8 @@ boolean SDcard = true;
 ////////////////////////
 //////////OPCs//////////
 ////////////////////////
-Plantower PlanA(&PMS_SERIAL, STATE_LOG_TIMER);                               //Establish objects and logging string for the OPCs
-SPS SPSA(&SPS_SERIAL);
-R1 R1A(R1A_SLAVE_PIN);
+SPS SPSA(&SPS_SERIALA);                                                 //Establish objects and logging string for the OPCs
+SPS SPSB(&SPS_SERIALB);
 HPM HPMA(&HPM_SERIAL);
 
 String OPCdata = "";
@@ -256,17 +264,16 @@ void setup() {
 
 void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
-  PlanA.readData();
-  //Testing RFD900//
-  if(RFD_Serial.available()>0){                  // Checks for any incoming bytes
-    delay(10);                                  // Bytes will be received one at a time unless you add a small delay so the buffer fills with your message
-    int incomingBytes = RFD_Serial.available();  // Checks number of total bytes to be read
-    Serial.println(incomingBytes);              // Just for testing to see if delay is sufficient to receive all bytes.
+                                                                       //Testing RFD900//
+  if(RFD_Serial.available()>0){                                        //Checks for any incoming bytes
+    delay(10);                                                         //Bytes will be received one at a time unless you add a small delay so the buffer fills with your message
+    int incomingBytes = RFD_Serial.available();                        //Checks number of total bytes to be read
+    Serial.println(incomingBytes);                                     //Just for testing to see if delay is sufficient to receive all bytes.
     for(int i=0; i<incomingBytes; i++)
     {
-      packet[i] = RFD_Serial.read();             // Reads bytes one at a time and stores them in a character array.
+      packet[i] = RFD_Serial.read();                                   //Reads bytes one at a time and stores them in a character array.
     }
-    Serial.println(packet);                     // prints whole character array
+    Serial.println(packet);                                             //Prints whole character array
   }
   //////////////////   
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks

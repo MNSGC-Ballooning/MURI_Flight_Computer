@@ -84,16 +84,16 @@ void oledUpdate(){                                                      //Update
     }
     else if (screen == 2) {
 
-      if (PlanA.getLogQuality()){                                       //OPC Statuses
-        localDataPrint += "P1 ";
+      if (SPSA.getLogQuality()){                                       //OPC Statuses
+        localDataPrint += "SA1";
       } else {
-        localDataPrint += "P0 ";
+        localDataPrint += "SA0";
       }
 
-      if (SPSA.getLogQuality()){
-        localDataPrint+= "S1  ";
+      if (SPSB.getLogQuality()){
+        localDataPrint+= "SB1 ";
       } else {
-        localDataPrint += "S0  ";
+        localDataPrint += "SB0 ";
       }
 
       if (HPMA.getLogQuality()){
@@ -101,12 +101,6 @@ void oledUpdate(){                                                      //Update
       } else {
         localDataPrint += "H0 ";
       }    
-
-      if (R1A.getLogQuality()){
-        localDataPrint+= "R1";
-      } else {
-        localDataPrint += "R0";
-      }   
          
        screen = 0;
        oledPrintNew(oled, localDataPrint);  

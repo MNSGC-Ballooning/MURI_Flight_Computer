@@ -40,8 +40,8 @@ void initSD(){
   Serial.println("Flight log created: " + Fname);
 
   String FHeader = "Flight Time, Minutes, Matser Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, BatTemp (C), IntTemp (C),ExtTemp (C), Pressure (PSI), Pressure (ATM),";
-  FHeader += "Battery Heater Status, Sensor Heater Status, Control Altitude, Smart A, Smart B, Ascent Rate, System State,";
-  FHeader += PlanA.CSVHeader() + ',' + SPSA.CSVHeader() + ',' + HPMA.CSVHeader() + ',' + R1A.CSVHeader();
+  FHeader += "Battery Heater Status, Sensor Heater Status, Control Altitude, Ascent Rate, System State, Smart A, Smart B, RFDString";
+  FHeader += SPSA.CSVHeader() + ',' + SPSB.CSVHeader() + ',' + HPMA.CSVHeader();
   Flog.println(FHeader);                                                //Set up Flight log format
   Serial.println("Flight log header added");                            
 
@@ -75,11 +75,11 @@ void initRelays(){
 }
 
 void initOPCs() {                                                       //Sets up serial and initializes the OPCs
-  PMS_SERIAL.begin(9600);
-  SPS_SERIAL.begin(115200);
+  SPS_SERIALA.begin(115200);
+  SPS_SERIALB.begin(115200);
+  HPM_SERIAL.begin(9600);
 
-  PlanA.initOPC();
   SPSA.initOPC();
+  SPSB.initOPC();
   HPMA.initOPC();
-  R1A.initOPC(); 
 }

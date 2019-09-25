@@ -1,5 +1,5 @@
 //Controller that looks at the derivative of altitude and the current altitude state
-#define STATE_MURI_INIT           0x00                                  //0000 0000
+#define STATE_MURI_INIT           0x00                                 //0000 0000
 #define STATE_MURI_ASCENT         0x01                                 //0000 0001
 #define STATE_MURI_FAST_DESCENT   0x02                                 //0000 0010
 #define STATE_MURI_SLOW_DESCENT   0x04                                 //0000 0100

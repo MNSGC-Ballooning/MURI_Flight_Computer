@@ -32,8 +32,9 @@ void updateSensors() {
   PressureATM = PressurePSI*PSI_TO_ATM;                                 //Convert PSI reading to ATM
 
   OPCdata = PlanA.logUpdate();                                          //Populate a string with the OPC data
-  OPCdata += ",=," + SPSA.logUpdate();
-//  OPCdata += ",=," + R1A.logUpdate();
+  OPCdata = PlanB.logUpdate();
+  OPCdata += ",=," + R1A.logUpdate();
+  OPCdata += ",=," + HPMA.logUpdate();
   
   data = "";
   data = flightTimeStr()+ "," + String(flightMinutes()) + "," +  String(masterClockMinutes()) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 

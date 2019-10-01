@@ -76,10 +76,11 @@
 #define BAT_HEATER_OFF 6
 #define HONEYWELL_PRESSURE A9                                          //Analog Honeywell Pressure Sensor
 #define R1A_SLAVE_PIN 15                                               //Chip Select pin for SPI for the R1
-#define PMS_SERIAL Serial1                                             //Serial Pins
-#define UBLOX_SERIAL Serial2
-#define XBEE_SERIAL Serial3
-#define SPS_SERIAL Serial4
+#define PMSA_SERIAL Serial1                                            //Serial Pins
+#define UBLOX_SERIAL Serial2                                           
+#define XBEE_SERIAL Serial3                                            
+#define PMSB_SERIAL Serial4
+#define HPMA_SERIAL Serial5
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 
 /////////////////////////////
@@ -93,7 +94,7 @@
 #define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 10                              //Release SMARTs after 10 minutes if max alt is less than 80000ft
 #define LONG_ASCENT_TIMER 240                                          //SMARTs release if ascent takes longer than 4 hours
 #define LONG_DESCENT_TIMER 90                                          //SMARTS release if descent takes longer than 1.5 hours
-#define SLOW_ASCENT_ABORT_DELAY 20                                    //Time needed to wait until abort procedures b/c of slow ascent are activiated
+#define SLOW_ASCENT_ABORT_DELAY 20                                     //Time needed to wait until abort procedures b/c of slow ascent are activiated
 
 //Constants
 #define DC_JUMPER 1                                                    //The DC_JUMPER is the I2C Address Select jumper. Set to 1 if the jumper is open (Default), or set to 0 if it's closed.
@@ -215,8 +216,9 @@ boolean SDcard = true;
 ////////////////////////
 //////////OPCs//////////
 ////////////////////////
-Plantower PlanA(&PMS_SERIAL, STATE_LOG_TIMER);                               //Establish objects and logging string for the OPCs
-SPS SPSA(&SPS_SERIAL);
+Plantower PlanA(&PMSA_SERIAL, STATE_LOG_TIMER);                               //Establish objects and logging string for the OPCs
+Plantower PlanB(&PMSB_SERIAL, STATE_LOG_TIMER);
+HPM HPMA(&HPMA_SERIAL);
 R1 R1A(R1A_SLAVE_PIN);
 
 String OPCdata = "";
@@ -265,7 +267,7 @@ void setup() {
 void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
   PlanA.readData();
-
+  PlanB.readData();
   SmartUpdate();                                                       //System to update SMART Units
      
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks

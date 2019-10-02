@@ -25,6 +25,7 @@ void updateSensors() {
   t3 = sensor3.getTempCByIndex(0);
 
   alt_GPS = GPS.getAlt_feet();                                          //Altitude calulated by the Ublox GPS
+  RFD_SERIAL.print(String(alt_GPS));
 
   pressureSensor = analogRead(HONEYWELL_PRESSURE);                      //Read the analog pin
   pressureSensorVoltage = pressureSensor * (5.0/1024);                  //Convert the analog number to voltage
@@ -53,7 +54,7 @@ void updateSensors() {
   data += (String(PressurePSI) + "," + String(PressureATM) + ",");
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
-  data += (String(ascent_rate) + "," + stateString + "," + SmartLogA + "," + SmartLogB + "," + Packet);
+  data += (String(ascent_rate) + "," + stateString + "," + SmartLogA + "," + SmartLogB + "," + packet);
   data += (",=," + OPCdata);
   openFlightlog();
   Serial.println(data);

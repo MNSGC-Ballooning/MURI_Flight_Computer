@@ -64,7 +64,7 @@ Y8a     a8P  88b,   ,a8"  "8b,   ,aa  "8a,   ,aa    88,   "8b,   ,aa  88
 #include <OPCSensor.h>                                                 //Library for OPCs
 #include <Wire.h>                                                      //Library for I2C
 #include <SFE_MicroOLED.h>                                             //Library for OLED
-#include <RelayXbee.h>                                                 //Library for RFD900
+#include <RelayXBee.h>                                                 //Library for RFD900
 
 ////////////////////////////////////
 //////////Pin Definitions///////////
@@ -239,9 +239,9 @@ void setup() {
   oledPrintNew(oled, "SD Init");
 
   Serial.begin(9600);                                                  //USB Serial for debugging
-//  XBEE_SERIAL.begin(9600);                                             //Initialize Radio
-//  oledPrintAdd(oled, "XB Init");
-  RFD_Serial.begin(RFD_BAUD)                                           
+  RFD_SERIAL.begin(RFD_BAUD);
+  oledPrintAdd(oled, "RFDInit");  
+                                           
 
   initGPS();                                                           //Initialize GPS
   oledPrintAdd(oled, "GPSInit");
@@ -265,15 +265,15 @@ void setup() {
 void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
                                                                        //Testing RFD900//
-  if(RFD_Serial.available()>0){                                        //Checks for any incoming bytes
-    delay(10);                                                         //Bytes will be received one at a time unless you add a small delay so the buffer fills with your message
-    int incomingBytes = RFD_Serial.available();                        //Checks number of total bytes to be read
+  if(RFD_SERIAL.available()>0){                                        //Checks for any incoming bytes
+    delay(5);                                                          //Bytes will be received one at a time unless you add a small delay so the buffer fills with your message
+    int incomingBytes = RFD_SERIAL.available();                        //Checks number of total bytes to be read
     Serial.println(incomingBytes);                                     //Just for testing to see if delay is sufficient to receive all bytes.
     for(int i=0; i<incomingBytes; i++)
     {
-      packet[i] = RFD_Serial.read();                                   //Reads bytes one at a time and stores them in a character array.
+      packet[i] = RFD_SERIAL.read();                                   //Reads bytes one at a time and stores them in a character array.
     }
-    Serial.println(packet);                                             //Prints whole character array
+    Serial.println(packet);                                            //Prints whole character array
   }
   //////////////////   
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
@@ -284,7 +284,6 @@ void loop(){
    if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
       StateLogCounter = millis();
 
-      Serial.println(PlanA.logUpdate());
       stateMachine();                                                    //Update state machine
       updateSensors();                                                   //Updates and logs all sensor data
       actHeat();                                                         //Controls active heating

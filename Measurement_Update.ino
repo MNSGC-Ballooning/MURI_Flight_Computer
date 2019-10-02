@@ -32,7 +32,7 @@ void updateSensors() {
   PressureATM = PressurePSI*PSI_TO_ATM;                                 //Convert PSI reading to ATM
 
   OPCdata = PlanA.logUpdate();                                          //Populate a string with the OPC data
-  OPCdata = PlanB.logUpdate();
+  OPCdata += ",=," + PlanB.logUpdate();
   OPCdata += ",=," + R1A.logUpdate();
   OPCdata += ",=," + HPMA.logUpdate();
   

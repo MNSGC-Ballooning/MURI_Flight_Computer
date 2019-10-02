@@ -106,10 +106,10 @@ void oledUpdate(){                                                      //Update
         localDataPrint += "P0";
       }
 
-      if (PlanB.getLogQuality()){
-        localDataPrint+= "B1";
+      if (HPMA.getLogQuality()){
+        localDataPrint+= "H1";
       } else {
-        localDataPrint += "B0";
+        localDataPrint += "H0";
       }
 
       if (R1A.getLogQuality()){

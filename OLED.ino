@@ -84,22 +84,28 @@ void oledUpdate(){                                                      //Update
     }
     else if (screen == 2) {
 
-      if (SPSA.getLogQuality()){                                       //OPC Statuses
-        localDataPrint += "SA1";
+      if(RFD_SERIAL()){
+        localDataPrint = " RFD1  ";
       } else {
-        localDataPrint += "SA0";
+        localDataPrint = " RFD0  ";
+      }
+
+      if (SPSA.getLogQuality()){                                       //OPC Statuses
+        localDataPrint += "SA1 ";
+      } else {
+        localDataPrint += "SA0 ";
       }
 
       if (SPSB.getLogQuality()){
-        localDataPrint+= "SB1 ";
+        localDataPrint+= "SB1";
       } else {
-        localDataPrint += "SB0 ";
+        localDataPrint += "SB0";
       }
 
       if (HPMA.getLogQuality()){
-        localDataPrint+= "H1 ";
+        localDataPrint+= "H1";
       } else {
-        localDataPrint += "H0 ";
+        localDataPrint += "H0";
       }    
          
        screen = 0;

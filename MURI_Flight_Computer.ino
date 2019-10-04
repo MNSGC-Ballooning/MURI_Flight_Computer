@@ -65,6 +65,7 @@ Y8a     a8P  88b,   ,a8"  "8b,   ,aa  "8a,   ,aa    88,   "8b,   ,aa  88
 #include <Wire.h>                                                      //Library for I2C
 #include <SFE_MicroOLED.h>                                             //Library for OLED
 #include <RelayXBee.h>                                                 //Library for RFD900
+#include <Adafruit_MAX31856.h>                                         //Adafruit Library
 
 ////////////////////////////////////
 //////////Pin Definitions///////////
@@ -149,9 +150,8 @@ OneWire oneWire3(THREE_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);                                  //Temperature sensors
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-float t1;                                                              //Temperature vvalues
-float t2;
-float t3;
+float t1,t2,t3,t4,t5;                                                  //Temperature vvalues
+
 
 //Honeywell Pressure Sensor
 int pressureSensor;                                                    //Analog number given by sensor
@@ -164,6 +164,9 @@ UbloxGPS GPS(&UBLOX_SERIAL);
 uint8_t FixStatus= NoFix;
 float alt_GPS = 0;                                                     //Altitude calculated by the GPS in feet
 float prev_alt_feet = 0;                                               //Previous calculated altitude
+
+//Thermocouple
+Adafruit_MAX31856 thermocouple = Adafruit_MAX31856(15);                //Thermocouple temperature sensor
 
 ///////////////////////////////////////////
 /////////////////Control///////////////////
@@ -242,7 +245,6 @@ void setup() {
   RFD_SERIAL.begin(RFD_BAUD);
   oledPrintAdd(oled, "RFDInit");  
                                            
-
   initGPS();                                                           //Initialize GPS
   oledPrintAdd(oled, "GPSInit");
   delay(1000);

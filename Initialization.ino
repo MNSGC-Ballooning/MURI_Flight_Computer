@@ -39,8 +39,8 @@ void initSD(){
   
   Serial.println("Flight log created: " + Fname);
 
-  String FHeader = "Flight Time, Minutes, Matser Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, BatTemp (C), IntTemp (C),ExtTemp (C), Pressure (PSI), Pressure (ATM),";
-  FHeader += "Battery Heater Status, Sensor Heater Status, Control Altitude, Ascent Rate, System State, Smart A, Smart B, RFDString";
+  String FHeader = "Flight Time, Minutes, Matser Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, BatTemp (C), IntTemp (C),ExtTemp (C), ThermoTempAdj, ThermoTemp, ";
+  FHeader += "Pressure (PSI), Pressure (ATM), Battery Heater Status, Sensor Heater Status, Control Altitude, Ascent Rate, System State, Smart A, Smart B, RFDString";
   FHeader += SPSA.CSVHeader() + ',' + SPSB.CSVHeader() + ',' + HPMA.CSVHeader();
   Flog.println(FHeader);                                                //Set up Flight log format
   Serial.println("Flight log header added");                            
@@ -64,6 +64,9 @@ void initTemp(){
   sensor1.begin();                                                    //Initialize Temp Sensors
   sensor2.begin();
   sensor3.begin();
+
+  thermocouple.begin();
+  thermocouple.setThermocoupleType(MAX31856_TCTYPE_K);
 }
 
 void initRelays(){

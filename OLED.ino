@@ -84,7 +84,7 @@ void oledUpdate(){                                                      //Update
     }
     else if (screen == 2) {
 
-      if(RFD_SERIAL()){
+      if(RFD_SERIAL.available()){
         localDataPrint = " RFD1  ";
       } else {
         localDataPrint = " RFD0  ";

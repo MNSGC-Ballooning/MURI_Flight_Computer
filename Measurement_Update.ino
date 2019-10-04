@@ -23,6 +23,8 @@ void updateSensors() {
   t1 = sensor1.getTempCByIndex(0);
   t2 = sensor2.getTempCByIndex(0);
   t3 = sensor3.getTempCByIndex(0);
+  t4 = thermocouple.readCJTemperature();
+  t5 = thermocouple.readThermocoupleTemperature();
 
   alt_GPS = GPS.getAlt_feet();                                          //Altitude calulated by the Ublox GPS
   RFD_SERIAL.print(String(alt_GPS));
@@ -50,7 +52,7 @@ void updateSensors() {
     data += "Fix,";
   }
 
-  data += (String(t1) + "," +String(t2) + "," + String(t3) + ",");     //Data string population
+  data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + "," + String(t5) + ",");     //Data string population
   data += (String(PressurePSI) + "," + String(PressureATM) + ",");
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");

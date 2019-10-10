@@ -149,7 +149,7 @@ float t2;
 float t3;
 
 //Honeywell Pressure Sensor
-int pressureSensor;                                                    //Analog number given by sensor
+float pressureSensor;                                                  //Analog number given by sensor
 float pressureSensorVoltage;                                           //Voltage calculated from analog number
 float PressurePSI;                                                     //PSI calculated from voltage
 float PressureATM;                                                     //ATM calculated from PSI
@@ -190,11 +190,11 @@ unsigned long smartTimer = 0;                                          //To time
 unsigned long LowAltitudeReleaseTimer = 0;
 unsigned long ascentTimer = 0;
 unsigned long descentTimer = 0;
-unsigned long masterClock = 0;
 unsigned long screenUpdateTimer = 0;
 unsigned long oledTime = 0;                                            //Tracks the time of the main loop
 unsigned long ControlCounter = 0;
 unsigned long StateLogCounter = 0;
+static float masterClock = 0;                                          //Needs to be a float as this value is logged
 
 //Timer Booleans
 boolean LowMaxAltitude = false;                                        //Set to true if balloon releases before 80,000 feet
@@ -287,10 +287,7 @@ void loop(){
       oledUpdate();                                                      //Update screen
     } 
   }
-  if (millis() > 60000){
-    SOCO.Cut(1,true); 
-  }
-  if (millis() > 120000){
-    SOCO.Cut(2,true);
-  }
+  
+
+  
 }

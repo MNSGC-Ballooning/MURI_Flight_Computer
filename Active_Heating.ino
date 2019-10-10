@@ -2,15 +2,15 @@ void actHeat(){
   short batTemp;
   short sensTemp;
   
-  if (t1 < -100) {
+  if (t3 < -100) {                                                      // t3 is the battery temp sensor. t2 is the internal temp sensor
     batTemp = t2;
   } 
   else {
-    batTemp = t1;
+    batTemp = t3;
   }
 
   if (t2 < -100) {
-    sensTemp = t1;
+    sensTemp = t3;
   } 
   else {
     sensTemp = t2;

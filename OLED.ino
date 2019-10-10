@@ -60,7 +60,7 @@ void oledUpdate(){                                                      //Update
      
     } 
     else if (screen == 1) {
-      if ((millis() - oledTime) < STATE_LOG_TIMER) {                                       //Indicate proper logging
+      if ((millis() - oledTime) < STATE_LOG_TIMER) {                      //Indicate proper logging
         localDataPrint += "GoodLog";
       } else {
         localDataPrint += "BadLog!";
@@ -70,20 +70,20 @@ void oledUpdate(){                                                      //Update
         localDataPrint += String(t2,2) + " ";
       }
       else if (t2>=10 || (-10<t2 && t2<0)) {
-        localDataPrint += String(t2,2) + "  ";                   //Internal temp
+        localDataPrint += String(t2,2) + "  ";                            //Internal temp
       }
       else if (t2>=0 && t2<10) {
         localDataPrint += String(t2,2) + "   ";
       }
             
-      localDataPrint += String(flightMinutes(),2);      //Master timer
+      localDataPrint += String(flightMinutes(),2);                        //Master timer
 
          
       screen++;
       oledPrintNew(oled, localDataPrint);  
     }
     else if (screen == 2) {
-      if (SmartLogA != "") {                                            //Smart statuses
+      if (SmartLogA != "") {                                              //Smart statuses
         localDataPrint += "SMRTA=1";
       } else {
         localDataPrint += "SMRTA=0";
@@ -95,15 +95,15 @@ void oledUpdate(){                                                      //Update
       }
 
       if (PlanA.getLogQuality() && PlanB.getLogQuality()){                                       //OPC Statuses
-        localDataPrint += "P1";
+        localDataPrint += "PAB";
       }
       else if(PlanA.getLogQuality()){
-        localDataPrint += "PA";
+        localDataPrint += "PA0";
       }
       else if(PlanB.getLogQuality()){
-        localDataPrint += "PB";
+        localDataPrint += "P0B";
       } else {
-        localDataPrint += "P0";
+        localDataPrint += "P00";
       }
 
       if (HPMA.getLogQuality()){

@@ -46,8 +46,10 @@ float flightMinutes() {                                                 //Return
 }
 
 float masterClockMinutes() {                                            //Return master time in minutes
-  float returnclock = masterClock / MINUTES_TO_MILLIS;
-  returnclock = (millis()/MINUTES_TO_MILLIS) - (returnclock);
+  float returnclock = 0;
+  if (hdotInit) {
+    returnclock = (millis() - masterClock) / MINUTES_TO_MILLIS; }
+  
   return returnclock;
 }
 

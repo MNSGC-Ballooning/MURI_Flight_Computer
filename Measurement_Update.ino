@@ -27,7 +27,7 @@ void updateSensors() {
   alt_GPS = GPS.getAlt_feet();                                          //Altitude calulated by the Ublox GPS
 
   pressureSensor = analogRead(HONEYWELL_PRESSURE);                      //Read the analog pin
-  pressureSensorVoltage = pressureSensor * (5.0/1024);                  //Convert the analog number to voltage
+  pressureSensorVoltage = pressureSensor * (5.0/8196);                  //Convert the analog number to voltage
   PressurePSI = (pressureSensorVoltage - (0.1*5.0))/(4.0/15.0);         //Convert the voltage to PSI
   PressureATM = PressurePSI*PSI_TO_ATM;                                 //Convert PSI reading to ATM
 
@@ -37,7 +37,7 @@ void updateSensors() {
   OPCdata += ",=," + HPMA.logUpdate();
   
   data = "";
-  data = flightTimeStr()+ "," + String(flightMinutes()) + "," +  String(masterClockMinutes()) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
+  data = flightTimeStr()+ "," + String(flightMinutes()) + "," +  String(masterClockMinutes(),2) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
   + String(alt_GPS, 1) + ","
   + String(GPS.getMonth()) + "/" + String(GPS.getDay()) + "/" + String(GPS.getYear()) + ","
   + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()) + ","
@@ -51,7 +51,7 @@ void updateSensors() {
   }
 
   data += (String(t1) + "," +String(t2) + "," + String(t3) + ",");     //Data string population
-  data += (String(PressurePSI) + "," + String(PressureATM) + ",");
+  data += (String(PressurePSI,6) + "," + String(PressureATM,6) + ",");
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
   data += (SmartLogA + "," + smartOneCut + "," + SmartLogB + "," + smartTwoCut + "," + String(ascent_rate) + "," + stateString);

@@ -41,12 +41,12 @@ void initSD(){
 
   // CHANGE THE BELOW HEADER
 
-  String FHeader = "Flight Time, Minutes, Matser Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, BatTemp (C), IntTemp (C),ExtTemp (C), Pressure (PSI), Pressure (ATM),";
+  String FHeader = "Flight Time, Minutes, Master Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, ExtTemp (C), IntTemp (C),BatTemp (C), Pressure (PSI), Pressure (ATM),";
   FHeader += "Battery Heater Status, Sensor Heater Status, Control Altitude, Smart A, Smart A Cut Reason, Smart B, Smart B Cut Reason, Ascent Rate, System State,";
   FHeader += "PTA, " + PlanA.CSVHeader();
-  FHeader += "PTB, " + PlanB.CSVHeader();
-  FHeader += "R1A, " + R1A.CSVHeader();
-  FHeader += "HPMA, " + HPMA.CSVHeader();
+  FHeader += ",PTB, " + PlanB.CSVHeader();
+  FHeader += ",R1A, " + R1A.CSVHeader();
+  FHeader += ",HPMA, " + HPMA.CSVHeader();
   Flog.println(FHeader);                                                //Set up Flight log format
   Serial.println("Flight log header added");                            
 

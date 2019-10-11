@@ -52,8 +52,8 @@ void updateSensors() {
     data += "Fix,";
   }
 
-  data += (String(t1) + "," +String(t2) + "," + String(t3) + "," + String(t4) + "," + String(t5) + ",");     //Data string population
-  data += (String(PressurePSI) + "," + String(PressureATM) + ",");
+  data += (String(t1,4) + "," +String(t2,4) + "," + String(t3,4) + "," + String(t4,4) + "," + String(t5,4) + ",");     //Data string population
+  data += (String(PressurePSI,6) + "," + String(PressureATM,6) + ",");
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
   data += (String(ascent_rate) + "," + stateString + "," + SmartLogA + "," + SmartLogB + "," + packet);

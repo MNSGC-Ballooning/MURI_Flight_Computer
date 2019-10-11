@@ -39,7 +39,7 @@ void initSD(){
   
   Serial.println("Flight log created: " + Fname);
 
-  String FHeader = "Flight Time, Minutes, Matser Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, BatTemp (C), IntTemp (C),ExtTemp (C), ThermoTempAdj, ThermoTemp, ";
+  String FHeader = "Flight Time, Minutes, Master Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, BatTemp (C), IntTemp (C),ExtTemp (C), ThermoTempAdj, ThermoTemp, ";
   FHeader += "Pressure (PSI), Pressure (ATM), Battery Heater Status, Sensor Heater Status, Control Altitude, Ascent Rate, System State, Smart A, Smart B, RFDString";
   FHeader += SPSA.CSVHeader() + ',' + SPSB.CSVHeader() + ',' + HPMA.CSVHeader();
   Flog.println(FHeader);                                                //Set up Flight log format

@@ -194,6 +194,9 @@ void stateMachine(){
         if(!recovery)
         {
           recovery = true;
+          SPSA.powerOff();                                              //Shut off the OPCs
+          SPSB.powerOff();
+          HPMA.powerOff();
         }
         break;
     }

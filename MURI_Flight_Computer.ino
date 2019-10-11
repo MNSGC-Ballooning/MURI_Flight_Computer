@@ -56,15 +56,15 @@ Y8a     a8P  88b,   ,a8"  "8b,   ,aa  "8a,   ,aa    88,   "8b,   ,aa  88
 /////////////////////////////
 #include <SPI.h>                                                       //SPI Library for R1
 #include <SD.h>                                                        //SD Library for logging
-#include <LatchRelay.h>                                                //Latching Relay Library
+#include <LatchRelay.h>                                                //Latching Relay Library - On MNSGC Github
 #include <OneWire.h>                                                   //Dallas Data Bus Library
 #include <DallasTemperature.h>                                         //Dallas Sensor Library
-#include <UbloxGPS.h>                                                  //GPS Library
+#include <UbloxGPS.h>                                                  //GPS Library - On MNSGC Github
 #include <Arduino.h>                                                   //"Microcontroller stuff" - Garrett Ailts 
-#include <OPCSensor.h>                                                 //Library for OPCs
+#include <OPCSensor.h>                                                 //Library for OPCs - On MNSGC Github
 #include <Wire.h>                                                      //Library for I2C
 #include <SFE_MicroOLED.h>                                             //Library for OLED
-#include <RelayXBee.h>                                                 //Library for RFD900
+#include <RelayXBee.h>                                                 //Library for RFD900 - On MNSGC Github
 #include <Adafruit_MAX31856.h>                                         //Adafruit Library
 
 ////////////////////////////////////
@@ -79,11 +79,11 @@ Y8a     a8P  88b,   ,a8"  "8b,   ,aa  "8a,   ,aa    88,   "8b,   ,aa  88
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
 #define HONEYWELL_PRESSURE A9                                          //Analog Honeywell Pressure Sensor
-#define UBLOX_SERIAL Serial1                                           //Serial Pins
-#define RFD_SERIAL Serial2
+#define UBLOX_SERIAL Serial2                                           //Serial Pins
+#define RFD_SERIAL Serial1
 #define SPS_SERIALA Serial3
-#define SPS_SERIALB Serial4
-#define HPM_SERIAL Serial5
+#define SPS_SERIALB Serial5
+#define HPM_SERIAL Serial4
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 #define RFD_BAUD 38400
 /////////////////////////////

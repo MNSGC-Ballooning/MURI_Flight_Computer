@@ -211,6 +211,7 @@ void stateSwitch(){
   static byte fast_descent_counter = 0;
   static byte recovery_counter = 0;
   static byte wilson = 0;                                              //Counter for castaway
+  
   if(hdotInit&&Control_Altitude!=0&&!recovery&&GPSstatus==Lock){       //If it has been initialized, it is above sea level, and it is not in recovery
     if(ascent_rate>=(5000/60) || ascent_rate<=(-5000/60)){
       Serial.println("GPS Jump Detected");

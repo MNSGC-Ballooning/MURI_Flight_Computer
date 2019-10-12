@@ -11,7 +11,7 @@ void initOLED(MicroOLED& named){                                        //Initia
   named.setFontType(1);
   named.clear(PAGE);
   named.setCursor(0,0);                                                 //Reset
-  named.print("SICKO  MODE   YEET");
+  named.print("ALBERT RunningSpectre");
   named.display();
   delay(2000);
 }
@@ -40,8 +40,8 @@ void initSD(){
   Serial.println("Flight log created: " + Fname);
 
   String FHeader = "Flight Time, Minutes, Master Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, BatTemp (C), IntTemp (C),ExtTemp (C), ThermoTempAdj, ThermoTemp, ";
-  FHeader += "Pressure (PSI), Pressure (ATM), Battery Heater Status, Sensor Heater Status, Control Altitude, Ascent Rate, System State, Smart A, Smart B, RFDString";
-  FHeader += SPSA.CSVHeader() + ',' + SPSB.CSVHeader() + ',' + HPMA.CSVHeader();
+  FHeader += "Pressure (PSI), Pressure (ATM), Battery Heater Status, Sensor Heater Status, Control Altitude, Ascent Rate, System State, Smart A, Smart B, RFDString,";
+  FHeader += "SPSA" + ',' + SPSA.CSVHeader() + ',' + "SPSB" + ',' + SPSB.CSVHeader() + ',' + "HPMA" + ',' + HPMA.CSVHeader();
   Flog.println(FHeader);                                                //Set up Flight log format
   Serial.println("Flight log header added");                            
 

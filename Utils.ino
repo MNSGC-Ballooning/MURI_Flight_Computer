@@ -40,8 +40,8 @@ String flightTimeStr() {                                                //Return
 }
 
 float flightMinutes() {                                                 //Return time in minutes
-  float minutes = millis() / 1000;
-  minutes = minutes / 60;
+  float minutes = millis() / 1000.0;
+  minutes = minutes / 60.0;
   return minutes;
 }
 
@@ -65,5 +65,28 @@ void closeFlightlog() {                                                 //Close 
     Flog.close();
     FlightlogOpen = false;
     digitalWrite(LED_SD, LOW);
+  }
+}
+
+void telemetry(){
+  if(RFD_SERIAL.available()>0){                                        //Checks for any incoming bytes
+    Serial.println("Packet Recieved!");
+    packet = "";
+    activeTelemetry = true;
+    delay(10);                                                         //Bytes will be received one at a time unless you add a small delay so the buffer fills with your message
+    int incomingBytes = RFD_SERIAL.available();                        //Checks number of total bytes to be read
+    Serial.println(incomingBytes);                                     //Just for testing to see if delay is sufficient to receive all bytes.
+    for(int j=0; j<100; j++)
+    {
+      packetRecieve[j] = '\0';
+    }
+    for(int i=0; i<incomingBytes; i++)
+    {
+      packetRecieve[i] = RFD_SERIAL.read();                              //Reads bytes one at a time and stores them in a character array.
+      if (packetRecieve[i] != '\n'){
+         packet += packetRecieve[i];
+      }
+    }
+     RFD_SERIAL.print("return " + packet);
   }
 }

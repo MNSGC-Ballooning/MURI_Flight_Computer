@@ -78,7 +78,7 @@ Y8a     a8P  88b,   ,a8"  "8b,   ,aa  "8a,   ,aa    88,   "8b,   ,aa  88
 #define SENSOR_HEATER_OFF 4
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
-#define HONEYWELL_PRESSURE A9                                          //Analog Honeywell Pressure Sensor
+#define HONEYWELL_PRESSURE A16                                         //Analog Honeywell Pressure Sensor
 #define UBLOX_SERIAL Serial2                                           //Serial Pins
 #define RFD_SERIAL Serial1
 #define SPS_SERIALA Serial3
@@ -101,7 +101,7 @@ Y8a     a8P  88b,   ,a8"  "8b,   ,aa  "8a,   ,aa    88,   "8b,   ,aa  88
 
 //Constants
 #define DC_JUMPER 1                                                    //The DC_JUMPER is the I2C Address Select jumper. Set to 1 if the jumper is open (Default), or set to 0 if it's closed.
-#define MINUTES_TO_MILLIS 60000                                        //MATH TIME
+#define MINUTES_TO_MILLIS 60000.0                                      //MATH TIME
 #define PSI_TO_ATM  0.068046                                           //Live love conversions   
 #define C2K 273.15                                                     //Celsius to Kelvin. What else is there to say?    
 #define PMS_TIME 1                                                     //PMS Timer
@@ -131,6 +131,7 @@ const int chipSelect = BUILTIN_SDCARD;                                 //On boar
 
 //RFD900//
 String packet;
+bool activeTelemetry = false;
 
 ////////////////////////////////
 //////////Power Relays//////////
@@ -167,6 +168,9 @@ float prev_alt_feet = 0;                                               //Previou
 
 //Thermocouple
 Adafruit_MAX31856 thermocouple = Adafruit_MAX31856(15);                //Thermocouple temperature sensor
+
+//RFD900
+char packetRecieve[100];
 
 ///////////////////////////////////////////
 /////////////////Control///////////////////
@@ -267,21 +271,12 @@ void setup() {
 void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
                                                                        //Testing RFD900//
-  if(RFD_SERIAL.available()>0){                                        //Checks for any incoming bytes
-    delay(5);                                                          //Bytes will be received one at a time unless you add a small delay so the buffer fills with your message
-    int incomingBytes = RFD_SERIAL.available();                        //Checks number of total bytes to be read
-    Serial.println(incomingBytes);                                     //Just for testing to see if delay is sufficient to receive all bytes.
-    for(int i=0; i<incomingBytes; i++)
-    {
-      packet[i] = RFD_SERIAL.read();                                   //Reads bytes one at a time and stores them in a character array.
-    }
-    Serial.println(packet);                                            //Prints whole character array
-  }
+  telemetry();
   //////////////////   
-  if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
+  if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                       //Control loop, runs slower, to ease stress on certain tasks
     ControlCounter = millis();
 
-    FixCheck();                                                        //Provide logic for GPS fix
+    FixCheck();                                                          //Provide logic for GPS fix
     
    if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
       StateLogCounter = millis();

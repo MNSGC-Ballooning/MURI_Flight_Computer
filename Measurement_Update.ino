@@ -27,10 +27,10 @@ void updateSensors() {
   t5 = thermocouple.readThermocoupleTemperature();
 
   alt_GPS = GPS.getAlt_feet();                                          //Altitude calulated by the Ublox GPS
-  RFD_SERIAL.print(String(alt_GPS));
+  RFD_SERIAL.print(String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," + String(alt_GPS,1));
 
   pressureSensor = analogRead(HONEYWELL_PRESSURE);                      //Read the analog pin
-  pressureSensorVoltage = pressureSensor * (5.0/1024);                  //Convert the analog number to voltage
+  pressureSensorVoltage = pressureSensor * (5.0/8196);                  //Convert the analog number to voltage
   PressurePSI = (pressureSensorVoltage - (0.1*5.0))/(4.0/15.0);         //Convert the voltage to PSI
   PressureATM = PressurePSI*PSI_TO_ATM;                                 //Convert PSI reading to ATM
 
@@ -39,7 +39,7 @@ void updateSensors() {
   OPCdata += ",=," + HPMA.logUpdate();
   
   data = "";
-  data = flightTimeStr()+ "," + String(flightMinutes()) + "," +  String(masterClockMinutes()) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
+  data = flightTimeStr() + "," + String(flightMinutes()) + "," +  String(masterClockMinutes()) + "," + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," 
   + String(alt_GPS, 1) + ","
   + String(GPS.getMonth()) + "/" + String(GPS.getDay()) + "/" + String(GPS.getYear()) + ","
   + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()) + ","
@@ -63,5 +63,6 @@ void updateSensors() {
   delay(100);
   
   Flog.println(data);
-  closeFlightlog();   
+  closeFlightlog(); 
+  packet = "";  
 }

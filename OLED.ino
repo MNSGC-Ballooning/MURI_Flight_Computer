@@ -84,10 +84,10 @@ void oledUpdate(){                                                      //Update
     }
     else if (screen == 2) {
 
-      if(RFD_SERIAL.available()){
-        localDataPrint = " RFD1  ";
+      if(activeTelemetry){
+        localDataPrint = "RFD1   ";
       } else {
-        localDataPrint = " RFD0  ";
+        localDataPrint = "RFD0   ";
       }
 
       if (SPSA.getLogQuality()){                                       //OPC Statuses

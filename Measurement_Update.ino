@@ -27,7 +27,6 @@ void updateSensors() {
   t5 = thermocouple.readThermocoupleTemperature();
 
   alt_GPS = GPS.getAlt_feet();                                          //Altitude calulated by the Ublox GPS
-  RFD_SERIAL.print(String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," + String(alt_GPS,1));
 
   pressureSensor = analogRead(HONEYWELL_PRESSURE);                      //Read the analog pin
   pressureSensorVoltage = pressureSensor * (5.0/8196);                  //Convert the analog number to voltage
@@ -64,5 +63,6 @@ void updateSensors() {
   
   Flog.println(data);
   closeFlightlog(); 
+  RFD_SERIAL.print(String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," + String(alt_GPS,1) + "," + stateString + "," + SmartLogA + "," + SmartLogB);
   packet = "";  
 }

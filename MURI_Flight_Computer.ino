@@ -114,10 +114,10 @@
 #define LOW_TEMP  10
 
 //Dimensional Boundaries
-#define EASTERN_BOUNDARY -92.3                                         //Longitude of Waterloo, IA
-#define WESTERN_BOUNDARY -97.4                                         //Longitude of Yankton, SD
+#define EASTERN_BOUNDARY -91.9                                         //Longitude of Independence, IA
+#define WESTERN_BOUNDARY -96.45                                        //Longitude of MN-SD Border
 #define NORTHERN_BOUNDARY 45.6                                         //Latitude of St. Cloud, MN
-#define SOUTHERN_BOUNDARY 41.6                                         //Latitude of Des Moines, IA 
+#define SOUTHERN_BOUNDARY 42.5                                         //Latitude of Waterloo, IA 
 #define MAX_ALTITUDE  110000
 #define MIN_ALTITUDE  80000                                            //Minimum altitude of slow descent
 
@@ -287,7 +287,5 @@ void loop(){
       oledUpdate();                                                      //Update screen
     } 
   }
-  
-
   
 }

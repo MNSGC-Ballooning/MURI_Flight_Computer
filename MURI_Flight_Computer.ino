@@ -90,10 +90,10 @@
 #define CONTROL_LOOP_TIME 1000                                         //Control loop runs at 1.0 Hz
 #define STATE_LOG_TIMER 4000                                           //Log timer runs at 0.25 Hz
 #define SCREEN_UPDATE_RATE 1000                                        //Rate of the screen updates
-#define MASTER_TIMER 300                                               //Ultimate Release Timer
+#define MASTER_TIMER 270                                               //Ultimate Release Timer
 #define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 10                              //Release SMARTs after 10 minutes if max alt is less than 80000ft
-#define LONG_ASCENT_TIMER 240                                          //SMARTs release if ascent takes longer than 4 hours
-#define LONG_DESCENT_TIMER 90                                          //SMARTS release if descent takes longer than 1.5 hours
+#define LONG_ASCENT_TIMER 210                                          //SMARTs release if ascent takes longer than 4 hours
+#define LONG_DESCENT_TIMER 60                                          //SMARTS release if descent takes longer than 1.5 hours
 #define SLOW_ASCENT_ABORT_DELAY 20                                     //Time needed to wait until abort procedures b/c of slow ascent are activiated
 
 //Constants
@@ -276,6 +276,7 @@ void loop(){
     SOCO.Cut(1,CutA);                                                  //Cut command logic for SMART
     SOCO.Cut(2,CutB);
     FixCheck();                                                        //Provide logic for GPS fix
+  }
     
    if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
       StateLogCounter = millis();
@@ -286,6 +287,6 @@ void loop(){
       actHeat();                                                         //Controls active heating
       oledUpdate();                                                      //Update screen
     } 
-  }
+  
   
 }

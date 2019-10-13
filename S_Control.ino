@@ -84,7 +84,7 @@ void stateMachine(){
 ////////////////////////////////////////  
     if(muriState == STATE_MURI_INIT && !hdotInit)                                   //A boolean checking to see if we initialized
     {                                                                               //You need an initialization state cause the ascent rate during the very
-      if(Initial_Altitude != 0  && (Control_Altitude - Initial_Altitude) > 500)     //beginning of the flight is non-linear and you may not have a GPS fix.
+      if(Initial_Altitude != 0  && (Control_Altitude - Initial_Altitude) > 750)     //beginning of the flight is non-linear and you may not have a GPS fix.
       {
         initCounter++;                                                              //To change states, multiple consecutive confirmations from the change requirements must occur
         if(initCounter>5)
@@ -270,7 +270,7 @@ void stateSwitch(){
       slow_descent_counter = 0;   
     }
     
-    if(ascent_rate<=(-2000/60) && Control_Altitude>7000 && muriState != STATE_MURI_FAST_DESCENT){
+    if(ascent_rate<(-1500/60) && Control_Altitude>7000 && muriState != STATE_MURI_FAST_DESCENT){
       fast_descent_counter++;
       if (fast_descent_counter >= 5) {
         muriState = STATE_MURI_FAST_DESCENT;                           //Fast descent once both balloons cut away

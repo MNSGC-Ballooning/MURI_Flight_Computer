@@ -118,7 +118,7 @@
 #define WESTERN_BOUNDARY -96.45                                        //Longitude of MN-SD Border
 #define NORTHERN_BOUNDARY 45.6                                         //Latitude of St. Cloud, MN
 #define SOUTHERN_BOUNDARY 42.5                                         //Latitude of Waterloo, IA 
-#define MAX_ALTITUDE  110000
+#define MAX_ALTITUDE  105000
 #define MIN_ALTITUDE  80000                                            //Minimum altitude of slow descent
 
 static bool SwitchedState = false;

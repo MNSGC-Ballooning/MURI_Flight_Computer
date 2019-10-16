@@ -81,7 +81,9 @@
 #define XBEE_SERIAL Serial3                                            
 #define PMSB_SERIAL Serial4
 #define HPMA_SERIAL Serial5
+#define RFD_SERIAL Serial6
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
+#define RFD_BAUD 38400
 
 /////////////////////////////
 //////////Constants//////////
@@ -160,6 +162,10 @@ uint8_t FixStatus= NoFix;
 float alt_GPS = 0;                                                     //Altitude calculated by the GPS in feet
 float prev_alt_feet = 0;                                               //Previous calculated altitude
 
+//RFD900//
+String packet;
+bool activeTelemetry = false;
+
 ///////////////////////////////////////////
 /////////////////Control///////////////////
 ///////////////////////////////////////////
@@ -204,6 +210,10 @@ boolean recovery = false;
 boolean coldBattery = false;
 boolean coldSensor = false;
 
+//RFD900
+char packetRecieve[100];
+
+
 ////////////////////////////////
 //////////Data Logging//////////
 ////////////////////////////////
@@ -245,6 +255,7 @@ void setup() {
   Serial.begin(9600);                                                  //USB Serial for debugging
   XBEE_SERIAL.begin(9600);                                             //Initialize Radio
   oledPrintAdd(oled, "XB Init");
+  RFD_SERIAL.begin(RFD_BAUD);
 
   initGPS();                                                           //Initialize GPS
   oledPrintAdd(oled, "GPSInit");
@@ -269,6 +280,8 @@ void loop(){
   PlanA.readData();
   PlanB.readData();
   SmartUpdate();                                                       //System to update SMART Units
+
+  telemetry();
      
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
     ControlCounter = millis();

@@ -291,7 +291,7 @@ void loop(){
     FixCheck();                                                        //Provide logic for GPS fix
   }
     
-   if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
+  if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
       StateLogCounter = millis();
 
       Serial.println(PlanA.logUpdate());
@@ -299,7 +299,7 @@ void loop(){
       updateSensors();                                                   //Updates and logs all sensor data
       actHeat();                                                         //Controls active heating
       oledUpdate();                                                      //Update screen
-    } 
+  } 
   
   
 }

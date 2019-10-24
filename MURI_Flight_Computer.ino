@@ -62,6 +62,8 @@
 #include <OPCSensor.h>                                                 //Library for OPCs
 #include <Wire.h>                                                      //Library for I2C
 #include <SFE_MicroOLED.h>                                             //Library for OLED
+#include <Adafruit_MAX31856.h>                                         //Adafruit Library
+//#include <RelayXBee.h>                                                 //Library for RFD900
 
 ////////////////////////////////////
 //////////Pin Definitions///////////
@@ -83,6 +85,7 @@
 #define HPMA_SERIAL Serial5
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 #define RFD_BAUD 38400
+#define THERMO_SLAVE_PIN 20
 
 /////////////////////////////
 //////////Constants//////////
@@ -145,9 +148,10 @@ OneWire oneWire3(THREE_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);                                  //Temperature sensors
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-float t1;                                                              //Temperature vvalues
-float t2;
-float t3;
+float t1,t2,t3,t4,t5;                                                  //Temperature vvalues
+
+//Thermocouple
+Adafruit_MAX31856 thermocouple = Adafruit_MAX31856(THERMO_SLAVE_PIN);  //Thermocouple temperature sensor
 
 //Honeywell Pressure Sensor
 float pressureSensor;                                                  //Analog number given by sensor
@@ -162,8 +166,8 @@ float alt_GPS = 0;                                                     //Altitud
 float prev_alt_feet = 0;                                               //Previous calculated altitude
 
 //RFD900//
-String packet;
-bool activeTelemetry = false;
+//String packet;
+//bool activeTelemetry = false;
 
 ///////////////////////////////////////////
 /////////////////Control///////////////////

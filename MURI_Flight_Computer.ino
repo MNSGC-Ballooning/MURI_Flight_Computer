@@ -85,7 +85,7 @@
 #define HPMA_SERIAL Serial5
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 #define RFD_BAUD 38400
-#define THERMO_SLAVE_PIN 20
+#define THERMO_SLAVE_PIN 21
 
 /////////////////////////////
 //////////Constants//////////

@@ -94,16 +94,16 @@ void oledUpdate(){                                                      //Update
         localDataPrint += "SMRTB=0";
       }
 
-      if (PlanA.getLogQuality() && PlanB.getLogQuality()){                                       //OPC Statuses
-        localDataPrint += "PAB";
-      }
-      else if(PlanA.getLogQuality()){
-        localDataPrint += "PA0";
-      }
-      else if(PlanB.getLogQuality()){
-        localDataPrint += "P0B";
+      if (PlanA.getLogQuality()){                                       //OPC Statuses
+        localDataPrint += "P1";
       } else {
-        localDataPrint += "P00";
+        localDataPrint += "P0";
+      }
+     
+      if (SPSA.getLogQuality()){
+        localDataPrint += "S1";
+      } else {
+        localDataPrint += "S0";
       }
 
       if (HPMA.getLogQuality()){

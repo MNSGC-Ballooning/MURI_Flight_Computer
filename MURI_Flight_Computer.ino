@@ -79,9 +79,8 @@
 #define PMSA_SERIAL Serial1                                            //Serial Pins
 #define UBLOX_SERIAL Serial2                                           
 #define XBEE_SERIAL Serial3                                            
-#define PMSB_SERIAL Serial4
+#define SPSA_SERIAL Serial4
 #define HPMA_SERIAL Serial5
-#define RFD_SERIAL Serial6
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 #define RFD_BAUD 38400
 
@@ -227,7 +226,7 @@ boolean SDcard = true;
 //////////OPCs//////////
 ////////////////////////
 Plantower PlanA(&PMSA_SERIAL, STATE_LOG_TIMER);                               //Establish objects and logging string for the OPCs
-Plantower PlanB(&PMSB_SERIAL, STATE_LOG_TIMER);
+SPS SPSA(&SPSA_SERIAL);
 HPM HPMA(&HPMA_SERIAL);
 R1 R1A(R1A_SLAVE_PIN);
 
@@ -255,7 +254,7 @@ void setup() {
   Serial.begin(9600);                                                  //USB Serial for debugging
   XBEE_SERIAL.begin(9600);                                             //Initialize Radio
   oledPrintAdd(oled, "XB Init");
-  RFD_SERIAL.begin(RFD_BAUD);
+ // RFD_SERIAL.begin(RFD_BAUD);
 
   initGPS();                                                           //Initialize GPS
   oledPrintAdd(oled, "GPSInit");
@@ -278,10 +277,9 @@ void setup() {
 void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
   PlanA.readData();
-  PlanB.readData();
   SmartUpdate();                                                       //System to update SMART Units
 
-  telemetry();
+ // telemetry();
      
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
     ControlCounter = millis();

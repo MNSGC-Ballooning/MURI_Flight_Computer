@@ -91,7 +91,7 @@ void SmartUpdate(){
       ChangeData=false;
       }
 }
-
+/*
 void telemetry(){
   if(RFD_SERIAL.available()>0){                                        //Checks for any incoming bytes
     Serial.println("Packet Recieved!");
@@ -113,4 +113,4 @@ void telemetry(){
     }
      RFD_SERIAL.print("return " + packet);
   }
-}
+}*/

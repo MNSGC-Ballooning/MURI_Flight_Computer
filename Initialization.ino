@@ -89,7 +89,13 @@ void initOPCs() {                                                       //Sets u
 
 
   PlanA.initOPC();
+  Serial.println("PlanA Initialized");
   SPSA.initOPC();
+  delay(100);
+  SPSA.clean();
+  Serial.println("SPSA Initialized");
   R1A.initOPC();
+  Serial.println("R1A Initialized");
   HPMA.initOPC(); 
+  Serial.println("HPMA Initialized");
 }

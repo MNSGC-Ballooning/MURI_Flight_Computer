@@ -63,7 +63,7 @@
 #include <Wire.h>                                                      //Library for I2C
 #include <SFE_MicroOLED.h>                                             //Library for OLED
 #include <Adafruit_MAX31856.h>                                         //Adafruit Library
-//#include <RelayXBee.h>                                                 //Library for RFD900
+#include <RelayXBee.h>                                                 //Library for RFD900
 
 ////////////////////////////////////
 //////////Pin Definitions///////////
@@ -148,10 +148,7 @@ OneWire oneWire3(THREE_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);                                  //Temperature sensors
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-float t1,t2,t3,t4,t5;                                                  //Temperature vvalues
-
-//Thermocouple
-Adafruit_MAX31856 thermocouple = Adafruit_MAX31856(THERMO_SLAVE_PIN);  //Thermocouple temperature sensor
+float t1,t2,t3,t4,t5;                                                  //Temperature values
 
 //Honeywell Pressure Sensor
 float pressureSensor;                                                  //Analog number given by sensor
@@ -236,6 +233,10 @@ R1 R1A(R1A_SLAVE_PIN);
 
 String OPCdata = "";
 
+//Thermocouple
+Adafruit_MAX31856 thermocouple = Adafruit_MAX31856(THERMO_SLAVE_PIN);  //Thermocouple temperature sensor
+
+
 ////////////////////////////////////////////////
 //////////MicroOLED Object Declaration//////////
 ////////////////////////////////////////////////
@@ -263,9 +264,6 @@ void setup() {
   initGPS();                                                           //Initialize GPS
   oledPrintAdd(oled, "GPSInit");
   delay(1000);
-  
-  initTemp();                                                          //Initialize Temp Sensors
-  oledPrintNew(oled, "TmpInit");
 
   initRelays();                                                        //Initialize Relays
   oledPrintAdd(oled, "RlyInit");
@@ -273,6 +271,9 @@ void setup() {
   initOPCs();                                                          //Initialize OPCs
   oledPrintAdd(oled, "OPCInit");
     delay(1000);
+
+  initTemp();                                                          //Initialize Temp Sensors
+  oledPrintNew(oled, "TmpInit");
   
   Serial.println("Setup Complete");
   oledPrintNew(oled, " Setup Complet");
@@ -296,7 +297,6 @@ void loop(){
   if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
       StateLogCounter = millis();
 
-      Serial.println(PlanA.logUpdate());
       stateMachine();                                                    //Update state machine
       updateSensors();                                                   //Updates and logs all sensor data
       actHeat();                                                         //Controls active heating

@@ -84,15 +84,13 @@ void initRelays(){
 
 void initOPCs() {                                                       //Sets up serial and initializes the OPCs
   PMSA_SERIAL.begin(9600);
-  SPSA_SERIAL.begin(9600);
+  SPSA_SERIAL.begin(115200);
   HPMA_SERIAL.begin(9600);
 
 
   PlanA.initOPC();
   Serial.println("PlanA Initialized");
   SPSA.initOPC();
-  delay(100);
-  SPSA.clean();
   Serial.println("SPSA Initialized");
   R1A.initOPC();
   Serial.println("R1A Initialized");

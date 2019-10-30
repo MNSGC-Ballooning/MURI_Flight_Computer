@@ -270,7 +270,7 @@ void setup() {
 
   initOPCs();                                                          //Initialize OPCs
   oledPrintAdd(oled, "OPCInit");
-    delay(1000);
+  delay(1000);
 
   initTemp();                                                          //Initialize Temp Sensors
   oledPrintNew(oled, "TmpInit");
@@ -301,7 +301,5 @@ void loop(){
       updateSensors();                                                   //Updates and logs all sensor data
       actHeat();                                                         //Controls active heating
       oledUpdate();                                                      //Update screen
-  } 
-  
-  
+  }  
 }

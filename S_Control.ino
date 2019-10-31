@@ -57,13 +57,14 @@ void stateMachine(){
   {
     Control_Altitude = GPS.getAlt_feet();                              //Altitude equals the alitude recorded by the Ublox
                                                                        //Calculates ascent rate in ft/sec if GPS has a lock
-    ascent_rate = (((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time))) * 1000; 
+    ascent_rate = ((Control_Altitude - prev_Control_Altitude)/(millis() - prev_time)) * 1000; 
+    avg_ascent_rate = ((Control_Altitude - Begin_Altitude)/(millis() - masterClock)) * 1000;
     prev_time = millis();                                              //prev_time will equal the current time for the next loop
     prev_Control_Altitude = Control_Altitude;                          //Populate the previous altitude variabel with the current altitude for the next loop
   }                                 
   else if(GPSstatus == NoLock)
   {
-     Control_Altitude = (ascent_rate*((millis()-prev_time)/1000))+Control_Altitude;
+     Control_Altitude = (avg_ascent_rate*((millis()-prev_time)/1000))+Control_Altitude;
      prev_Control_Altitude = Control_Altitude;
      prev_time = millis();                                             //prev_time still calculated in seconds in case GPS gets a lock on the next loop
   }
@@ -91,6 +92,7 @@ void stateMachine(){
         {
           hdotInit=true;
           masterClock = millis();                                                   //Master clock is set to begin once the balloon gets 500 feet off the ground from where the flight began
+          Begin_Altitude = GPS.getAlt_feet();                                       //Bottom altitude used for the average ascent rate calulation
           Serial.println("h_dot initialized!");
           initCounter = 0;
         }

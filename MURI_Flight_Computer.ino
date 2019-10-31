@@ -184,7 +184,9 @@ String smartTwoCut = "";
 
 //Control Telemetry
 float ascent_rate = 0;                                                 //Ascent rate of payload in feet per minute
+float avg_ascent_rate = 0;                                             //Average ascent rate of payload
 float Control_Altitude = 0;                                            //Final altitude used between alt_GPS, alt_pressure_library, and time predicted altitude depending on if we have a GPS lock
+float Begin_Altitude = 0;                                              //Altitude intitlialized when the state machine initializes
 static float prev_time = 0;                                            //Prev time for S_Control
 static float prev_Control_Altitude = 0;                                //Records the most recent altitude given by GPS when it had lock
 static float Initial_Altitude = 0;                                     //Initial altitude set when GPS first gets a fix

@@ -82,6 +82,7 @@ void oledUpdate(){                                                      //Update
       screen++;
       oledPrintNew(oled, localDataPrint);  
     }
+    
     else if (screen == 2) {
       if (SmartLogA != "") {                                              //Smart statuses
         localDataPrint += "SMRTA=1";
@@ -94,30 +95,35 @@ void oledUpdate(){                                                      //Update
         localDataPrint += "SMRTB=0";
       }
 
+      screen++;
+      oledPrintNew(oled, localDataPrint);
+    }
+    
+    else if (screen == 3) {
       if (PlanA.getLogQuality()){                                       //OPC Statuses
-        localDataPrint += "P1";
+        localDataPrint += "P1 ";
       } else {
-        localDataPrint += "P0";
-      }
-     
+        localDataPrint += "P0 ";
+      } 
       if (SPSA.getLogQuality()){
-        localDataPrint += "S1";
+        localDataPrint += "S1  ";
       } else {
-        localDataPrint += "S0";
+        localDataPrint += "S0  ";
       }
-
       if (HPMA.getLogQuality()){
-        localDataPrint+= "H1";
+        localDataPrint+= "H1 ";
       } else {
-        localDataPrint += "H0";
+        localDataPrint += "H0 ";
       }
-
       if (R1A.getLogQuality()){
-        localDataPrint+= "R1";
+        localDataPrint+= "R1  ";
       } else {
-        localDataPrint += "R0";
+        localDataPrint += "R0  ";
       }   
-         
+
+    screen++;
+    oledPrintNew(oled, localDataPrint);
+    }
        screen = 0;
        oledPrintNew(oled, localDataPrint);  
     }
@@ -126,4 +132,3 @@ void oledUpdate(){                                                      //Update
        screen = 0;
     }
   }
-}

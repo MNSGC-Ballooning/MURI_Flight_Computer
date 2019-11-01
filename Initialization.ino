@@ -42,7 +42,7 @@ void initSD(){
   // CHANGE THE BELOW HEADER
 
   String FHeader = "Flight Time, Minutes, Master Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, ExtTemp (C), IntTemp (C),BatTemp (C), ThermoTempAdj, ThermoTemp, Pressure (PSI), Pressure (ATM),";
-  FHeader += "Battery Heater Status, Sensor Heater Status, Control Altitude, Smart A, Smart A Cut Reason, Smart B, Smart B Cut Reason, Ascent Rate, System State,";
+  FHeader += "Battery Heater Status, Sensor Heater Status, Control Altitude, Smart A, Smart A Cut Reason, Smart B, Smart B Cut Reason, Ascent Rate, Average Ascent Rate, System State,";
   FHeader += "PTA, " + PlanA.CSVHeader();
   FHeader += ",SPSA, " + SPSA.CSVHeader();
   FHeader += ",R1A, " + R1A.CSVHeader();

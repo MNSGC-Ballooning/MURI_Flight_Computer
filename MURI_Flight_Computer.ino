@@ -1,7 +1,7 @@
 //============================================================================================================================================
 //               MURI Flight Computer
-//               Written by Patrick James Collins (PJ) - coll0792 Summer 2019
-//               Edited by Asif Ally (AA)  - allyx004 Summer 2019
+//               Written by Patrick James Collins (PJ) - coll0792 Fall 2019
+//               Edited by Asif Ally (AA)  - allyx004 Fall 2019
 //               OPC Library and OLED Written by Nathan Pharis (NP) phari009 and Jacob Meiners (JM) meine042 Summer 2019   
 //               SMART Library Written by Vinchenzo Nguyen (VN) Summer 2019
 //               In Memory of Garrett Ailts (GA) - ailts008 Summer of '69 (nice)
@@ -118,11 +118,11 @@
 #define LOW_TEMP  10
 
 //Dimensional Boundaries
-#define EASTERN_BOUNDARY -91.9                                         //Longitude of Independence, IA
+#define EASTERN_BOUNDARY -93.2                                         //Longitude of Owataonna, MN
 #define WESTERN_BOUNDARY -96.45                                        //Longitude of MN-SD Border
-#define NORTHERN_BOUNDARY 45.6                                         //Latitude of St. Cloud, MN
-#define SOUTHERN_BOUNDARY 42.5                                         //Latitude of Waterloo, IA 
-#define MAX_ALTITUDE  105000
+#define NORTHERN_BOUNDARY 44.45                                        //Latitude of Marshall, MN
+#define SOUTHERN_BOUNDARY 43.5                                         //Latitude of MN-IA Border 
+#define MAX_ALTITUDE  120000
 #define MIN_ALTITUDE  80000                                            //Minimum altitude of slow descent
 
 static bool SwitchedState = false;

@@ -56,7 +56,7 @@ void updateSensors() {
   data += (String(PressurePSI,6) + "," + String(PressureATM,6) + ",");
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
-  data += (SmartLogA + "," + smartOneCut + "," + SmartLogB + "," + smartTwoCut + "," + String(ascent_rate) + "," + stateString);
+  data += (SmartLogA + "," + smartOneCut + "," + SmartLogB + "," + smartTwoCut + "," + String(ascent_rate) + "," + String(avg_ascent_rate) + ","  + stateString);
   data += (",=," + OPCdata);
   openFlightlog();
   Serial.println(data);

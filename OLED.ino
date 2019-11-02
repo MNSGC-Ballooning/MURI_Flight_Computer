@@ -121,14 +121,12 @@ void oledUpdate(){                                                      //Update
         localDataPrint += "R0  ";
       }   
 
-    screen++;
-    oledPrintNew(oled, localDataPrint);
-    }
-       screen = 0;
-       oledPrintNew(oled, localDataPrint);  
+      screen = 0;
+      oledPrintNew(oled, localDataPrint);
     }
     else {
        oledPrintNew(oled, "Error");
        screen = 0;
     }
   }
+}

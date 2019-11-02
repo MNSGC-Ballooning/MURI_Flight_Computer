@@ -113,8 +113,8 @@ void stateMachine(){
           Serial.println("Max alt hits: " + String(skyCheck));
           if(skyCheck>5)
           {                                                           
-           CutSMARTA();                                                //If the payload is consistenly above max mission alt., the first balloon is released
-           smartOneCut = "Reached Altitude Ceiling";
+           CutSMARTB();                                                //If the payload is consistenly above max mission alt., the first balloon is released
+           smartTwoCut = "Reached Altitude Ceiling";
            skyCheck = 0;
           }
         }

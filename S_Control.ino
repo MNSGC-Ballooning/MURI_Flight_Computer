@@ -240,7 +240,7 @@ void stateSwitch(){
       ascent_counter = 0;
     }
     
-    if(ascent_rate>(50/60) && ascent_rate<=(300/60) && muriState != STATE_MURI_SLOW_ASCENT){
+    if(ascent_rate>(50/60) && ascent_rate<=(450/60) && muriState != STATE_MURI_SLOW_ASCENT){
       slow_ascent_counter++;                                           //Slow ascent trigger if the balloon is rising too slowly
       if (slow_ascent_counter >= 5) {
         muriState = STATE_MURI_SLOW_ASCENT;

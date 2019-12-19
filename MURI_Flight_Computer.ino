@@ -118,10 +118,10 @@
 #define LOW_TEMP  10
 
 //Dimensional Boundaries
-#define EASTERN_BOUNDARY -93.2                                         //Longitude of Owataonna, MN
-#define WESTERN_BOUNDARY -96.45                                        //Longitude of MN-SD Border
-#define NORTHERN_BOUNDARY 44.45                                        //Latitude of Marshall, MN
-#define SOUTHERN_BOUNDARY 43.5                                         //Latitude of MN-IA Border 
+#define EASTERN_BOUNDARY -92.97                                         //Longitude of Austin, MN
+#define WESTERN_BOUNDARY -94.63                                        //Longitude of St. James, MN
+#define NORTHERN_BOUNDARY 44.43                                        //Latitude of Montgomery, MN
+#define SOUTHERN_BOUNDARY 43.50                                        //Latitude of MN-IA Border 
 #define MAX_ALTITUDE  120000
 #define MIN_ALTITUDE  80000                                            //Minimum altitude of slow descent
 

@@ -126,6 +126,7 @@
 #define MIN_ALTITUDE  80000                                            //Minimum altitude of slow descent
 
 static bool SwitchedState = false;
+static boolean FlightlogOpen = false;                                   //SD for Flight Computer
 
 //On Board SD Chipselect
 const int chipSelect = BUILTIN_SDCARD;                                 //On board SD card for teensy
@@ -148,7 +149,7 @@ OneWire oneWire3(THREE_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);                                  //Temperature sensors
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-float t1,t2,t3,t4,t5;                                                  //Temperature values
+float t1,t2,t3,t4;                                                  //Temperature values
 
 //Honeywell Pressure Sensor
 float pressureSensor;                                                  //Analog number given by sensor

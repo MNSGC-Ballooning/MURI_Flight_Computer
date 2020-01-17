@@ -53,7 +53,6 @@ float masterClockMinutes() {                                            //Return
   return returnclock;
 }
 
-boolean FlightlogOpen = false;                                          //SD for Flight Computer
 void openFlightlog() {                                                  //Open flight log
   if (!FlightlogOpen&&SDcard) {
     //add .c_str() next to Fname

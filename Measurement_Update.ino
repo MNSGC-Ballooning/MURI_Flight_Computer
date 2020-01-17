@@ -23,14 +23,13 @@ void updateSensors() {
   t1 = sensor1.getTempCByIndex(0);
   t2 = sensor2.getTempCByIndex(0);
   t3 = sensor3.getTempCByIndex(0);
-  t4 = thermocouple.readCJTemperature();
-  t5 = thermocouple.readThermocoupleTemperature();
+  t4 = thermocouple.readThermocoupleTemperature();
 
   alt_GPS = GPS.getAlt_feet();                                          //Altitude calulated by the Ublox GPS
 
   pressureSensor = analogRead(HONEYWELL_PRESSURE);                      //Read the analog pin
-  pressureSensorVoltage = pressureSensor * (5.0/8196);                  //Convert the analog number to voltage
-  PressurePSI = (pressureSensorVoltage - (0.1*5.0))/(4.0/15.0);         //Convert the voltage to PSI
+  pressureSensorVoltage = pressureSensor * (3.3/8196);                  //Convert the analog number to voltage    //THESE NEED TO BE 3.3 INSTEAD OF 5.0!!!!!!!!!!
+  PressurePSI = (pressureSensorVoltage - (0.1*3.3))/(4.0/15.0);         //Convert the voltage to PSI
   PressureATM = PressurePSI*PSI_TO_ATM;                                 //Convert PSI reading to ATM
 
   OPCdata = PlanA.logUpdate();                                          //Populate a string with the OPC data
@@ -52,7 +51,7 @@ void updateSensors() {
     data += "Fix,";
   }
 
-  data += (String(t1,4) + "," +String(t2,4) + "," + String(t3,4) + "," + String(t4,4) + "," + String(t5,4) + ",");     //Data string population
+  data += (String(t1,4) + "," +String(t2,4) + "," + String(t3,4) + "," + String(t4,4) + ",");     //Data string population
   data += (String(PressurePSI,6) + "," + String(PressureATM,6) + ",");
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");

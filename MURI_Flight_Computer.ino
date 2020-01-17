@@ -1,6 +1,6 @@
 //============================================================================================================================================
 //               MURI Flight Computer
-//               Written by Patrick James Collins (PJ) - coll0792 Fall 2019
+//               Written by PJ Collins (PJ) - coll0792 Fall 2019
 //               Edited by Asif Ally (AA)  - allyx004 Fall 2019
 //               OPC Library and OLED Written by Nathan Pharis (NP) phari009 and Jacob Meiners (JM) meine042 Summer 2019   
 //               SMART Library Written by Vinchenzo Nguyen (VN) Summer 2019

@@ -7,7 +7,7 @@
 //               In Memory of Garrett Ailts (GA) - ailts008 Summer of '69 (nice)
 //============================================================================================================================================
 
-//Version Description: MURI Flight Computer for double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
+//Version Description: MURI Flight Computer for single or double balloon configuration. Controls balloon flight using a finite state machine and logs payload/atmospheric data.
 //Switches states based on ascent rate
 //
 //Use: There are two switches and a plug to fully activate the payload. Switches should be flipped in order from right to left. Switch one powers the motherboard, switch two
@@ -34,16 +34,16 @@
      ------------------------------------------------------------------------------------------------------------------------------------------------------------------
      Component                    | Pins used             | Notes
      
-     XBee Radio                   | RX3,TX3 (7,8)         | UART bus 3 (Serial3)
-     Logging LED (BLUE)           | 23                    | Blinks everytime flight log is opened to log data
+     XBee Radio                   | RX1,TX1 (1,2)         | UART bus 1 (Serial1)
+     Logging LED (RED)            | 22                    | Blinks everytime flight log is opened to log data
      Onboard SD Reader            | None                  | On board SD card reader uses a dedicated SPI bus
      Temperature Sensors (3)      | 28-30                 | DS18B20 temp sensors uses one wire digital communication
-     OPC Power Relay              | 5,6                   | Digital pins that serve as the on and off pins for the opc power relay
-     OPC Heater Relay             | 24,25                 | Digital pins that serve as the on and off pins for opc heater relay
-     Battery Heater Relay         | 7,8                   | Digital pins that serve as the on and off pins for the battery heater relay
+     OPC Heater Relay             | 5,6                   | Digital pins that serve as the on and off pins for opc heater relay
+     Battery Heater Relay         | 3,4                   | Digital pins that serve as the on and off pins for the battery heater relay
      Ublox GPS                    | RX2,TX2 (9,10)        | UART bus 2 (Serial2)
-     PMS5003 Particle Sensor      | RX1,TX1 (1,2)         | UART bus 1 (Serial1)
+     PMS5003 Particle Sensor      | RX3,TX3 (7,8)         | UART bus 3 (Serial3)
      SPS30 Particle Sensor        | RX4,TX4 (31,32)       | UART bus 4 (Serial4)
+     OLED                         | I2C0 (18,19)          | I2C bus 1
 
      
      ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -69,18 +69,19 @@
 //////////Pin Definitions///////////
 ////////////////////////////////////
 #define LED_SD 22                                                      //Pin which controls the SD LED
-#define ONE_WIRE_BUS 28                                                //Battery Temp
-#define TWO_WIRE_BUS 29                                                //Internal Temp
-#define THREE_WIRE_BUS 30                                              //External Temp
+#define ONE_WIRE_BUS 26                                                //Battery Temp
+#define TWO_WIRE_BUS 27                                                //Internal Temp
+#define THREE_WIRE_BUS 28                                              //External Temp
+#define FOUR_WIRE_BUS 29
 #define SENSOR_HEATER_ON 3                                             //Latching Relay pins for heaters
 #define SENSOR_HEATER_OFF 4
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
-#define HONEYWELL_PRESSURE A9                                          //Analog Honeywell Pressure Sensor
+#define HONEYWELL_PRESSURE A3                                          //Analog Honeywell Pressure Sensor
 #define R1A_SLAVE_PIN 15                                               //Chip Select pin for SPI for the R1
-#define PMSA_SERIAL Serial1                                            //Serial Pins
+#define XBEE_SERIAL Serial1                                            //Serial Pins
 #define UBLOX_SERIAL Serial2                                           
-#define XBEE_SERIAL Serial3                                            
+#define PMSA_SERIAL Serial3                                            
 #define PMSB_SERIAL Serial4
 #define PMSC_SERIAL Serial5
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
@@ -146,10 +147,12 @@ String batHeat_Status = "";
 OneWire oneWire1(ONE_WIRE_BUS);                                        //Temperature sensor wire busses
 OneWire oneWire2(TWO_WIRE_BUS);
 OneWire oneWire3(THREE_WIRE_BUS);
+OneWire oneWire4(FOUR_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);                                  //Temperature sensors
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-float t1,t2,t3,t4;                                                  //Temperature values
+DallasTemperature sensor4(&oneWire4);
+float t1,t2,t3,t4,t5;                                                  //Temperature values
 
 //Honeywell Pressure Sensor
 float pressureSensor;                                                  //Analog number given by sensor

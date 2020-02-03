@@ -41,7 +41,7 @@ void initSD(){
 
   // CHANGE THE BELOW HEADER
 
-  String FHeader = "Flight Time, Minutes, Master Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, ExtTemp (C), IntTemp (C),BatTemp (C), ThermoTemp, Pressure (PSI), Pressure (ATM),";
+  String FHeader = "Flight Time, Minutes, Master Clock Minutes, Lat, Long, Altitude (ft), Date, Hour:Min:Sec, Satellites, Fix, ExtTemp (C), IntTemp (C),BatTemp (C), OtherTemp (C), ThermoTemp (C), Pressure (PSI), Pressure (ATM),";
   FHeader += "Battery Heater Status, Sensor Heater Status, Control Altitude, Smart A, Smart A Cut Reason, Smart B, Smart B Cut Reason, Ascent Rate, Average Ascent Rate, System State,";
   FHeader += "PTA, " + PlanA.CSVHeader();
   FHeader += ",PTPump, " + PlanB.CSVHeader();
@@ -69,6 +69,7 @@ void initTemp(){
   sensor1.begin();                                                    //Initialize Temp Sensors
   sensor2.begin();
   sensor3.begin();
+  sensor4.begin();
 
   thermocouple.begin();
   thermocouple.setThermocoupleType(MAX31856_TCTYPE_K);

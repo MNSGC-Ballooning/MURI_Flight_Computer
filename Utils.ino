@@ -113,3 +113,9 @@ void telemetry(){
      RFD_SERIAL.print("return " + packet);
   }
 }*/
+
+/*
+void vent(){
+
+}
+*/

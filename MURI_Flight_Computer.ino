@@ -81,9 +81,9 @@
 #define R1A_SLAVE_PIN 15                                               //Chip Select pin for SPI for the R1
 #define XBEE_SERIAL Serial1                                            //Serial Pins
 #define UBLOX_SERIAL Serial2                                           
-#define PMSA_SERIAL Serial3                                            
-#define PMSB_SERIAL Serial4
-#define PMSC_SERIAL Serial5
+#define PMSA_SERIAL Serial4                                            
+#define PMSB_SERIAL Serial5
+#define SPSA_SERIAL Serial3
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 #define RFD_BAUD 38400
 #define THERMO_SLAVE_PIN 21
@@ -186,6 +186,8 @@ String smartTwoString = "Primed";
 String smartOneCut = "";
 String smartTwoCut = "";
 
+//Venting
+
 //Control Telemetry
 float ascent_rate = 0;                                                 //Ascent rate of payload in feet per minute
 float avg_ascent_rate = 0;                                             //Average ascent rate of payload
@@ -234,7 +236,7 @@ boolean SDcard = true;
 ////////////////////////
 Plantower PlanA(&PMSA_SERIAL, STATE_LOG_TIMER);                        //Establish objects and logging string for the OPCs
 Plantower PlanB(&PMSB_SERIAL, STATE_LOG_TIMER);                        //oops someone didn't use protection      
-Plantower PlanC(&PMSC_SERIAL, STATE_LOG_TIMER);  
+SPS SpsA(&SPSA_SERIAL);  
 R1 R1A(R1A_SLAVE_PIN);
 
 String OPCdata = "";
@@ -288,7 +290,6 @@ void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
   PlanA.readData();
   PlanB.readData();
-  PlanC.readData();
   SmartUpdate();                                                       //System to update SMART Units
 
  // telemetry();

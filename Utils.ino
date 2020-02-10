@@ -90,6 +90,87 @@ void SmartUpdate(){
       ChangeData=false;
       }
 }
+
+void printData(){
+  Serial.println();
+  Serial.println("Measurement Update");
+  Serial.println("========================================================================================");
+  Serial.println("             Time");
+  Serial.print("Flight Time String: ");
+  Serial.println(flightTimeStr());
+  Serial.print("Flight Minutes: ");
+  Serial.println(String(flightMinutes()));
+  Serial.print("Master Clock: ");
+  Serial.println(String(masterClockMinutes(),2));
+  Serial.println("------------------------------");
+  Serial.println("             GPS");
+  Serial.print("Latitude: ");
+  Serial.println(String(GPS.getLat(), 4));
+  Serial.print("Longitude: ");
+  Serial.println(String(GPS.getLon(), 4));  
+  Serial.print("Altitude: ");
+  Serial.println(String(alt_GPS, 1));
+  Serial.print("Date and Time: ");
+  Serial.println(String(GPS.getMonth()) + "/" + String(GPS.getDay()) + "/" + String(GPS.getYear()) + " " + String(GPS.getHour()) + ":" + String(GPS.getMinute()) + ":" + String(GPS.getSecond()));
+  Serial.print("Satellites and Fix Age: ");
+  Serial.println((String(GPS.getSats()) + ", " + String(GPS.getFixAge())));
+  Serial.println("------------------------------");
+  Serial.println("          Temperature");
+  Serial.println("   t1        t2        t3        t4        t5"); 
+  Serial.println((String(t1,4) + ", " +String(t2,4) + ", " + String(t3,4) + ", " + String(t4,4) + ", " + String(t5,4)));
+  Serial.println("------------------------------");
+  Serial.println("           Pressure");
+  Serial.print("Pressure(PSI): ");
+  Serial.println(String(PressurePSI,6));
+  Serial.print("Pressure(ATM): ");
+  Serial.println(String(PressureATM,6));
+  Serial.println("------------------------------");
+  Serial.println("       System Statuses");
+  Serial.println("Battery Heater Relay    Sensor Heater Relay");
+  Serial.println(("         " + batHeat_Status + "                  " + sensorHeat_Status));
+  Serial.print("Control Altitude: ");
+  Serial.println(String(Control_Altitude));
+  Serial.print("Smart A: ");
+  Serial.println((SmartLogA + ", " + smartOneCut));
+  Serial.print("Smart B: ");
+  Serial.println((SmartLogB + ", " + smartTwoCut));
+  Serial.print("Instantaneous Ascent Rate: ");
+  Serial.println(String(ascent_rate));
+  Serial.print("Average Ascent Rate: ");
+  Serial.println(String(avg_ascent_rate));
+  Serial.print("State: ");
+  Serial.println(stateString);
+  Serial.println("------------------------------");
+  Serial.println("             OPCs");
+  Serial.print("Plan A: ");
+      if (PlanA.getLogQuality()){                                       //OPC Statuses
+        Serial.println("Good Log");
+      } else {
+        Serial.println("Bad Log");
+      } 
+  Serial.print("Plan B: ");
+      if (PlanB.getLogQuality()){                                       //OPC Statuses
+        Serial.println("Good Log");
+      } else {
+        Serial.println("Bad Log");
+      }
+  Serial.print("SPS A: ");
+      if (SpsA.getLogQuality()){                                       //OPC Statuses
+        Serial.println("Good Log");
+      } else {
+        Serial.println("Bad Log");
+      }
+  Serial.print("R1 A: ");
+      if (R1A.getLogQuality()){                                       //OPC Statuses
+        Serial.println("Good Log");
+      } else {
+        Serial.println("Bad Log");
+      }
+  Serial.println("Raw data:");          
+  Serial.println(OPCdata);
+  Serial.println("========================================================================================");  
+}
+
 /*
 void telemetry(){
   if(RFD_SERIAL.available()>0){                                        //Checks for any incoming bytes

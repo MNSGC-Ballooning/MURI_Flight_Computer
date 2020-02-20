@@ -148,12 +148,12 @@ void printData(){
       } else {
         Serial.println("Bad Log");
       } 
-  Serial.print("Plan B: ");
-      if (PlanB.getLogQuality()){                                       //OPC Statuses
-        Serial.println("Good Log");
-      } else {
-        Serial.println("Bad Log");
-      }
+//  Serial.print("Plan B: ");
+//      if (PlanB.getLogQuality()){                                       //OPC Statuses
+//        Serial.println("Good Log");
+//      } else {
+//        Serial.println("Bad Log");
+//      }
   Serial.print("SPS A: ");
       if (SpsA.getLogQuality()){                                       //OPC Statuses
         Serial.println("Good Log");

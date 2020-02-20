@@ -77,12 +77,11 @@
 #define SENSOR_HEATER_OFF 4
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
-#define HONEYWELL_PRESSURE A3                                          //Analog Honeywell Pressure Sensor
+#define HONEYWELL_PRESSURE A0                                          //Analog Honeywell Pressure Sensor
 #define R1A_SLAVE_PIN 15                                               //Chip Select pin for SPI for the R1
 #define XBEE_SERIAL Serial1                                            //Serial Pins
 #define UBLOX_SERIAL Serial2                                           
 #define PMSA_SERIAL Serial4                                            
-#define PMSB_SERIAL Serial5
 #define SPSA_SERIAL Serial3
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 #define RFD_BAUD 38400
@@ -152,7 +151,7 @@ DallasTemperature sensor1(&oneWire1);                                  //Tempera
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
 DallasTemperature sensor4(&oneWire4);
-float t1,t2,t3,t4,t5;                                                  //Temperature values
+float t1,t2,t3,t4,t5 = -127.00;                                                  //Temperature values
 
 //Honeywell Pressure Sensor
 float pressureSensor;                                                  //Analog number given by sensor
@@ -235,14 +234,14 @@ boolean SDcard = true;
 //////////OPCs//////////
 ////////////////////////
 Plantower PlanA(&PMSA_SERIAL, STATE_LOG_TIMER);                        //Establish objects and logging string for the OPCs
-Plantower PlanB(&PMSB_SERIAL, STATE_LOG_TIMER);                        //oops someone didn't use protection      
+//Plantower PlanB(&PMSB_SERIAL, STATE_LOG_TIMER);                        //oops someone didn't use protection      
 SPS SpsA(&SPSA_SERIAL);  
 R1 R1A(R1A_SLAVE_PIN);
 
 String OPCdata = "";
 
 //Thermocouple
-Adafruit_MAX31856 thermocouple = Adafruit_MAX31856(THERMO_SLAVE_PIN);  //Thermocouple temperature sensor
+//Adafruit_MAX31856 thermocouple = Adafruit_MAX31856(THERMO_SLAVE_PIN);  //Thermocouple temperature sensor
 
 
 ////////////////////////////////////////////////
@@ -289,7 +288,7 @@ void setup() {
 void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
   PlanA.readData();
-  PlanB.readData();
+//  PlanB.readData();
   SmartUpdate();                                                       //System to update SMART Units
 
  // telemetry();

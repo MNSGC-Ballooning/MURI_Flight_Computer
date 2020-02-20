@@ -25,7 +25,7 @@ void updateSensors() {
   t2 = sensor2.getTempCByIndex(0);
   t3 = sensor3.getTempCByIndex(0);
   t4 = sensor4.getTempCByIndex(0);
-  t5 = thermocouple.readThermocoupleTemperature();
+ // t5 = thermocouple.readThermocoupleTemperature();
 
   alt_GPS = GPS.getAlt_feet();                                          //Altitude calulated by the Ublox GPS
 
@@ -35,7 +35,7 @@ void updateSensors() {
   PressureATM = PressurePSI*PSI_TO_ATM;                                 //Convert PSI reading to ATM
 
   OPCdata = PlanA.logUpdate();                                          //Populate a string with the OPC data
-  OPCdata += ",=," + PlanB.logUpdate();
+//  OPCdata += ",=," + PlanB.logUpdate();
   OPCdata += ",=," + SpsA.logUpdate();
   OPCdata += ",=," + R1A.logUpdate();
 

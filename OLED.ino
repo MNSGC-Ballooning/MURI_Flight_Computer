@@ -105,11 +105,11 @@ void oledUpdate(){                                                      //Update
       } else {
         localDataPrint += "PA0 ";
       } 
-      if (PlanB.getLogQuality()){
-        localDataPrint += "PB1 ";
-      } else {
-        localDataPrint += "PB0";
-      }
+//      if (PlanB.getLogQuality()){
+//        localDataPrint += "PB1 ";
+//      } else {
+//        localDataPrint += "PB0";
+//      }
       if (SpsA.getLogQuality()){
         localDataPrint+= "SA1 ";
       } else {

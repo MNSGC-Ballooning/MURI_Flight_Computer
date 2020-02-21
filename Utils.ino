@@ -117,7 +117,7 @@ void printData(){
   Serial.println("------------------------------");
   Serial.println("          Temperature");
   Serial.println("   t1        t2        t3        t4        t5"); 
-  Serial.println((String(t1,4) + ", " +String(t2,4) + ", " + String(t3,4) + ", " + String(t4,4) + ", " + String(t5,4)));
+  Serial.println((String(t1,4) + ", " +String(t2,4) + ", " + String(t3,4))); // + ", " + String(t4,4) + ", " + String(t5,4)));
   Serial.println("------------------------------");
   Serial.println("           Pressure");
   Serial.print("Pressure(PSI): ");
@@ -148,24 +148,24 @@ void printData(){
       } else {
         Serial.println("Bad Log");
       } 
-//  Serial.print("Plan B: ");
-//      if (PlanB.getLogQuality()){                                       //OPC Statuses
-//        Serial.println("Good Log");
-//      } else {
-//        Serial.println("Bad Log");
-//      }
   Serial.print("SPS A: ");
       if (SpsA.getLogQuality()){                                       //OPC Statuses
         Serial.println("Good Log");
       } else {
         Serial.println("Bad Log");
       }
-  Serial.print("R1 A: ");
-      if (R1A.getLogQuality()){                                       //OPC Statuses
-        Serial.println("Good Log");
-      } else {
-        Serial.println("Bad Log");
-      }
+//  Serial.print("R1 A: ");
+//      if (R1A.getLogQuality()){                                       //OPC Statuses
+//        Serial.println("Good Log");
+//      } else {
+//        Serial.println("Bad Log");
+//      }
+//  Serial.print("N3 A: ");
+//      if (N3A.getLogQuality()){                                       //OPC Statuses
+//        Serial.println("Good Log");
+//      } else {
+//        Serial.println("Bad Log");
+//      }
   Serial.println("Raw data:");          
   Serial.println(OPCdata);
   Serial.println("========================================================================================");  
@@ -195,8 +195,15 @@ void telemetry(){
   }
 }*/
 
-/*
-void vent(){
-
+void telemetry(){
+  XBEE_SERIAL.print((String(flightMinutes()) + ',' + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," + String(alt_GPS, 1) + "," + String(GPS.getSats()) + "," + String(t1,4) + "," +String(t2,4) + "," + String(t3,4) + "," + String(-127.000) + "," + String("off") + OPCdata));
 }
-*/
+
+
+void vent(){
+  BLUETOOTH_SERIAL.print("PING");
+  delay(15);
+  if (BLUETOOTH_SERIAL.read() == "PiNG"){
+    ventConnect = true;
+  }
+}

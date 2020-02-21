@@ -105,21 +105,22 @@ void oledUpdate(){                                                      //Update
       } else {
         localDataPrint += "PA0 ";
       } 
-//      if (PlanB.getLogQuality()){
-//        localDataPrint += "PB1 ";
-//      } else {
-//        localDataPrint += "PB0";
-//      }
       if (SpsA.getLogQuality()){
         localDataPrint+= "SA1 ";
       } else {
         localDataPrint += "SA0";
       }
-      if (R1A.getLogQuality()){
-        localDataPrint+= "R1";
-      } else {
-        localDataPrint += "R0";
-      }   
+//      if (R1A.getLogQuality()){
+//        localDataPrint+= "R1";
+//      } else {
+//        localDataPrint += "R0";
+//      }   
+//
+//      if (N3A.getLogQuality()){
+//        localDataPrint+= "N1";
+//      } else {
+//        localDataPrint += "N0";
+//      }   
 
       screen = 0;
       oledPrintNew(oled, localDataPrint);

@@ -80,12 +80,13 @@
 #define HONEYWELL_PRESSURE A0                                          //Analog Honeywell Pressure Sensor
 #define R1A_SLAVE_PIN 15                                               //Chip Select pin for SPI for the R1
 #define XBEE_SERIAL Serial1                                            //Serial Pins
-#define UBLOX_SERIAL Serial2                                           
-#define PMSA_SERIAL Serial4                                            
-#define SPSA_SERIAL Serial3
+#define UBLOX_SERIAL Serial2
+#define SPSA_SERIAL Serial3                                           
+#define PMSA_SERIAL Serial4
+#define BLUETOOTH_SERIAL Serial5                                            
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 #define RFD_BAUD 38400
-#define THERMO_SLAVE_PIN 21
+#define N3A_SLAVE_PIN 21
 
 /////////////////////////////
 //////////Constants//////////
@@ -146,11 +147,11 @@ String batHeat_Status = "";
 OneWire oneWire1(ONE_WIRE_BUS);                                        //Temperature sensor wire busses
 OneWire oneWire2(TWO_WIRE_BUS);
 OneWire oneWire3(THREE_WIRE_BUS);
-OneWire oneWire4(FOUR_WIRE_BUS);
+//OneWire oneWire4(FOUR_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);                                  //Temperature sensors
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-DallasTemperature sensor4(&oneWire4);
+//DallasTemperature sensor4(&oneWire4);
 float t1,t2,t3,t4,t5 = -127.00;                                                  //Temperature values
 
 //Honeywell Pressure Sensor
@@ -186,6 +187,8 @@ String smartOneCut = "";
 String smartTwoCut = "";
 
 //Venting
+bool ventStatus = false;
+bool ventConnect = false;
 
 //Control Telemetry
 float ascent_rate = 0;                                                 //Ascent rate of payload in feet per minute
@@ -233,8 +236,7 @@ boolean SDcard = true;
 ////////////////////////
 //////////OPCs//////////
 ////////////////////////
-Plantower PlanA(&PMSA_SERIAL, STATE_LOG_TIMER);                        //Establish objects and logging string for the OPCs
-//Plantower PlanB(&PMSB_SERIAL, STATE_LOG_TIMER);                        //oops someone didn't use protection      
+Plantower PlanA(&PMSA_SERIAL, STATE_LOG_TIMER);                        //Establish objects and logging string for the OPCs    
 SPS SpsA(&SPSA_SERIAL);  
 R1 R1A(R1A_SLAVE_PIN);
 
@@ -265,7 +267,9 @@ void setup() {
 
   Serial.begin(9600);                                                  //USB Serial for debugging
   XBEE_SERIAL.begin(9600);                                             //Initialize Radio
+  BLUETOOTH_SERIAL.begin(9600);
   oledPrintAdd(oled, "XB Init");
+
 
   initGPS();                                                           //Initialize GPS
   oledPrintAdd(oled, "GPSInit");
@@ -290,8 +294,6 @@ void loop(){
   PlanA.readData();
 //  PlanB.readData();
   SmartUpdate();                                                       //System to update SMART Units
-
- // telemetry();
      
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
     ControlCounter = millis();
@@ -304,6 +306,7 @@ void loop(){
   if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
       StateLogCounter = millis();
 
+      vent();
       stateMachine();                                                    //Update state machine
       updateSensors();                                                   //Updates and logs all sensor data
       actHeat();                                                         //Controls active heating

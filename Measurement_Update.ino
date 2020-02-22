@@ -1,6 +1,7 @@
 //function to handle both retrieval of data from sensors, as well as recording it on the SD card
 void updateSensors() {
-  
+
+  telemetry();
   oledTime = millis();
   if(batHeatRelay.getState()==true){                                     //Relay Status Collection
     batHeat_Status = "ON";
@@ -33,7 +34,7 @@ void updateSensors() {
 
   OPCdata = PlanA.logUpdate();                                          //Populate a string with the OPC data
   OPCdata += ",=," + SpsA.logUpdate();
-//  OPCdata += ",=," + R1A.logUpdate();
+  OPCdata += ",=," + R1A.logUpdate();
 //  OPCdata += ",=," + N3A.logUpdate();
 
   data = "";
@@ -54,15 +55,21 @@ void updateSensors() {
   data += (String(PressurePSI,6) + "," + String(PressureATM,6) + ",");
   data += (batHeat_Status + "," + sensorHeat_Status + ",");
   data += (String(Control_Altitude) + ",");
-  data += (SmartLogA + "," + smartOneCut + "," + SmartLogB + "," + smartTwoCut + "," + String(ascent_rate) + "," + String(avg_ascent_rate) + ","  + stateString);
+  data += (String(ventConnect) + ',' + String(ventStatus) + ',' + String(resistorCut) + ',' + String(cutReason) + ',' + String(pingStatus));
+//  data += (SmartLogA + "," + smartOneCut + "," + SmartLogB + "," + smartTwoCut + ",");
+  data += (String(ascent_rate) + "," + String(avg_ascent_rate) + ","  + stateString);
   data += (",=," + OPCdata);
+  if (longOne){
+    data += (',' + longBoy);
+    longOne = false;
+  }
   openFlightlog();
   delay(100);
   
   Flog.println(data);
   closeFlightlog();
  
-  ChangeData=true;                                                     //Telling SmartController that we have logged the data
+//  ChangeData=true;                                                     //Telling SmartController that we have logged the data
   printData();
-  telemetry();
+
 }

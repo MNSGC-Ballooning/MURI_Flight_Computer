@@ -81,9 +81,9 @@
 #define R1A_SLAVE_PIN 15                                               //Chip Select pin for SPI for the R1
 #define XBEE_SERIAL Serial1                                            //Serial Pins
 #define UBLOX_SERIAL Serial2
-#define SPSA_SERIAL Serial3                                           
+#define SPSA_SERIAL Serial5                                           
 #define PMSA_SERIAL Serial4
-#define BLUETOOTH_SERIAL Serial5                                            
+#define BLUETOOTH_SERIAL Serial3                                            
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 #define RFD_BAUD 38400
 #define N3A_SLAVE_PIN 21
@@ -94,6 +94,8 @@
 //TIMERS
 #define CONTROL_LOOP_TIME 1000                                         //Control loop runs at 1.0 Hz
 #define STATE_LOG_TIMER 4000                                           //Log timer runs at 0.25 Hz
+#define TEST_LOG_TIMER 15000                                           
+#define LONG_TEST_TIMER 300000
 #define SCREEN_UPDATE_RATE 1000                                        //Rate of the screen updates
 #define MASTER_TIMER 270                                               //Ultimate Release Timer
 #define LOW_MAX_ALTITUDE_CUTDOWN_TIMER 10                              //Release SMARTs after 10 minutes if max alt is less than 80000ft
@@ -123,7 +125,7 @@
 #define WESTERN_BOUNDARY -94.63                                        //Longitude of St. James, MN
 #define NORTHERN_BOUNDARY 44.43                                        //Latitude of Montgomery, MN
 #define SOUTHERN_BOUNDARY 43.50                                        //Latitude of MN-IA Border 
-#define MAX_ALTITUDE  120000
+#define MAX_ALTITUDE  110000
 #define MIN_ALTITUDE  80000                                            //Minimum altitude of slow descent
 
 static bool SwitchedState = false;
@@ -174,21 +176,23 @@ float prev_alt_feet = 0;                                               //Previou
 /////////////////Control///////////////////
 ///////////////////////////////////////////
 //SMART
-String SmartData;                                                      //Just holds temporary copy of Smart data
-static String SmartLogA = "";                                          //Log everytime, is just data from smart
-static String SmartLogB = "";
-static bool CutA=false;                                                //Set to true to cut A SMART
-static bool CutB=false;                                                //Set to true to cut B SMART
-static bool ChangeData=true;                                           //Just set true after every data log
-SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0);           //Smart controller
-String smartOneString = "Primed";
-String smartTwoString = "Primed";
-String smartOneCut = "";
-String smartTwoCut = "";
+//String SmartData;                                                      //Just holds temporary copy of Smart data
+//static String SmartLogA = "";                                          //Log everytime, is just data from smart
+//static String SmartLogB = "";
+//static bool CutA=false;                                                //Set to true to cut A SMART
+//static bool CutB=false;                                                //Set to true to cut B SMART
+//static bool ChangeData=true;                                           //Just set true after every data log
+//SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0);           //Smart controller
+//String smartOneString = "Primed";
+//String smartTwoString = "Primed";
+//String smartOneCut = "";
+//String smartTwoCut = "";
 
 //Venting
-bool ventStatus = false;
 bool ventConnect = false;
+byte ventStatus = 0xFF;
+bool resistorCut = false;
+String cutReason = "";
 
 //Control Telemetry
 float ascent_rate = 0;                                                 //Ascent rate of payload in feet per minute
@@ -210,6 +214,10 @@ unsigned long screenUpdateTimer = 0;
 unsigned long oledTime = 0;                                            //Tracks the time of the main loop
 unsigned long ControlCounter = 0;
 unsigned long StateLogCounter = 0;
+unsigned long TestLogCounter = 0;
+unsigned long LongTestCounter = 0;
+unsigned long ventStamp = 0;
+unsigned long ventStamp2 = 0;
 static float masterClock = 0;                                          //Needs to be a float as this value is logged
 
 //Timer Booleans
@@ -220,8 +228,12 @@ boolean recovery = false;
 boolean coldBattery = false;
 boolean coldSensor = false;
 
-//RFD900
-char packetRecieve[100];
+//XBEE Pro
+//char packetRecieve[100];
+bool pingStatus = false;
+bool longOne = false;
+String longBoy = "";
+String telemData = "";
 
 
 ////////////////////////////////
@@ -239,7 +251,7 @@ boolean SDcard = true;
 Plantower PlanA(&PMSA_SERIAL, STATE_LOG_TIMER);                        //Establish objects and logging string for the OPCs    
 SPS SpsA(&SPSA_SERIAL);  
 R1 R1A(R1A_SLAVE_PIN);
-
+//N3 N3A(N3A_SLAVE_PIN);
 String OPCdata = "";
 
 //Thermocouple
@@ -292,14 +304,14 @@ void setup() {
 void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
   PlanA.readData();
-//  PlanB.readData();
-  SmartUpdate();                                                       //System to update SMART Units
+//  SmartUpdate();                                                       //System to update SMART Units
+  pingCheck();
      
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
     ControlCounter = millis();
     
-    SOCO.Cut(1,CutA);                                                  //Cut command logic for SMART
-    SOCO.Cut(2,CutB);
+//    SOCO.Cut(1,CutA);                                                  //Cut command logic for SMART
+//    SOCO.Cut(2,CutB);
     FixCheck();                                                        //Provide logic for GPS fix
   }
     
@@ -311,5 +323,14 @@ void loop(){
       updateSensors();                                                   //Updates and logs all sensor data
       actHeat();                                                         //Controls active heating
       oledUpdate();                                                      //Update screen
+  }  
+
+  if (millis() - TestLogCounter >= TEST_LOG_TIMER) {
+      TestLogCounter = millis();
+
+      ventTest();
+      telemetry();
+      bigSpam();
+      
   }  
 }

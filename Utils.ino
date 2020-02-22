@@ -69,27 +69,27 @@ void closeFlightlog() {                                                 //Close 
   }
 }
 
-void SmartUpdate(){
-      if (ChangeData){                                                  //System to request data from Smart A and B
-      SmartLogA="";
-      SOCO.RequestTemp(1);
-      smartTimer=millis();
-      while(millis()-smartTimer<150 && SmartLogA == "")
-      {
-        SmartLogA=SOCO.Response();
-      }
-      
-      SmartLogB="";
-      SOCO.RequestTemp(2);
-      smartTimer=millis();
-      while(millis()-smartTimer<150 && SmartLogB == "")
-      {
-        SmartLogB=SOCO.Response();
-      }
-
-      ChangeData=false;
-      }
-}
+//void SmartUpdate(){
+//      if (ChangeData){                                                  //System to request data from Smart A and B
+//      SmartLogA="";
+//      SOCO.RequestTemp(1);
+//      smartTimer=millis();
+//      while(millis()-smartTimer<150 && SmartLogA == "")
+//      {
+//        SmartLogA=SOCO.Response();
+//      }
+//      
+//      SmartLogB="";
+//      SOCO.RequestTemp(2);
+//      smartTimer=millis();
+//      while(millis()-smartTimer<150 && SmartLogB == "")
+//      {
+//        SmartLogB=SOCO.Response();
+//      }
+//
+//      ChangeData=false;
+//      }
+//}
 
 void printData(){
   Serial.println();
@@ -116,7 +116,7 @@ void printData(){
   Serial.println((String(GPS.getSats()) + ", " + String(GPS.getFixAge())));
   Serial.println("------------------------------");
   Serial.println("          Temperature");
-  Serial.println("   t1        t2        t3        t4        t5"); 
+  Serial.println("   t1        t2        t3");//        t4        t5"); 
   Serial.println((String(t1,4) + ", " +String(t2,4) + ", " + String(t3,4))); // + ", " + String(t4,4) + ", " + String(t5,4)));
   Serial.println("------------------------------");
   Serial.println("           Pressure");
@@ -130,10 +130,14 @@ void printData(){
   Serial.println(("         " + batHeat_Status + "                  " + sensorHeat_Status));
   Serial.print("Control Altitude: ");
   Serial.println(String(Control_Altitude));
-  Serial.print("Smart A: ");
-  Serial.println((SmartLogA + ", " + smartOneCut));
-  Serial.print("Smart B: ");
-  Serial.println((SmartLogB + ", " + smartTwoCut));
+//  Serial.print("Smart A: ");
+//  Serial.println((SmartLogA + ", " + smartOneCut));
+//  Serial.print("Smart B: ");
+//  Serial.println((SmartLogB + ", " + smartTwoCut));
+  Serial.print("Xbee Pro Status: ");
+  Serial.println(String(pingStatus));
+  Serial.print("Vent Status: ");
+  Serial.println(ventStatus,HEX);
   Serial.print("Instantaneous Ascent Rate: ");
   Serial.println(String(ascent_rate));
   Serial.print("Average Ascent Rate: ");
@@ -154,12 +158,12 @@ void printData(){
       } else {
         Serial.println("Bad Log");
       }
-//  Serial.print("R1 A: ");
-//      if (R1A.getLogQuality()){                                       //OPC Statuses
-//        Serial.println("Good Log");
-//      } else {
-//        Serial.println("Bad Log");
-//      }
+  Serial.print("R1 A: ");
+      if (R1A.getLogQuality()){                                       //OPC Statuses
+        Serial.println("Good Log");
+      } else {
+        Serial.println("Bad Log");
+      }
 //  Serial.print("N3 A: ");
 //      if (N3A.getLogQuality()){                                       //OPC Statuses
 //        Serial.println("Good Log");
@@ -195,15 +199,52 @@ void telemetry(){
   }
 }*/
 
-void telemetry(){
-  XBEE_SERIAL.print((String(flightMinutes()) + ',' + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," + String(alt_GPS, 1) + "," + String(GPS.getSats()) + "," + String(t1,4) + "," +String(t2,4) + "," + String(t3,4) + "," + String(-127.000) + "," + String("off") + OPCdata));
+void telemetry(){  
+  telemData = (String(flightMinutes()) + ',' + String(GPS.getLat(), 4) + "," + String(GPS.getLon(), 4) + "," + String(alt_GPS, 1) + "," + String(GPS.getSats()) + "," + String(t1,4) + "," +String(t2,4) + "," + String(t3,4) + "," + String(-127.000) + "," + String(resistorCut) + OPCdata + String(pingStatus));
+  XBEE_SERIAL.print(telemData);
+  pingStatus = false;
 }
 
+void pingCheck(){
+  if (XBEE_SERIAL.read() == 'P'){
+    pingStatus = true;
+  }
+}
+
+void bigSpam(){
+  if (millis() - LongTestCounter >= LONG_TEST_TIMER){
+    LongTestCounter = millis();
+    XBEE_SERIAL.write("We're no strangers to love You know the rules and so do I A full commitment's what I'm thinking of You wouldn't get this from any other guy I just wanna tell you how I'm feeling Gotta make you understand Never gonna give you up Never gonna let you down Never gonna run around and desert you Never gonna make you cry Never gonna say goodbye Never gonna tell a lie and hurt you We've known each other for so long Your heart's been aching but you're too shy to say it Inside we both know what's been going on We know the game and we're gonna play it And if you ask me how I'm feeling Don't tell me you're too blind to see Never gonna give you up Never gonna let you down Never gonna run around and desert you Never gonna make you cry Never gonna say goodbye Never gonna tell a lie and hurt you Never gonna give you up Never gonna let you down Never gonna run around and desert you Never gonna make you cry Never gonna say goodbye Never gonna tell a lie and hurt you Never gonna give, never gonna give (Give you up) (Ooh) Never gonna give, never gonna give (Give you up) We've known each other for so long Your heart's been aching but you're too shy to say it Inside we both know what's been going on We know the game and we're gonna play it I just wanna tell you how I'm feeling Gotta make you understand Never gonna give you up Never gonna let you down Never gonna run around and desert you Never gonna make you cry Never gonna say goodbye Never gonna tell a lie and hurt you Never gonna give you up Never gonna let you down Never gonna run around and desert you Never gonna make you cry Never gonna say goodbye Never gonna tell a lie and hurt you Never gonna give you up Never gonna let you down Never gonna run around and desert you Never gonna make you cry");
+    delay(100);
+    while (XBEE_SERIAL.available() > 0){
+      longOne += XBEE_SERIAL.read();
+    }
+    longBoy = true;
+  }
+}
 
 void vent(){
-  BLUETOOTH_SERIAL.print("PING");
+  BLUETOOTH_SERIAL.write('P');
   delay(15);
-  if (BLUETOOTH_SERIAL.read() == "PiNG"){
+  if (BLUETOOTH_SERIAL.read() == 'R'){
     ventConnect = true;
+    ventStatus = BLUETOOTH_SERIAL.read();
+    while(BLUETOOTH_SERIAL.available() > 0){
+      BLUETOOTH_SERIAL.read();
+    }
+  } else {
+    ventConnect = false;
+    ventStatus = 0xFF;
+  }
+}
+
+void ventTest(){
+  if (millis() - ventStamp > 60000 && ventStatus == 0x01){
+      ventStamp = millis();
+      BLUETOOTH_SERIAL.write('O');
+  }
+  else if (millis() - ventStamp > 30000 && ventStatus == 0x00){
+      ventStamp2 = millis();
+      BLUETOOTH_SERIAL.write('C');
   }
 }

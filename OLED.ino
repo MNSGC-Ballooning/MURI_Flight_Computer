@@ -84,15 +84,15 @@ void oledUpdate(){                                                      //Update
     }
     
     else if (screen == 2) {
-      if (SmartLogA != "") {                                              //Smart statuses
-        localDataPrint += "SMRTA=1";
+      if (ventConnect) {                                              //Smart statuses
+        localDataPrint += "VENT==1";
       } else {
-        localDataPrint += "SMRTA=0";
+        localDataPrint += "VENT==0";
       }
-      if (SmartLogB != "") {
-        localDataPrint += "SMRTB=1";
+      if (pingStatus) {
+        localDataPrint += "XBEEP=1";
       } else {
-        localDataPrint += "SMRTB=0";
+        localDataPrint += "XBEEP=0";
       }
 
       screen++;
@@ -110,11 +110,11 @@ void oledUpdate(){                                                      //Update
       } else {
         localDataPrint += "SA0";
       }
-//      if (R1A.getLogQuality()){
-//        localDataPrint+= "R1";
-//      } else {
-//        localDataPrint += "R0";
-//      }   
+      if (R1A.getLogQuality()){
+        localDataPrint+= "R1";
+      } else {
+        localDataPrint += "R0";
+      }   
 //
 //      if (N3A.getLogQuality()){
 //        localDataPrint+= "N1";

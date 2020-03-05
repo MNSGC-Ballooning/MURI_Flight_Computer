@@ -89,11 +89,6 @@ void oledUpdate(){                                                      //Update
       } else {
         localDataPrint += "VENT==0";
       }
-      if (pingStatus) {
-        localDataPrint += "XBEEP=1";
-      } else {
-        localDataPrint += "XBEEP=0";
-      }
 
       screen++;
       oledPrintNew(oled, localDataPrint);
@@ -105,22 +100,26 @@ void oledUpdate(){                                                      //Update
       } else {
         localDataPrint += "PA0 ";
       } 
+      if (PlanB.getLogQuality()){                           
+        localDataPrint += "PB1 ";
+      } else {
+        localDataPrint += "PB0 ";
+      } 
       if (SpsA.getLogQuality()){
         localDataPrint+= "SA1 ";
       } else {
-        localDataPrint += "SA0";
+        localDataPrint += "SA0 ";
       }
-      if (R1A.getLogQuality()){
-        localDataPrint+= "R1";
+      if (SpsB.getLogQuality()){
+        localDataPrint+= "SB1 ";
       } else {
-        localDataPrint += "R0";
+        localDataPrint += "SB0 ";
+      }
+      if (N3A.getLogQuality()){
+        localDataPrint+= "N1 ";
+      } else {
+        localDataPrint += "N0 ";
       }   
-//
-//      if (N3A.getLogQuality()){
-//        localDataPrint+= "N1";
-//      } else {
-//        localDataPrint += "N0";
-//      }   
 
       screen = 0;
       oledPrintNew(oled, localDataPrint);

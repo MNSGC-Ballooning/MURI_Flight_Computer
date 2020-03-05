@@ -78,12 +78,13 @@
 #define BAT_HEATER_ON 5
 #define BAT_HEATER_OFF 6
 #define HONEYWELL_PRESSURE A0                                          //Analog Honeywell Pressure Sensor
-#define R1A_SLAVE_PIN 15                                               //Chip Select pin for SPI for the R1
-#define XBEE_SERIAL Serial1                                            //Serial Pins
+#define N3A_SLAVE_PIN 15                                               //Chip Select pin for SPI for the R1
+#define SPSA_SERIAL Serial1                                            //Serial Pins
 #define UBLOX_SERIAL Serial2
-#define SPSA_SERIAL Serial5                                           
-#define PMSA_SERIAL Serial4
-#define BLUETOOTH_SERIAL Serial3                                            
+#define SPSB_SERIAL Serial5                                           
+#define PMSB_SERIAL Serial4
+#define PMSA_SERIAL Serial3   
+#define BLUETOOTH_SERIAL Serial6                                         
 #define PIN_RESET 17                                                   //The library assumes a reset pin is necessary. The Qwiic OLED has RST hard-wired, so pick an arbitrarty IO pin that is not being used
 #define RFD_BAUD 38400
 #define N3A_SLAVE_PIN 21
@@ -119,13 +120,16 @@
 //Control Constants
 #define HIGH_TEMP 16                                                   //Heater temperatures
 #define LOW_TEMP  10
+#define TERMINATE 0x54
+#define OPEN_VENT 0x4F
+#define CLOSE_VENT  0x43
 
 //Dimensional Boundaries
-#define EASTERN_BOUNDARY -92.97                                         //Longitude of Austin, MN
+#define EASTERN_BOUNDARY -93.22                                        //Longitude of Owatonna, MN
 #define WESTERN_BOUNDARY -94.63                                        //Longitude of St. James, MN
 #define NORTHERN_BOUNDARY 44.43                                        //Latitude of Montgomery, MN
-#define SOUTHERN_BOUNDARY 43.50                                        //Latitude of MN-IA Border 
-#define MAX_ALTITUDE  110000
+#define SOUTHERN_BOUNDARY 43.76                                        //Latitude of Clark's Grove, MN 
+#define MAX_ALTITUDE  100000
 #define MIN_ALTITUDE  80000                                            //Minimum altitude of slow descent
 
 static bool SwitchedState = false;
@@ -149,12 +153,10 @@ String batHeat_Status = "";
 OneWire oneWire1(ONE_WIRE_BUS);                                        //Temperature sensor wire busses
 OneWire oneWire2(TWO_WIRE_BUS);
 OneWire oneWire3(THREE_WIRE_BUS);
-//OneWire oneWire4(FOUR_WIRE_BUS);
 DallasTemperature sensor1(&oneWire1);                                  //Temperature sensors
 DallasTemperature sensor2(&oneWire2);
 DallasTemperature sensor3(&oneWire3);
-//DallasTemperature sensor4(&oneWire4);
-float t1,t2,t3,t4,t5 = -127.00;                                                  //Temperature values
+float t1,t2,t3 = -127.00;                                                  //Temperature values
 
 //Honeywell Pressure Sensor
 float pressureSensor;                                                  //Analog number given by sensor
@@ -168,31 +170,18 @@ uint8_t FixStatus= NoFix;
 float alt_GPS = 0;                                                     //Altitude calculated by the GPS in feet
 float prev_alt_feet = 0;                                               //Previous calculated altitude
 
-//RFD900//
-//String packet;
-//bool activeTelemetry = false;
-
 ///////////////////////////////////////////
 /////////////////Control///////////////////
 ///////////////////////////////////////////
-//SMART
-//String SmartData;                                                      //Just holds temporary copy of Smart data
-//static String SmartLogA = "";                                          //Log everytime, is just data from smart
-//static String SmartLogB = "";
-//static bool CutA=false;                                                //Set to true to cut A SMART
-//static bool CutB=false;                                                //Set to true to cut B SMART
-//static bool ChangeData=true;                                           //Just set true after every data log
-//SmartController SOCO = SmartController(2,XBEE_SERIAL,200.0);           //Smart controller
-//String smartOneString = "Primed";
-//String smartTwoString = "Primed";
-//String smartOneCut = "";
-//String smartTwoCut = "";
-
 //Venting
 bool ventConnect = false;
 byte ventStatus = 0xFF;
+byte resistStatus = 0xFF;
+uint16_t ventTime = 0;
 bool resistorCut = false;
 String cutReason = "";
+bool ventOpen = false;
+byte ventCommand = 0x00;
 
 //Control Telemetry
 float ascent_rate = 0;                                                 //Ascent rate of payload in feet per minute
@@ -214,10 +203,6 @@ unsigned long screenUpdateTimer = 0;
 unsigned long oledTime = 0;                                            //Tracks the time of the main loop
 unsigned long ControlCounter = 0;
 unsigned long StateLogCounter = 0;
-unsigned long TestLogCounter = 0;
-unsigned long LongTestCounter = 0;
-unsigned long ventStamp = 0;
-unsigned long ventStamp2 = 0;
 static float masterClock = 0;                                          //Needs to be a float as this value is logged
 
 //Timer Booleans
@@ -227,13 +212,6 @@ boolean recovery = false;
 //Heating
 boolean coldBattery = false;
 boolean coldSensor = false;
-
-//XBEE Pro
-//char packetRecieve[100];
-bool pingStatus = false;
-bool longOne = false;
-String longBoy = "";
-String telemData = "";
 
 
 ////////////////////////////////
@@ -248,14 +226,12 @@ boolean SDcard = true;
 ////////////////////////
 //////////OPCs//////////
 ////////////////////////
-Plantower PlanA(&PMSA_SERIAL, STATE_LOG_TIMER);                        //Establish objects and logging string for the OPCs    
+Plantower PlanA(&PMSA_SERIAL, STATE_LOG_TIMER);                        //Establish objects and logging string for the OPCs 
+Plantower PlanB(&PMSB_SERIAL, STATE_LOG_TIMER);
 SPS SpsA(&SPSA_SERIAL);  
-R1 R1A(R1A_SLAVE_PIN);
-//N3 N3A(N3A_SLAVE_PIN);
+SPS SpsB(&SPSB_SERIAL);   
+N3 N3A(N3A_SLAVE_PIN);
 String OPCdata = "";
-
-//Thermocouple
-//Adafruit_MAX31856 thermocouple = Adafruit_MAX31856(THERMO_SLAVE_PIN);  //Thermocouple temperature sensor
 
 
 ////////////////////////////////////////////////
@@ -278,7 +254,6 @@ void setup() {
   oledPrintNew(oled, "SD Init");
 
   Serial.begin(9600);                                                  //USB Serial for debugging
-  XBEE_SERIAL.begin(9600);                                             //Initialize Radio
   BLUETOOTH_SERIAL.begin(9600);
   oledPrintAdd(oled, "XB Init");
 
@@ -304,33 +279,20 @@ void setup() {
 void loop(){
   GPS.update();                                                        //Update GPS and plantower on private loops
   PlanA.readData();
-//  SmartUpdate();                                                       //System to update SMART Units
-  pingCheck();
+  PlanB.readData();
      
   if (millis()-ControlCounter>=CONTROL_LOOP_TIME){                     //Control loop, runs slower, to ease stress on certain tasks
     ControlCounter = millis();
     
-//    SOCO.Cut(1,CutA);                                                  //Cut command logic for SMART
-//    SOCO.Cut(2,CutB);
     FixCheck();                                                        //Provide logic for GPS fix
   }
     
   if (millis() - StateLogCounter >= STATE_LOG_TIMER) {
       StateLogCounter = millis();
 
-      vent();
       stateMachine();                                                    //Update state machine
       updateSensors();                                                   //Updates and logs all sensor data
       actHeat();                                                         //Controls active heating
       oledUpdate();                                                      //Update screen
-  }  
-
-  if (millis() - TestLogCounter >= TEST_LOG_TIMER) {
-      TestLogCounter = millis();
-
-      ventTest();
-      telemetry();
-      bigSpam();
-      
-  }  
+  }   
 }

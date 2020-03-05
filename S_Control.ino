@@ -114,8 +114,6 @@ void stateMachine(){
           if(skyCheck>5)
           {
              cutResistor();                                                           
-//           CutSMARTA();                                                //If the payload is consistenly above max mission alt., the first balloon is released
-//           smartTwoCut = "Reached Altitude Ceiling";
            skyCheck = 0;
           }
         }
@@ -145,11 +143,6 @@ void stateMachine(){
           if(floorCheck>5)                                             //If consistently below data collection range then release all balloons again just in case
           {
               cutResistor();
-//            CutSMARTA();
-//            smartOneCut = "Reached Slow Descent Floor";
-//            CutSMARTB();
-//            smartTwoCut = "Reached Slow Descent Floor";
-//            floorCheck = 0;
           }
         }
         else
@@ -159,10 +152,6 @@ void stateMachine(){
 
         if (LowMaxAltitude && ((millis() - LowAltitudeReleaseTimer) > (LOW_MAX_ALTITUDE_CUTDOWN_TIMER*MINUTES_TO_MILLIS))) {
             cutResistor();
-//          CutSMARTA();                                                 //Timer Backup system- comes standard on your balloon today!
-//          smartOneCut = "Slow Descent Timer Below 80k";
-//          CutSMARTB();
-//          smartTwoCut = "Slow Descent Timer Below 80k";
         }
         
         break;
@@ -175,11 +164,6 @@ void stateMachine(){
           snail++;
           if (snail > 20) {                                            //If your ascent rate is too slow consistently, cut!
              cutResistor();
-//           CutSMARTA();
-//           smartOneCut = "Too Slow Of An Ascent Rate";
-//           CutSMARTB();
-//           smartTwoCut = "Too Slow Of An Ascent Rate";
-//           snail = 0;
           }  
         }
         else 
@@ -199,10 +183,6 @@ void stateMachine(){
         if(millis()-castAway >= 600000)
         {
             cutResistor();
-//          CutSMARTA();
-//          smartOneCut = "Castaway";
-//          CutSMARTB();
-//          smartTwoCut = "Castaway";
         }
         break;
 
@@ -318,19 +298,19 @@ void stateSwitch(){
   } 
 }
 
-//void CutSMARTA() {
-//  CutA=true;
-//  smartOneString = "RELEASED";
-//}
-//
-//void CutSMARTB() {
-//  CutB=true;
-//  smartTwoString = "RELEASED";
-//}
+void openVent(){
+  ventOpen = true;
+  ventCommand = OPEN_VENT;
+}
+
+void closeVent(){
+  ventOpen = false;
+  ventCommand = CLOSE_VENT;
+}
 
 void cutResistor() {
   resistorCut = true;
-  BLUETOOTH_SERIAL.write('T');
+  ventCommand = TERMINATE;
 }
 
 void AbortControl() {
@@ -342,10 +322,7 @@ void AbortControl() {
   {
       cutResistor();
       cutReason = "Master Timer";
-//    CutSMARTA();
-//    smartOneCut = "Master Timer";
-//    CutSMARTB();
-//    smartTwoCut = "Master Timer";
+
     muriState = STATE_MURI_RECOVERY;
     stateString = "RECOVERY";
   }
@@ -359,10 +336,6 @@ void AbortControl() {
          {
              cutResistor();
              cutReason = "Reached Termination Longitude";
-//           CutSMARTA();
-//           smartOneCut = "Reached Termination Longitude";
-//           CutSMARTB();
-//           smartTwoCut = "Reached Termination Longitude";
            termination_longitude_check = 0;
          }
        }
@@ -378,10 +351,7 @@ void AbortControl() {
          {
              cutResistor();
              cutReason = "Reached Termination Latitude";
-//           CutSMARTA();
-//           smartOneCut = "Reached Termination Latitude";
-//           CutSMARTB();
-//           smartTwoCut = "Reached Termination Latitude";
+
            termination_latitude_check = 0;
          }
        }
@@ -394,18 +364,10 @@ void AbortControl() {
    if (muriState == STATE_MURI_ASCENT && ((millis() - ascentTimer) > (LONG_ASCENT_TIMER*MINUTES_TO_MILLIS))) {
        cutResistor();
        cutReason = "Ascent Timer";
-//     CutSMARTA();                                                      //Cut down if ascent takes too long
-//     smartOneCut = "Ascent Timer";
-//     CutSMARTB();
-//     smartTwoCut = "Ascent Timer";
    }
 
    if (muriState == STATE_MURI_SLOW_DESCENT && ((millis() - descentTimer) > (LONG_DESCENT_TIMER*MINUTES_TO_MILLIS))) {
         cutResistor();
         cutReason = "Descent Timer";
-//      CutSMARTA();                                                     //Cut down if slow descent takes too long
-//      smartOneCut = "Descent Timer";
-//      CutSMARTB();
-//      smartTwoCut = "Descent Timer";
    }
 }

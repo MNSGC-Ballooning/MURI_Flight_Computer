@@ -95,6 +95,6 @@ void initOPCs() {                                                       //Sets u
   Serial.println("SPSA Initialized");
   SpsB.initOPC();
   Serial.println("SPSB Initialized");
-  N3A.initOPC('p');
+  N3A.initOPC();
   Serial.println("N3A Initialized");
 }

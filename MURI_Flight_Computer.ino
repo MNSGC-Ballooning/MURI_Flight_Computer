@@ -230,7 +230,7 @@ Plantower PlanA(&PMSA_SERIAL, STATE_LOG_TIMER);                        //Establi
 Plantower PlanB(&PMSB_SERIAL, STATE_LOG_TIMER);
 SPS SpsA(&SPSA_SERIAL);  
 SPS SpsB(&SPSB_SERIAL);   
-N3 N3A(N3A_SLAVE_PIN);
+R1 N3A(N3A_SLAVE_PIN);
 String OPCdata = "";
 
 
